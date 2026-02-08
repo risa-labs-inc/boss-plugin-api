@@ -3,95 +3,69 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     kotlin("jvm") version "2.3.0"
     kotlin("plugin.serialization") version "2.3.0"
-    id("org.jetbrains.compose") version "1.7.3"
+    id("org.jetbrains.compose") version "1.10.0"
     id("org.jetbrains.kotlin.plugin.compose") version "2.3.0"
 }
 
 group = "ai.rever.boss.plugin.bundled"
 version = "1.0.14"
 
-repositories {
-    mavenCentral()
-    google()
-    maven("https://packages.jetbrains.team/maven/p/ij/intellij-dependencies")
-}
-
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
 }
 
 kotlin {
-    jvmToolchain(17)
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_17)
     }
 }
 
+repositories {
+    google()
+    mavenCentral()
+    maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+}
+
 dependencies {
-    // BOSS Plugin API from Maven Central
+    // Plugin API from Maven Central
     implementation("com.risaboss:plugin-api-desktop:1.0.14")
 
-    // Compose runtime for UI components
+    // Compose dependencies
+    implementation(compose.desktop.currentOs)
     implementation(compose.runtime)
+    implementation(compose.ui)
     implementation(compose.foundation)
     implementation(compose.material)
 
-    // Coroutines for async operations
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
+    // Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
 
-    // Serialization for manifest parsing
+    // Serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
 }
 
-// Task to build the bundled plugin JAR
+// Task to build plugin JAR with compiled classes only
 tasks.register<Jar>("buildPluginJar") {
-    group = "build"
-    description = "Creates the plugin JAR for distribution"
-
-    archiveBaseName.set("boss-plugin-api")
-    archiveVersion.set(version.toString())
-    archiveClassifier.set("")
-
-    from(sourceSets.main.get().output)
-
-    // Include resources (especially META-INF/boss-plugin/plugin.json)
-    from("src/main/resources")
-
-    // Ensure plugin.json is in the correct location
+    archiveFileName.set("boss-plugin-api-${version}.jar")
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
     manifest {
         attributes(
             "Implementation-Title" to "BOSS Plugin API",
             "Implementation-Version" to version,
-            "Implementation-Vendor" to "Risa Labs Inc.",
-            "Plugin-Id" to "ai.rever.boss.plugin.api",
-            "Plugin-Version" to version
+            "Main-Class" to "ai.rever.boss.plugin.bundled.api.BossPluginAPIPlugin"
         )
     }
+
+    // Include compiled classes
+    from(sourceSets.main.get().output)
+
+    // Include plugin manifest
+    from("src/main/resources")
 }
 
-// Build the plugin JAR when building the project
-tasks.named("build") {
+tasks.build {
     dependsOn("buildPluginJar")
-}
-
-// Task to copy the plugin JAR to the BOSS plugins directory for testing
-tasks.register<Copy>("installLocal") {
-    group = "distribution"
-    description = "Installs the plugin JAR to ~/.boss/plugins/ for local testing"
-
-    dependsOn("buildPluginJar")
-
-    from(layout.buildDirectory.dir("libs")) {
-        include("boss-plugin-api-*.jar")
-        exclude("*-sources.jar", "*-javadoc.jar")
-    }
-
-    into(System.getProperty("user.home") + "/.boss/plugins")
-
-    doLast {
-        println("Installed plugin to: ${System.getProperty("user.home")}/.boss/plugins/")
-    }
 }

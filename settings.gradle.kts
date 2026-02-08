@@ -2,10 +2,10 @@ rootProject.name = "boss-plugin-api"
 
 pluginManagement {
     repositories {
+        gradlePluginPortal()
         google()
         mavenCentral()
-        gradlePluginPortal()
-        maven("https://packages.jetbrains.team/maven/p/ij/intellij-dependencies")
+        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     }
 }
 
@@ -13,6 +13,6 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        maven("https://packages.jetbrains.team/maven/p/ij/intellij-dependencies")
+        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     }
 }

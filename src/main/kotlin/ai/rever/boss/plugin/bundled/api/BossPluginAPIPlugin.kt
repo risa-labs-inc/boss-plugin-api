@@ -76,7 +76,7 @@ class BossPluginAPIPlugin : DynamicPlugin {
         /**
          * Current version of the plugin (matches plugin-api version).
          */
-        const val VERSION = "1.0.14"
+        const val VERSION = "1.0.15"
 
         /**
          * Load priority - system plugins use 0-10, this uses 0 as the core API.

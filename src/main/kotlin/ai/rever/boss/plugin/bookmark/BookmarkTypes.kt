@@ -1,6 +1,7 @@
 package ai.rever.boss.plugin.bookmark
 
 import ai.rever.boss.plugin.workspace.TabConfig
+import androidx.compose.runtime.Immutable
 import kotlinx.serialization.Serializable
 import kotlin.time.Clock
 
@@ -10,6 +11,7 @@ import kotlin.time.Clock
  * @property workspaceName The name of the target workspace
  * @property panelId The target panel ID within the workspace (null = use active panel)
  */
+@Immutable
 @Serializable
 data class WorkspacePanelTarget(
     val workspaceName: String,
@@ -34,6 +36,7 @@ data class WorkspacePanelTarget(
  * @property createdAt Creation timestamp
  * @property lastAccessedAt Updated when bookmark is clicked
  */
+@Immutable
 @Serializable
 data class Bookmark(
     val id: String = generateId(),
@@ -82,6 +85,7 @@ data class Bookmark(
  * @property isFavorite Is this the special "Favorites" collection?
  * @property createdAt Creation timestamp
  */
+@Immutable
 @Serializable
 data class BookmarkCollection(
     val id: String = generateId(),
@@ -143,6 +147,7 @@ data class BookmarkCollection(
  * @property workspaceName The workspace's display name
  * @property markedAt When the workspace was marked as favorite
  */
+@Immutable
 @Serializable
 data class FavoriteWorkspace(
     val workspaceId: String,

@@ -489,6 +489,45 @@ interface PluginContext {
      * @param api The API implementation to register
      */
     fun registerPluginAPI(api: Any) {}
+
+    // ============================================================
+    // SEARCH PROVIDER REGISTRATION
+    // These methods enable plugins to contribute to global search.
+    // ============================================================
+
+    /**
+     * Register a search provider for global search.
+     *
+     * Plugins can contribute to the global search by registering a
+     * SearchProvider. When the user searches, all registered providers
+     * are queried and results are aggregated.
+     *
+     * Example usage:
+     * ```kotlin
+     * class MySearchProvider : SearchProvider {
+     *     override val providerId = "my-plugin"
+     *     override val displayName = "My Plugin"
+     *     override suspend fun search(query: String, limit: Int) = ...
+     * }
+     *
+     * override fun register(context: PluginContext) {
+     *     context.registerSearchProvider(MySearchProvider())
+     * }
+     * ```
+     *
+     * @param provider The search provider to register
+     */
+    fun registerSearchProvider(provider: SearchProvider) {}
+
+    /**
+     * Unregister a search provider.
+     *
+     * Called automatically when a plugin is disposed, but can also
+     * be called manually if needed.
+     *
+     * @param providerId The ID of the provider to unregister
+     */
+    fun unregisterSearchProvider(providerId: String) {}
 }
 
 /**

@@ -1,5 +1,6 @@
 package ai.rever.boss.plugin.workspace
 
+import androidx.compose.runtime.Immutable
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -16,6 +17,7 @@ import kotlin.time.Clock
  * @property initialCommand Command to run on start for terminal tabs
  * @property workingDirectory Working directory for terminal tabs
  */
+@Immutable
 @Serializable
 data class TabConfig(
     val type: String,
@@ -33,6 +35,7 @@ data class TabConfig(
  * @property id Unique identifier for the panel
  * @property tabs List of tab configurations in this panel
  */
+@Immutable
 @Serializable
 data class PanelConfig(
     val id: String,
@@ -43,11 +46,13 @@ data class PanelConfig(
  * Represents a split layout configuration.
  * Can be a single panel or a vertical/horizontal split of two layouts.
  */
+@Immutable
 @Serializable
 sealed class SplitConfig {
     /**
      * A layout with a single panel.
      */
+    @Immutable
     @Serializable
     data class SinglePanel(
         val panel: PanelConfig
@@ -56,6 +61,7 @@ sealed class SplitConfig {
     /**
      * A vertical split with left and right layouts.
      */
+    @Immutable
     @Serializable
     data class VerticalSplit(
         val left: SplitConfig,
@@ -65,6 +71,7 @@ sealed class SplitConfig {
     /**
      * A horizontal split with top and bottom layouts.
      */
+    @Immutable
     @Serializable
     data class HorizontalSplit(
         val top: SplitConfig,
@@ -102,6 +109,7 @@ fun SplitConfig.extractPanels(prefix: String = ""): List<Pair<String, String>> {
  * @property maxLength Maximum length of breadcrumb text
  * @property separator Separator character between breadcrumb segments
  */
+@Immutable
 @Serializable
 data class BreadcrumbConfig(
     val enabled: Boolean = true,
@@ -122,6 +130,7 @@ data class BreadcrumbConfig(
  * @property timestamp Creation/modification timestamp
  * @property projectPath Project path associated with this workspace
  */
+@Immutable
 @Serializable
 data class LayoutWorkspace(
     val id: String = "",

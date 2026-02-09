@@ -2,7 +2,7 @@
     "manifestVersion": 1,
     "pluginId": "ai.rever.boss.plugin.api",
     "displayName": "BOSS Plugin API",
-    "version": "1.0.18",
+    "version": "1.0.19",
     "apiVersion": "1.0.18",
     "mainClass": "ai.rever.boss.plugin.bundled.api.BossPluginAPIPlugin",
     "type": "hybrid",

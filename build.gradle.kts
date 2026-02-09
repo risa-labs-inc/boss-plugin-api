@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "ai.rever.boss.plugin.bundled"
-version = "1.0.18"
+version = "1.0.20"
 
 java {
     toolchain {

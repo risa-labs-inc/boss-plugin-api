@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "ai.rever.boss.plugin.bundled"
-version = "1.0.15"
+version = "1.0.16"
 
 java {
     toolchain {
@@ -29,15 +29,17 @@ repositories {
 }
 
 dependencies {
-    // Plugin API from Maven Central
-    implementation("com.risaboss:plugin-api-desktop:1.0.14")
-
     // Compose dependencies
     implementation(compose.desktop.currentOs)
     implementation(compose.runtime)
     implementation(compose.ui)
     implementation(compose.foundation)
     implementation(compose.material)
+    implementation(compose.materialIconsExtended)
+
+    // Decompose for ComponentContext
+    implementation("com.arkivanov.decompose:decompose:3.3.0")
+    implementation("com.arkivanov.essenty:lifecycle:2.5.0")
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")

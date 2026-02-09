@@ -113,4 +113,11 @@ interface PluginLoaderDelegate {
      * @return true if successfully disabled
      */
     suspend fun disablePlugin(pluginId: String): Boolean
+
+    /**
+     * Get the current user's access token for authenticated API calls.
+     *
+     * @return The access token if authenticated, null otherwise
+     */
+    fun getAccessToken(): String?
 }

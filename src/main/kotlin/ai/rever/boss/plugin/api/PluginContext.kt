@@ -227,15 +227,6 @@ interface PluginContext {
         get() = null
 
     /**
-     * Optional terminal content provider for the terminal panel plugin.
-     *
-     * Returns null if terminal functionality is not available.
-     * Dynamic plugins can use this for the terminal panel.
-     */
-    val terminalContentProvider: TerminalContentProvider?
-        get() = null
-
-    /**
      * Optional panel event provider for plugins that need to trigger panel events.
      *
      * Returns null if panel event functionality is not available.
@@ -330,15 +321,6 @@ interface PluginContext {
      * is handled by the plugin itself.
      */
     val screenCaptureProvider: ScreenCaptureProvider?
-        get() = null
-
-    /**
-     * Optional terminal tab content provider for terminal tab plugins.
-     *
-     * Returns null if terminal tab functionality is not available.
-     * Dynamic terminal tab plugins can use this to render persistent terminal content.
-     */
-    val terminalTabContentProvider: TerminalTabContentProvider?
         get() = null
 
     /**

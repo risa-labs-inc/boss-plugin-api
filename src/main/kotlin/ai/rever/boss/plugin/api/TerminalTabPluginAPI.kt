@@ -2,7 +2,9 @@ package ai.rever.boss.plugin.api
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.emptyFlow
 
 /**
  * Plugin API exposed by the terminal-tab plugin for other plugins and the host to consume.
@@ -247,6 +249,259 @@ interface TerminalTabPluginAPI {
      */
     @Composable
     fun TerminalOnboardingWizard(onDismiss: () -> Unit, onComplete: () -> Unit) {}
+
+    // ============================================================
+    // TERMINAL SETTINGS MANAGEMENT
+    // ============================================================
+
+    /**
+     * Get the current terminal font size.
+     * @return Font size in points, or -1 if not available
+     */
+    fun getTerminalFontSize(): Float = -1f
+
+    /**
+     * Set the terminal font size.
+     *
+     * @param size Font size in points
+     * @return true if the font size was set successfully
+     */
+    fun setTerminalFontSize(size: Float): Boolean = false
+
+    /**
+     * Get the current terminal font family name.
+     * @return Font family name, or empty string if not available
+     */
+    fun getTerminalFontFamily(): String = ""
+
+    /**
+     * Set the terminal font family.
+     *
+     * @param family Font family name
+     * @return true if the font family was set successfully
+     */
+    fun setTerminalFontFamily(family: String): Boolean = false
+
+    /**
+     * Check if terminal onboarding has been completed.
+     * @return true if onboarding is completed, true by default for backward compatibility
+     */
+    fun isOnboardingCompleted(): Boolean = true
+
+    // ============================================================
+    // TERMINAL TAB MANAGEMENT
+    // ============================================================
+
+    /**
+     * List all tabs in a terminal instance.
+     *
+     * @param windowId The window ID
+     * @param terminalId The terminal ID
+     * @return List of tab information, or empty list if terminal not found
+     */
+    fun listTabs(windowId: String, terminalId: String): List<TerminalTabInfo> = emptyList()
+
+    /**
+     * Switch to a specific tab by its ID.
+     *
+     * @param windowId The window ID
+     * @param terminalId The terminal ID
+     * @param tabId The tab ID to switch to
+     * @return true if the tab was found and switched to
+     */
+    fun switchToTab(windowId: String, terminalId: String, tabId: String): Boolean = false
+
+    /**
+     * Get the index of the currently active tab.
+     *
+     * @param windowId The window ID
+     * @param terminalId The terminal ID
+     * @return The active tab index (0-based), or -1 if terminal not found
+     */
+    fun getActiveTabIndex(windowId: String, terminalId: String): Int = -1
+
+    /**
+     * Get the number of tabs in a terminal instance.
+     *
+     * @param windowId The window ID
+     * @param terminalId The terminal ID
+     * @return The tab count, or 0 if terminal not found
+     */
+    fun getTabCount(windowId: String, terminalId: String): Int = 0
+
+    /**
+     * Create a new terminal tab programmatically.
+     *
+     * @param windowId The window ID
+     * @param terminalId The terminal ID of the tabbed terminal instance
+     * @param workingDirectory Optional working directory for the new tab
+     * @param initialCommand Optional command to run after the tab starts
+     * @return The tab ID of the newly created tab, or null if creation failed
+     */
+    fun createTab(
+        windowId: String,
+        terminalId: String,
+        workingDirectory: String? = null,
+        initialCommand: String? = null
+    ): String? = null
+
+    /**
+     * Get the working directory of the active terminal tab.
+     *
+     * @param windowId The window ID
+     * @param terminalId The terminal ID
+     * @return The working directory path, or null if not available
+     */
+    fun getActiveWorkingDirectory(windowId: String, terminalId: String): String? = null
+
+    // ============================================================
+    // SHELL UTILITIES
+    // ============================================================
+
+    /**
+     * Get the default shell for the current platform.
+     * @return The shell path (e.g., "/bin/zsh", "/bin/bash", "cmd.exe")
+     */
+    fun getDefaultShell(): String = ""
+
+    /**
+     * Check if the current platform is Windows.
+     * @return true if running on Windows
+     */
+    fun isWindows(): Boolean = false
+
+    // ============================================================
+    // SPLIT PANE MANAGEMENT (T6)
+    // ============================================================
+
+    /**
+     * Split the focused pane vertically (left/right) in the specified tab.
+     *
+     * @param windowId The window ID
+     * @param terminalId The terminal ID
+     * @param tabId Optional tab ID (null = active tab)
+     * @return Session ID of the new pane, or null if split failed
+     */
+    fun splitVertical(windowId: String, terminalId: String, tabId: String? = null): String? = null
+
+    /**
+     * Split the focused pane horizontally (top/bottom) in the specified tab.
+     *
+     * @param windowId The window ID
+     * @param terminalId The terminal ID
+     * @param tabId Optional tab ID (null = active tab)
+     * @return Session ID of the new pane, or null if split failed
+     */
+    fun splitHorizontal(windowId: String, terminalId: String, tabId: String? = null): String? = null
+
+    /**
+     * Close the focused pane in the specified tab.
+     *
+     * @param windowId The window ID
+     * @param terminalId The terminal ID
+     * @param tabId Optional tab ID (null = active tab)
+     * @return true if pane was closed
+     */
+    fun closeFocusedPane(windowId: String, terminalId: String, tabId: String? = null): Boolean = false
+
+    /**
+     * Get the number of panes in the specified tab.
+     *
+     * @param windowId The window ID
+     * @param terminalId The terminal ID
+     * @param tabId Optional tab ID (null = active tab)
+     * @return Pane count (1 if no splits, 0 if tab not found)
+     */
+    fun getPaneCount(windowId: String, terminalId: String, tabId: String? = null): Int = 0
+
+    /**
+     * Check if the specified tab has split panes.
+     *
+     * @param windowId The window ID
+     * @param terminalId The terminal ID
+     * @param tabId Optional tab ID (null = active tab)
+     * @return true if tab has split panes
+     */
+    fun hasSplitPanes(windowId: String, terminalId: String, tabId: String? = null): Boolean = false
+
+    /**
+     * Write text to the focused pane in the specified tab.
+     *
+     * @param windowId The window ID
+     * @param terminalId The terminal ID
+     * @param text The text to write
+     * @param tabId Optional tab ID (null = active tab)
+     * @return true if text was written
+     */
+    fun writeToFocusedPane(windowId: String, terminalId: String, text: String, tabId: String? = null): Boolean = false
+
+    // ============================================================
+    // REACTIVE STATE (T7)
+    // ============================================================
+
+    /**
+     * Get a reactive flow of terminal tab information.
+     * Updates whenever tabs are added/removed/renamed or connection state changes.
+     *
+     * @param windowId The window ID
+     * @param terminalId The terminal ID
+     * @return StateFlow of tab info list, or null if terminal not found
+     */
+    fun getTabsFlow(windowId: String, terminalId: String): Flow<List<TerminalTabInfo>>? = null
+
+    /**
+     * Get a reactive flow of the active tab index.
+     *
+     * @param windowId The window ID
+     * @param terminalId The terminal ID
+     * @return StateFlow of active tab index, or null if terminal not found
+     */
+    fun getActiveTabIndexFlow(windowId: String, terminalId: String): Flow<Int>? = null
+}
+
+/**
+ * Information about a terminal tab.
+ */
+data class TerminalTabInfo(
+    /** Unique identifier of the tab. */
+    val id: String,
+    /** Display title of the tab. */
+    val title: String,
+    /** Whether this tab is currently active/selected. */
+    val isActive: Boolean,
+    /** Zero-based index of the tab. */
+    val index: Int
+)
+
+/**
+ * Structured information about a terminal hyperlink.
+ * Mirrors BossTerm's HyperlinkInfo with plugin-API-safe types.
+ */
+data class TerminalHyperlinkInfo(
+    /** The URL or path of the hyperlink. */
+    val url: String,
+    /** The type of hyperlink. */
+    val type: TerminalHyperlinkType,
+    /** The matched text in the terminal output. */
+    val matchedText: String = "",
+    /** Whether this link points to a file. */
+    val isFile: Boolean = false,
+    /** Whether this link points to a folder. */
+    val isFolder: Boolean = false,
+    /** The URL scheme (e.g., "http", "file"). */
+    val scheme: String = ""
+)
+
+/**
+ * Type of terminal hyperlink.
+ */
+enum class TerminalHyperlinkType {
+    HTTP,
+    FILE,
+    FOLDER,
+    EMAIL,
+    FTP,
+    CUSTOM
 }
 
 /**

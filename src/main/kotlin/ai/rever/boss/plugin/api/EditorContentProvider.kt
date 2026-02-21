@@ -268,6 +268,201 @@ interface EditorContentProvider {
      * @return List of font family names
      */
     fun getAvailableFonts(): List<String> = listOf("JetBrains Mono", "Fira Code", "Source Code Pro", "Menlo", "Monaco")
+
+    // ============ Phase 3: Minimap Settings ============
+
+    /**
+     * Check if the minimap (code overview) is visible.
+     * @return true if the minimap is visible, false otherwise
+     */
+    fun isMinimapVisible(): Boolean = false
+
+    /**
+     * Show or hide the minimap (code overview).
+     *
+     * @param visible true to show the minimap, false to hide it
+     */
+    fun setMinimapVisible(visible: Boolean) {}
+
+    /**
+     * Get the current minimap width in pixels.
+     * @return Minimap width in pixels
+     */
+    fun getMinimapWidth(): Int = 80
+
+    /**
+     * Set the minimap width in pixels.
+     * Valid range is 40..300.
+     *
+     * @param width Minimap width in pixels
+     */
+    fun setMinimapWidth(width: Int) {}
+
+    // ============ Phase 3: Line Spacing ============
+
+    /**
+     * Get the current editor line spacing multiplier.
+     * @return Line spacing multiplier (e.g., 1.2 for 120%)
+     */
+    fun getLineSpacing(): Float = 1.2f
+
+    /**
+     * Set the editor line spacing multiplier.
+     * Valid range is 1.0..3.0.
+     *
+     * @param spacing Line spacing multiplier
+     */
+    fun setLineSpacing(spacing: Float) {}
+
+    // ============ Phase 3: Font Rendering ============
+
+    /**
+     * Check if font ligatures are enabled.
+     * @return true if ligatures are enabled
+     */
+    fun isLigaturesEnabled(): Boolean = true
+
+    /**
+     * Enable or disable font ligatures.
+     *
+     * @param enabled true to enable ligatures
+     */
+    fun setLigaturesEnabled(enabled: Boolean) {}
+
+    /**
+     * Check if font antialiasing is enabled.
+     * @return true if antialiasing is enabled
+     */
+    fun isAntialiasingEnabled(): Boolean = true
+
+    /**
+     * Enable or disable font antialiasing.
+     *
+     * @param enabled true to enable antialiasing
+     */
+    fun setAntialiasingEnabled(enabled: Boolean) {}
+
+    // ============ Phase 3: Search State ============
+
+    /**
+     * Get the current search query in the focused editor.
+     * @return The search query string, or null if no search is active
+     */
+    fun getSearchQuery(): String? = null
+
+    /**
+     * Get the number of search matches in the focused editor.
+     * @return The match count, or 0 if no search is active
+     */
+    fun getSearchMatchCount(): Int = 0
+
+    /**
+     * Get the index of the current search match in the focused editor.
+     * @return The current match index (0-based), or -1 if no match is selected
+     */
+    fun getCurrentSearchMatchIndex(): Int = -1
+
+    // ============ Phase 3: Native Editor Toggle ============
+
+    /**
+     * Check if the native BossEditor (Compose Canvas) is being used.
+     * When false, the legacy RSyntaxTextArea (Swing) editor is used.
+     * @return true if native editor is enabled
+     */
+    fun isNativeEditorEnabled(): Boolean = true
+
+    /**
+     * Enable or disable the native BossEditor.
+     * When disabled, falls back to RSyntaxTextArea (Swing) editor.
+     * Requires editor restart to take effect.
+     *
+     * @param enabled true to use native BossEditor, false for legacy Swing editor
+     */
+    fun setNativeEditorEnabled(enabled: Boolean) {}
+
+    // ============ Phase 3: Undo/Redo ============
+
+    /**
+     * Undo the last edit in the focused editor.
+     * @return true if an undo was performed
+     */
+    fun undo(): Boolean = false
+
+    /**
+     * Redo the last undone edit in the focused editor.
+     * @return true if a redo was performed
+     */
+    fun redo(): Boolean = false
+
+    /**
+     * Check if undo is available in the focused editor.
+     * @return true if undo is available
+     */
+    fun canUndo(): Boolean = false
+
+    /**
+     * Check if redo is available in the focused editor.
+     * @return true if redo is available
+     */
+    fun canRedo(): Boolean = false
+
+    // ============ Phase 4: Code Completion (E13) ============
+
+    /**
+     * Register a custom completion provider.
+     * Providers contribute code completion suggestions for the editor.
+     *
+     * @param id Unique identifier for this provider
+     * @param provider The completion provider implementation
+     */
+    fun registerCompletionProvider(id: String, provider: Any) {}
+
+    /**
+     * Unregister a completion provider.
+     *
+     * @param id The provider ID to unregister
+     * @return true if the provider was removed
+     */
+    fun unregisterCompletionProvider(id: String): Boolean = false
+
+    // ============ Phase 4: Custom Gutters (E14) ============
+
+    /**
+     * Register a gutter decoration provider.
+     * Providers contribute custom icons/markers to the editor gutter.
+     *
+     * @param id Unique identifier for this provider
+     * @param provider The gutter decoration provider implementation
+     */
+    fun registerGutterDecorationProvider(id: String, provider: Any) {}
+
+    /**
+     * Unregister a gutter decoration provider.
+     *
+     * @param id The provider ID to unregister
+     * @return true if the provider was removed
+     */
+    fun unregisterGutterDecorationProvider(id: String): Boolean = false
+
+    // ============ Phase 4: Custom Color Schemes (E15) ============
+
+    /**
+     * Register a custom editor color scheme (theme).
+     *
+     * @param name Unique theme name
+     * @param baseTheme Name of the base theme to derive from (e.g., "Dark", "Light")
+     * @param colorOverrides Map of color property names to hex color values (e.g., "keyword" to "#FF79C6")
+     * @return true if the theme was registered
+     */
+    fun registerColorScheme(name: String, baseTheme: String, colorOverrides: Map<String, String>): Boolean = false
+
+    /**
+     * Unregister a custom color scheme.
+     *
+     * @param name The theme name to unregister
+     * @return true if the theme was removed
+     */
+    fun unregisterColorScheme(name: String): Boolean = false
 }
 
 /**

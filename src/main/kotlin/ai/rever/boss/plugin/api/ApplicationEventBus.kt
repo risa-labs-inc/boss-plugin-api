@@ -86,6 +86,15 @@ interface ApplicationEventBus {
     fun authEvents(): Flow<AuthEvent> =
         @Suppress("UNCHECKED_CAST")
         eventsOfType(AuthEvent::class.java as Class<AuthEvent>)
+
+    /**
+     * Subscribe to terminal session events.
+     *
+     * @return Flow of terminal session events
+     */
+    fun terminalSessionEvents(): Flow<TerminalSessionEvent> =
+        @Suppress("UNCHECKED_CAST")
+        eventsOfType(TerminalSessionEvent::class.java as Class<TerminalSessionEvent>)
 }
 
 /**
@@ -213,3 +222,24 @@ data class CustomPluginEvent(
     val payload: Map<String, Any?> = emptyMap(),
     override val timestamp: Long = System.currentTimeMillis()
 ) : ApplicationEvent
+
+/**
+ * Event emitted for terminal session lifecycle changes.
+ */
+data class TerminalSessionEvent(
+    val sessionId: String,
+    val eventType: TerminalSessionEventType,
+    val terminalId: String? = null,
+    val windowId: String? = null,
+    val title: String? = null,
+    override val timestamp: Long = System.currentTimeMillis()
+) : ApplicationEvent
+
+/**
+ * Type of terminal session event.
+ */
+enum class TerminalSessionEventType {
+    CREATED,
+    DESTROYED,
+    TITLE_CHANGED
+}

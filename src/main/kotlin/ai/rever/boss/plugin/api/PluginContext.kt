@@ -409,6 +409,25 @@ interface PluginContext {
         get() = null
 
     /**
+     * Optional clipboard provider for reading/writing system clipboard.
+     *
+     * Returns null if clipboard access is not available.
+     * Dynamic plugins can use this instead of AWT clipboard which
+     * doesn't work under classloader isolation.
+     */
+    val clipboardProvider: ClipboardProvider?
+        get() = null
+
+    /**
+     * Optional file picker provider for open/save file dialogs.
+     *
+     * Returns null if file picker is not available.
+     * Dynamic plugins can use this for file open and save operations.
+     */
+    val filePickerProvider: FilePickerProvider?
+        get() = null
+
+    /**
      * Optional directory picker provider for file browser plugins.
      *
      * Returns null if directory picker functionality is not available.
@@ -425,6 +444,40 @@ interface PluginContext {
      */
     val projectDataProvider: ProjectDataProvider?
         get() = null
+
+    // ============================================================
+    // SEARCH PROVIDER REGISTRATION
+    // Enables plugins to contribute to global search results
+    // ============================================================
+
+    /**
+     * Register a search provider for global search.
+     *
+     * Plugins can implement SearchProvider to contribute results to the
+     * application's global search (Spotlight). Results from all registered
+     * providers are aggregated and displayed together.
+     *
+     * Example usage:
+     * ```kotlin
+     * class MyPlugin : DynamicPlugin {
+     *     override fun register(context: PluginContext) {
+     *         context.registerSearchProvider(MySearchProvider())
+     *     }
+     * }
+     * ```
+     *
+     * @param provider The search provider to register
+     */
+    fun registerSearchProvider(provider: SearchProvider) {}
+
+    /**
+     * Unregister a search provider.
+     *
+     * Should be called when the plugin is disposed to clean up.
+     *
+     * @param providerId The ID of the provider to unregister
+     */
+    fun unregisterSearchProvider(providerId: String) {}
 
     // ============================================================
     // PLUGIN-TO-PLUGIN API ACCESS
@@ -471,45 +524,6 @@ interface PluginContext {
      * @param api The API implementation to register
      */
     fun registerPluginAPI(api: Any) {}
-
-    // ============================================================
-    // SEARCH PROVIDER REGISTRATION
-    // These methods enable plugins to contribute to global search.
-    // ============================================================
-
-    /**
-     * Register a search provider for global search.
-     *
-     * Plugins can contribute to the global search by registering a
-     * SearchProvider. When the user searches, all registered providers
-     * are queried and results are aggregated.
-     *
-     * Example usage:
-     * ```kotlin
-     * class MySearchProvider : SearchProvider {
-     *     override val providerId = "my-plugin"
-     *     override val displayName = "My Plugin"
-     *     override suspend fun search(query: String, limit: Int) = ...
-     * }
-     *
-     * override fun register(context: PluginContext) {
-     *     context.registerSearchProvider(MySearchProvider())
-     * }
-     * ```
-     *
-     * @param provider The search provider to register
-     */
-    fun registerSearchProvider(provider: SearchProvider) {}
-
-    /**
-     * Unregister a search provider.
-     *
-     * Called automatically when a plugin is disposed, but can also
-     * be called manually if needed.
-     *
-     * @param providerId The ID of the provider to unregister
-     */
-    fun unregisterSearchProvider(providerId: String) {}
 }
 
 /**

@@ -24,7 +24,8 @@ data class LoadedPluginInfo(
     val healthy: Boolean = true,
     val jarPath: String = "",
     val installedAt: Long = 0L,
-    val requiresAdmin: Boolean = false
+    val requiresAdmin: Boolean = false,
+    val isIncompatible: Boolean = false
 )
 
 /**

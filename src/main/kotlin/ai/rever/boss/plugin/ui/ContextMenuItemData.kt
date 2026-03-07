@@ -9,6 +9,6 @@ data class ContextMenuItemData(
     val label: String,
     val icon: ImageVector? = null,
     val isDivider: Boolean = false,
-    val subMenu: List<ContextMenuItemData>? = null,
-    val onClick: () -> Unit = {}
+    val onClick: () -> Unit = {},
+    val subMenu: List<ContextMenuItemData>? = null
 )

@@ -227,6 +227,16 @@ interface PluginContext {
         get() = null
 
     /**
+     * Optional generic Supabase data provider for plugins.
+     *
+     * Returns null if Supabase is not available.
+     * Plugins can use this to execute Postgrest select queries and RPC calls
+     * without importing the Supabase SDK.
+     */
+    val supabaseDataProvider: SupabaseDataProvider?
+        get() = null
+
+    /**
      * Optional panel event provider for plugins that need to trigger panel events.
      *
      * Returns null if panel event functionality is not available.

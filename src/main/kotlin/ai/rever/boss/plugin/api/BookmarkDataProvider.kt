@@ -166,6 +166,24 @@ interface SplitViewOperations {
     fun openFileInActivePanel(filePath: String, fileName: String)
 
     /**
+     * Open a file in the browser tab (for images, PDFs, etc.).
+     * Note: file:// URL construction here must stay in sync with
+     * SplitViewState.toFileUrl() for duplicate-tab detection to work.
+     */
+    fun openFileInBrowser(filePath: String, fileName: String) {
+        openUrlInActivePanel(java.io.File(filePath).toURI().toString(), fileName)
+    }
+
+    /**
+     * Force-open a file in the code editor, bypassing smart file routing.
+     * Unlike [openFileInActivePanel], this always creates an editor tab
+     * even for browser-renderable file types (images, PDFs, etc.).
+     *
+     * Implementors must route to a non-smart-routing path (e.g. openFileInEditorTab).
+     */
+    fun openFileInEditor(filePath: String, fileName: String)
+
+    /**
      * Open a file in the active panel and navigate to a specific position.
      * This is used for code navigation (go-to-definition, find usages).
      *
@@ -213,8 +231,9 @@ interface TabsComponent {
      * @param id Unique ID for the tab
      * @param title Display title
      * @param workingDirectory Optional working directory
+     * @param initialCommand Optional command to run when terminal starts
      */
-    fun addTerminalTab(id: String, title: String, workingDirectory: String?)
+    fun addTerminalTab(id: String, title: String, workingDirectory: String?, initialCommand: String? = null)
 }
 
 // ==================== Composition Locals ====================

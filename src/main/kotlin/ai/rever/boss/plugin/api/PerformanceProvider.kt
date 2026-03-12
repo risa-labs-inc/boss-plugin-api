@@ -75,7 +75,8 @@ data class PerformanceSnapshotData(
     val gcCollectors: List<GcCollectorData> = emptyList(),
     val browserTabs: List<BrowserTabData> = emptyList(),
     val terminals: List<TerminalData> = emptyList(),
-    val editorTabs: List<EditorTabData> = emptyList()
+    val editorTabs: List<EditorTabData> = emptyList(),
+    val childProcesses: List<ChildProcessData> = emptyList(),
 ) {
     val heapUsedMB: Float get() = heapUsedBytes / (1024f * 1024f)
     val heapMaxMB: Float get() = heapMaxBytes / (1024f * 1024f)
@@ -177,6 +178,30 @@ data class EditorTabData(
     val isModified: Boolean = false,
     val isActive: Boolean = false
 )
+
+/**
+ * Information about an out-of-process plugin child process.
+ * Shown in the performance panel's "Plugin Processes" section.
+ */
+@Serializable
+data class ChildProcessData(
+    val processId: String,
+    val pluginId: String,
+    val displayName: String,
+    val pid: Long,
+    val state: String,
+    val heapUsedBytes: Long = 0,
+    val heapMaxBytes: Long = 0,
+    val activeThreads: Int = 0,
+    val uptimeMs: Long = 0,
+    val restartCount: Int = 0,
+    val bridgeConnected: Boolean = false,
+) {
+    val heapUsedMB: Float get() = heapUsedBytes / (1024f * 1024f)
+    val heapMaxMB: Float get() = heapMaxBytes / (1024f * 1024f)
+    val heapUsagePercent: Float
+        get() = if (heapMaxBytes > 0) (heapUsedBytes.toFloat() / heapMaxBytes) * 100f else 0f
+}
 
 /**
  * Performance settings data.

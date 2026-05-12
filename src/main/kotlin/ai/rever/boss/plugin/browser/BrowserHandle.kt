@@ -68,6 +68,40 @@ data class BrowserContextMenuInfo(
  */
 typealias ContextMenuCallback = (info: BrowserContextMenuInfo) -> Unit
 
+/**
+ * Describes a popup/new-tab navigation, preserving the HTTP method and body.
+ *
+ * For most popups [postData] is null (the popup is a plain GET). When a page
+ * submits a form with `target="_blank"`, [postData] carries the request body
+ * so the host can replay the POST in the new tab's initial load (otherwise
+ * the destination server would receive a GET and miss the form data).
+ */
+data class PopupNavigation(
+    /** Destination URL of the popup. */
+    val url: String,
+    /** POST body bytes, or null for a GET navigation. */
+    val postData: ByteArray? = null,
+    /** Content-Type for [postData] (e.g. "application/x-www-form-urlencoded"). */
+    val contentType: String? = null
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is PopupNavigation) return false
+        if (url != other.url) return false
+        if (contentType != other.contentType) return false
+        if (postData == null) return other.postData == null
+        if (other.postData == null) return false
+        return postData.contentEquals(other.postData)
+    }
+
+    override fun hashCode(): Int {
+        var result = url.hashCode()
+        result = 31 * result + (postData?.contentHashCode() ?: 0)
+        result = 31 * result + (contentType?.hashCode() ?: 0)
+        return result
+    }
+}
+
 interface BrowserHandle {
     /**
      * Unique identifier for this browser handle.
@@ -323,6 +357,29 @@ interface BrowserHandle {
      * @param callback Receives the URL to open in a new tab
      */
     fun setOpenInNewTabCallback(callback: (String) -> Unit)
+
+    /**
+     * Set a callback to be invoked when a link should open in a new tab,
+     * with full request details (including POST body) preserved.
+     *
+     * Prefer this over [setOpenInNewTabCallback] when the popup may be the
+     * result of a form-submit with `target="_blank"` (e.g. OncoEMR print) —
+     * the host must replay the POST body on the new tab's first load,
+     * otherwise the destination receives a GET and the server cannot
+     * reconstruct the original request.
+     *
+     * If both callbacks are set, this one wins. If only the legacy one is set,
+     * POST bodies are lost (URL-only handoff).
+     *
+     * Default implementation is a no-op so this method can be safely added
+     * without breaking older hosts that compiled against an earlier API; such
+     * hosts simply continue dropping POST bodies on popup→tab handoff.
+     *
+     * @param callback Receives a [PopupNavigation] describing the request.
+     */
+    fun setOpenInNewTabWithDataCallback(callback: (PopupNavigation) -> Unit) {
+        // Default: no-op for hosts that don't support POST preservation.
+    }
 
     // ============================================================
     // PICTURE IN PICTURE

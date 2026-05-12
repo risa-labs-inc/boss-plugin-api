@@ -74,4 +74,27 @@ interface BrowserService {
      * Useful for debugging and resource monitoring.
      */
     fun getActiveBrowserCount(): Int
+
+    /**
+     * Stash a POST body to be replayed on the next browser creation that loads [url].
+     *
+     * Used by the popup handler to preserve form-submit data across the tab handoff:
+     * when a page submits a form with `target="_blank"`, the popup browser carries
+     * the POST request, which is captured here. The host then opens a new tab via
+     * the usual URL path; when that tab constructs its browser, the stashed body
+     * is consumed and replayed via [BrowserConfig.initialPostData].
+     *
+     * Stashed entries expire after a few seconds and are removed on first consume,
+     * so this never affects later navigations to the same URL.
+     *
+     * Default implementation is a no-op (older hosts simply lose POST bodies on
+     * popup-to-tab handoff, matching pre-existing behavior).
+     *
+     * @param url The destination URL the next browser will load
+     * @param postData Bytes of the POST body to replay
+     * @param contentType Content-Type header for [postData]
+     */
+    fun stashPopupPost(url: String, postData: ByteArray, contentType: String) {
+        // Default: no-op for hosts that don't support POST preservation.
+    }
 }

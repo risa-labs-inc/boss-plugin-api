@@ -524,6 +524,18 @@ interface PluginContext {
      * @param api The API implementation to register
      */
     fun registerPluginAPI(api: Any) {}
+
+    /**
+     * Optional host terminal provider — exposes terminal sessions running on
+     * the active BOSS host (local or remote). The terminal-tab plugin uses
+     * this to spawn PTYs in the correct place without knowing whether the
+     * host is local or remote.
+     *
+     * Returns null on builds where remote-host support isn't compiled in
+     * (e.g. Windows ARM64 where boss-ipc is excluded).
+     */
+    val hostTerminalProvider: HostTerminalProvider?
+        get() = null
 }
 
 /**

@@ -26,7 +26,9 @@ data class TabConfig(
     val filePath: String? = null,
     val faviconCacheKey: String? = null,
     val initialCommand: String? = null,
-    val workingDirectory: String? = null
+    val workingDirectory: String? = null,
+    val id: String? = null,
+    val sessionId: String? = null
 )
 
 /**

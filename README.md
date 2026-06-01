@@ -27,7 +27,7 @@ This plugin is bundled with BossConsole and does not need manual installation.
 
 For development, copy the JAR to the BossConsole bundled-plugins directory:
 ```bash
-cp build/libs/boss-plugin-api-*.jar ~/Development/BossConsole/composeApp/build/bundled-plugins/
+cp build/libs/boss-plugin-api-*.jar ~/Development/Boss/BossConsole/composeApp/build/bundled-plugins/
 ```
 
 ## License

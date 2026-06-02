@@ -121,4 +121,27 @@ interface PluginLoaderDelegate {
      * @return The access token if authenticated, null otherwise
      */
     fun getAccessToken(): String?
+
+    /**
+     * Number of currently-open instances (tabs/panels) of a plugin.
+     * Used to decide whether to prompt the user to reset running instances
+     * after an update. Returns 0 if none are open.
+     */
+    fun getRunningInstanceCount(pluginId: String): Int = 0
+
+    /**
+     * Reset a plugin's running instances so a freshly-installed version takes
+     * effect: reloads the plugin and closes its open tabs/panels (the user
+     * reopens them on the new version).
+     *
+     * @param pluginId The plugin ID to reset
+     * @return the number of instances that were closed
+     */
+    suspend fun resetPluginInstances(pluginId: String): Int = 0
+
+    /**
+     * Restart the BOSS application. Used to apply updates for plugins that can
+     * only take effect after a full restart (system/locked or JAR-swap updates).
+     */
+    fun restartApplication() {}
 }

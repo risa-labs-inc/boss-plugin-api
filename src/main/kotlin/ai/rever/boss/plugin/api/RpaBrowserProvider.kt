@@ -75,7 +75,17 @@ sealed class RpaProfileChoice {
     data class Named(val profileId: String) : RpaProfileChoice()
 }
 
-/** Auth/state to seed into a profile before a session starts. */
+/**
+ * Auth/state to seed into a profile before a session starts.
+ *
+ * Scoping caveat: [cookies] are domain-scoped (each [RpaCookieSpec] names its
+ * domain), but [headers] and [basicAuth] are injected on **every** request the
+ * profile makes — they are NOT restricted to a target host. If the run navigates
+ * or issues cross-origin sub-requests, those headers (incl. the `Authorization`
+ * derived from [basicAuth]) are sent to other origins too. Prefer domain-scoped
+ * cookies for credentials, and only use [headers]/[basicAuth] for runs you keep
+ * pointed at a single trusted origin.
+ */
 data class RpaAuthSpec(
     val cookies: List<RpaCookieSpec> = emptyList(),
     val headers: Map<String, String> = emptyMap(),

@@ -41,6 +41,12 @@ interface BrowserIntegration {
     suspend fun executeJavaScript(script: String): Any?
 
     /**
+     * Navigate the tab to [url]. Best-effort; default is a no-op for integrations
+     * that don't support navigation.
+     */
+    suspend fun navigate(url: String) {}
+
+    /**
      * Check if the browser is currently available and accessible.
      *
      * This may return false if:

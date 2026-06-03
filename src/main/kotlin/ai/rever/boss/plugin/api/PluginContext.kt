@@ -182,6 +182,15 @@ interface PluginContext {
         get() = null
 
     /**
+     * Optional RPA browser capability — isolated/headless browser sessions with
+     * cookie/header injection, backed by the host browser engine. Used by tab
+     * plugins that drive a page (navigate / extract / inject). Null if
+     * unavailable (engine not licensed, or unsupported platform).
+     */
+    val rpaBrowserProvider: RpaBrowserProvider?
+        get() = null
+
+    /**
      * Get the current window ID.
      *
      * Returns null if window ID is not available.

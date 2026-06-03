@@ -64,7 +64,14 @@ interface RpaBrowserSession {
 sealed class RpaProfileChoice {
     /** Fresh isolated profile per session, destroyed on close. */
     object Ephemeral : RpaProfileChoice()
-    /** Persistent profile reused across sessions. */
+    /**
+     * Persistent profile reused across sessions.
+     *
+     * Note: seeded auth (cookies in particular) is written to the browser
+     * profile on disk by the engine, unencrypted at the Chromium layer — i.e.
+     * credentials live at rest for the profile's lifetime. Use [Ephemeral] for
+     * one-off runs, and delete named profiles you no longer need.
+     */
     data class Named(val profileId: String) : RpaProfileChoice()
 }
 

@@ -47,7 +47,11 @@ interface RpaBrowserSession {
     /** Resolved profile id (ephemeral uuid or the named id). */
     val profileId: String
 
-    /** Navigate and wait for load. */
+    /**
+     * Navigate and wait for the page to finish loading. Best-effort: if load
+     * doesn't complete within the host's timeout this returns anyway, so a
+     * subsequent [executeJavaScript] may run against a not-fully-loaded page.
+     */
     suspend fun navigate(url: String)
 
     /** Execute JS in the page, returning its value (or null). */
@@ -98,6 +102,7 @@ data class RpaCookieSpec(
     val name: String,
     val value: String,
     val path: String = "/",
+    /** Defaults to false; set true for cookies that must only travel over HTTPS. */
     val secure: Boolean = false,
     val httpOnly: Boolean = false,
     val expirationEpochMs: Long = 0,

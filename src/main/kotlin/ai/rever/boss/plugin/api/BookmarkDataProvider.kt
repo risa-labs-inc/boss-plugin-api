@@ -229,6 +229,9 @@ interface SplitViewOperations {
      * registered without the host needing to know about it. The default
      * implementation is a no-op so existing implementors are unaffected.
      *
+     * In-process plugins only: the IPC/out-of-process proxy doesn't forward this,
+     * so for sandboxed/out-of-process plugins it is a no-op.
+     *
      * @param tabInfo The configuration describing the tab to open.
      */
     fun openTab(tabInfo: TabInfo) {}

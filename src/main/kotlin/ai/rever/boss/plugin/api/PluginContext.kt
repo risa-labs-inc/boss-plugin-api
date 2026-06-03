@@ -185,7 +185,8 @@ interface PluginContext {
      * Optional RPA browser capability — isolated/headless browser sessions with
      * cookie/header injection, backed by the host browser engine. Used by tab
      * plugins that drive a page (navigate / extract / inject). Null if
-     * unavailable (engine not licensed, or unsupported platform).
+     * unavailable (engine not licensed, unsupported platform, or an
+     * out-of-process plugin — the live session can't cross the IPC boundary).
      */
     val rpaBrowserProvider: RpaBrowserProvider?
         get() = null

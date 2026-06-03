@@ -72,7 +72,6 @@ sealed class RpaProfileChoice {
 data class RpaAuthSpec(
     val cookies: List<RpaCookieSpec> = emptyList(),
     val headers: Map<String, String> = emptyMap(),
-    val localStorage: List<RpaLocalStorageItem> = emptyList(),
     val basicAuth: RpaBasicAuth? = null,
 )
 
@@ -87,8 +86,6 @@ data class RpaCookieSpec(
     val expirationEpochMs: Long = 0,
     val sameSite: String = "LAX",
 )
-
-data class RpaLocalStorageItem(val origin: String, val key: String, val value: String)
 
 data class RpaBasicAuth(val username: String, val password: String)
 

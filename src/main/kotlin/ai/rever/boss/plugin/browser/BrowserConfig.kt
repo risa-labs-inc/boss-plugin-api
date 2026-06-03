@@ -21,7 +21,12 @@ data class BrowserConfig(
     val enableFullscreen: Boolean = true,
     val userAgent: String? = null,
     val initialPostData: ByteArray? = null,
-    val initialPostContentType: String? = null
+    val initialPostContentType: String? = null,
+    /**
+     * Name of the browser profile to create this browser on. Null = the default
+     * profile. Used to run a browser on an isolated profile (e.g. RPA sessions).
+     */
+    val profileName: String? = null,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -31,6 +36,7 @@ data class BrowserConfig(
             enableDownloads == other.enableDownloads &&
             enableFullscreen == other.enableFullscreen &&
             userAgent == other.userAgent &&
+            profileName == other.profileName &&
             initialPostContentType == other.initialPostContentType &&
             initialPostData.contentEqualsOrNull(other.initialPostData)
     }
@@ -41,6 +47,7 @@ data class BrowserConfig(
         result = 31 * result + enableDownloads.hashCode()
         result = 31 * result + enableFullscreen.hashCode()
         result = 31 * result + (userAgent?.hashCode() ?: 0)
+        result = 31 * result + (profileName?.hashCode() ?: 0)
         result = 31 * result + (initialPostData?.contentHashCode() ?: 0)
         result = 31 * result + (initialPostContentType?.hashCode() ?: 0)
         return result

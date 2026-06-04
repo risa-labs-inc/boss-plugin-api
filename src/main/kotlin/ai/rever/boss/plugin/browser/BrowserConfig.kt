@@ -27,6 +27,16 @@ data class BrowserConfig(
      * profile. Used to run a browser on an isolated profile (e.g. RPA sessions).
      */
     val profileName: String? = null,
+    /**
+     * If true (and [profileName] is set), the profile is treated as ephemeral:
+     * the host deletes it when this browser is disposed. Default off.
+     */
+    val ephemeralProfile: Boolean = false,
+    /**
+     * Optional auth (cookies/headers/basic-auth) to seed into the profile before
+     * the browser is used. Null = no seeding (general tabs). See [BrowserAuthSpec].
+     */
+    val auth: BrowserAuthSpec? = null,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -37,6 +47,8 @@ data class BrowserConfig(
             enableFullscreen == other.enableFullscreen &&
             userAgent == other.userAgent &&
             profileName == other.profileName &&
+            ephemeralProfile == other.ephemeralProfile &&
+            auth == other.auth &&
             initialPostContentType == other.initialPostContentType &&
             initialPostData.contentEqualsOrNull(other.initialPostData)
     }
@@ -48,6 +60,8 @@ data class BrowserConfig(
         result = 31 * result + enableFullscreen.hashCode()
         result = 31 * result + (userAgent?.hashCode() ?: 0)
         result = 31 * result + (profileName?.hashCode() ?: 0)
+        result = 31 * result + ephemeralProfile.hashCode()
+        result = 31 * result + (auth?.hashCode() ?: 0)
         result = 31 * result + (initialPostData?.contentHashCode() ?: 0)
         result = 31 * result + (initialPostContentType?.hashCode() ?: 0)
         return result

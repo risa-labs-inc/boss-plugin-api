@@ -92,6 +92,25 @@ interface ActiveTabsProvider {
     fun createBrowserTab(url: String, title: String): String?
 
     /**
+     * Create a browser tab in a new split to the **right** of the active panel
+     * and return its tab id (drive it via [getBrowserIntegration]).
+     *
+     * Unlike [createBrowserTab] (which adds a tab to the active panel), this
+     * splits the active panel left/right and places the browser in the new right
+     * pane, so it sits beside the caller's tab rather than on top of it. Useful
+     * for automation that wants to show a live browser next to its own UI.
+     *
+     * In-process plugins only (needs the host's split-view state). The default
+     * is a no-op returning null, so hosts/proxies that don't support it are
+     * unaffected — callers should fall back (e.g. to headless) on null.
+     *
+     * @param url The initial URL to navigate to
+     * @param title The tab title (displayed in the tab bar)
+     * @return The ID of the created tab, or null if unavailable
+     */
+    fun createBrowserTabInRightSplit(url: String, title: String): String? = null
+
+    /**
      * Close a tab by its ID.
      *
      * @param tabId The ID of the tab to close

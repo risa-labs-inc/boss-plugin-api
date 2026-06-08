@@ -66,7 +66,10 @@ object AnalyticsEvents {
  * ))
  * ```
  *
- * @param name dot-namespaced event name.
+ * @param name dot-namespaced event name. It **must be a static, low-cardinality identifier**
+ *   (e.g. `"workflow.completed"`) — never interpolate user data, ids, paths, or free text into
+ *   it. The analytics pipeline defensively redacts PII-looking substrings from the name, but
+ *   high-cardinality names also degrade analytics and should be avoided.
  * @param properties structured, non-PII properties (see [AnalyticsEvent.properties]).
  */
 fun PluginContext.track(name: String, properties: Map<String, Any?> = emptyMap()) {

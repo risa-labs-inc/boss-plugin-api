@@ -536,6 +536,18 @@ interface PluginContext {
      */
     val hostTerminalProvider: HostTerminalProvider?
         get() = null
+
+    /**
+     * Optional host browser provider — lets a browser plugin render a browser
+     * that runs on the active BOSS host (local or remote). The fluck-browser
+     * plugin uses this to stream a remote browser when the host is remote,
+     * without depending on boss-ipc or host-internal types.
+     *
+     * Returns null on builds where remote-host support isn't compiled in
+     * (e.g. Windows ARM64 where boss-ipc is excluded).
+     */
+    val hostBrowserProvider: HostBrowserProvider?
+        get() = null
 }
 
 /**

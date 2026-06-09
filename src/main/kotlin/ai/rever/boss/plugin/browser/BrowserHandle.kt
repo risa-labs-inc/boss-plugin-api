@@ -126,6 +126,19 @@ interface BrowserHandle {
     suspend fun loadUrl(url: String)
 
     /**
+     * Load a URL and suspend until the page finishes loading (best-effort: returns
+     * after a bounded timeout even if load doesn't complete). Default delegates to
+     * [loadUrl] without waiting.
+     */
+    suspend fun loadUrlAndWait(url: String) { loadUrl(url) }
+
+    /**
+     * Execute JavaScript in the page's main frame and return its value (or null on
+     * error / no frame). Default returns null for handles that don't support it.
+     */
+    suspend fun executeJavaScript(script: String): Any? = null
+
+    /**
      * Get the current URL.
      *
      * @return The current URL, or empty string if invalid
@@ -427,6 +440,77 @@ interface BrowserHandle {
      * the browser content to the tab.
      */
     fun requestExitFullscreen()
+
+    // ============================================================
+    // CO-BROWSE / TAB SHARING (DOM state-sync)
+    // ============================================================
+
+    /**
+     * Start streaming rrweb DOM-capture events from this tab.
+     *
+     * Injects the rrweb recorder into the current page (and subsequent
+     * navigations / same-origin frames) and registers a page→host bridge. Each
+     * captured event is delivered to [onEvent] as a JSON string (an rrweb event:
+     * full snapshot, incremental mutation, scroll, input, etc.). The first event
+     * after start is a full snapshot; subsequent events are incremental.
+     *
+     * Used by the browser tab-sharing feature to mirror this tab to a remote
+     * viewer. Only one capture should be active across shared tabs at a time —
+     * the host switches the active source as the viewer changes focus.
+     *
+     * Default implementation is a no-op so the method can be added without
+     * breaking older hosts; such hosts simply never emit capture events.
+     *
+     * @param onEvent Receives each rrweb event as a JSON string.
+     * @param maskInputs When true, rrweb masks form-input values (maskAllInputs) so typed
+     *   content is not streamed. Passwords are masked regardless. Default false.
+     */
+    fun startCoBrowseCapture(onEvent: (String) -> Unit, maskInputs: Boolean = false) {
+        // Default: no-op for hosts that don't support DOM capture.
+    }
+
+    /**
+     * Stop DOM capture started by [startCoBrowseCapture]: tears down the
+     * recorder, the page-load injection hook, and the page→host bridge.
+     * Idempotent. Default no-op.
+     */
+    fun stopCoBrowseCapture() {
+        // Default: no-op.
+    }
+
+    /**
+     * Whether DOM capture is currently active on this handle.
+     */
+    fun isCoBrowseCapturing(): Boolean = false
+
+    /**
+     * Apply one controlling-viewer semantic event to this tab's real page.
+     *
+     * [eventJson] is a small JSON object describing an action keyed by an rrweb
+     * mirror node id, e.g. `{"kind":"click","id":42}`,
+     * `{"kind":"input","id":7,"value":"hi"}`, `{"kind":"scroll","id":1,"x":0,"y":600}`.
+     * The host resolves the node id against the live rrweb mirror and dispatches
+     * the corresponding DOM event.
+     *
+     * No-op (returns null) unless remote control has been granted via
+     * [setCoBrowseControlEnabled]. Returns a short status string such as
+     * "ok" / "denied" / "stale", or null if unsupported.
+     *
+     * @param eventJson JSON describing the semantic control event.
+     * @return A status string, or null on no-op / unsupported.
+     */
+    suspend fun applyCoBrowseControl(eventJson: String): String? = null
+
+    /**
+     * Grant or revoke remote control of this tab. When revoked,
+     * [applyCoBrowseControl] becomes a no-op and the in-page guard rejects any
+     * control event. Default no-op.
+     *
+     * @param granted true to allow remote control, false to revoke.
+     */
+    fun setCoBrowseControlEnabled(granted: Boolean) {
+        // Default: no-op.
+    }
 
     // ============================================================
     // DEVELOPER TOOLS

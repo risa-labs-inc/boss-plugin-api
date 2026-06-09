@@ -462,8 +462,10 @@ interface BrowserHandle {
      * breaking older hosts; such hosts simply never emit capture events.
      *
      * @param onEvent Receives each rrweb event as a JSON string.
+     * @param maskInputs When true, rrweb masks form-input values (maskAllInputs) so typed
+     *   content is not streamed. Passwords are masked regardless. Default false.
      */
-    fun startCoBrowseCapture(onEvent: (String) -> Unit) {
+    fun startCoBrowseCapture(onEvent: (String) -> Unit, maskInputs: Boolean = false) {
         // Default: no-op for hosts that don't support DOM capture.
     }
 

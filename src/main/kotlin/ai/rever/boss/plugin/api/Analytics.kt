@@ -15,9 +15,14 @@ package ai.rever.boss.plugin.api
  * subscribes to the bus, recognises that prefix, maps the payload into a canonical
  * analytics event, scrubs PII, and dispatches it to the active sink(s).
  *
- * Riding the event bus (rather than a direct API call) means the typed `track`
- * helper behaves identically whether the analytics plugin runs in-process or
- * out-of-process — the bus is the single transport in both cases.
+ * Riding the [ApplicationEventBus] (rather than a direct API call) keeps producers
+ * decoupled from any analytics backend.
+ *
+ * NOTE: this transport is in-process today. A producer running **out-of-process** has
+ * no [ApplicationEventBus] ([PluginContext.applicationEventBus] is `null`), so `track`
+ * is a no-op there, and the bus is not bridged to the cross-process event stream that an
+ * out-of-process analytics consumer subscribes to. Cross-process `track` delivery is not
+ * wired yet; see the analytics plugin's `CLAUDE.md` ("Out-of-process status").
  */
 
 /** Prefix applied to [CustomPluginEvent.eventName] for events emitted via [PluginContext.track]. */

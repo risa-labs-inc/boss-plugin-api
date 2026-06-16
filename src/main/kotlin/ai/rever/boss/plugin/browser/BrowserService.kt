@@ -97,4 +97,21 @@ interface BrowserService {
     fun stashPopupPost(url: String, postData: ByteArray, contentType: String) {
         // Default: no-op for hosts that don't support POST preservation.
     }
+
+    // ---- Optional named-profile management (for isolated/automation profiles) ----
+    // General browser tabs don't use these; automation (e.g. RPA) uses them to
+    // pre-seed and reuse persistent profiles. Default no-ops so impls/hosts that
+    // don't support managed profiles are unaffected.
+
+    /**
+     * Create or refresh a persistent named profile and seed [auth] into it (so a
+     * later [createBrowser] with the same `profileName` is pre-authenticated).
+     */
+    suspend fun seedProfile(profileName: String, auth: BrowserAuthSpec?) {}
+
+    /** Delete a persistent named profile. Returns false if unsupported or in use. */
+    fun deleteProfile(profileName: String): Boolean = false
+
+    /** List the persistent named profiles this service manages. */
+    fun listProfiles(): List<BrowserProfileInfo> = emptyList()
 }

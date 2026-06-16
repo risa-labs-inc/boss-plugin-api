@@ -127,14 +127,18 @@ interface BrowserHandle {
 
     /**
      * Load a URL and suspend until the page finishes loading (best-effort: returns
-     * after a bounded timeout even if load doesn't complete). Default delegates to
-     * [loadUrl] without waiting.
+     * after a bounded timeout even if load doesn't complete). Default implementation
+     * just delegates to [loadUrl] without waiting.
+     *
+     * @param url The URL to load
      */
     suspend fun loadUrlAndWait(url: String) { loadUrl(url) }
 
     /**
      * Execute JavaScript in the page's main frame and return its value (or null on
      * error / no frame). Default returns null for handles that don't support it.
+     *
+     * @param script The JavaScript to evaluate
      */
     suspend fun executeJavaScript(script: String): Any? = null
 

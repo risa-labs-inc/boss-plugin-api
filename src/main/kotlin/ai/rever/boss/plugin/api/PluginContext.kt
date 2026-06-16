@@ -368,6 +368,17 @@ interface PluginContext {
         get() = null
 
     /**
+     * Optional WebRTC peer provider for low-latency co-browse transport.
+     *
+     * Returns null if the host can't run a WebRTC peer. When present, a sharing
+     * plugin can establish a peer-to-peer data channel to a remote viewer
+     * (signaling still rides the plugin's own channel), avoiding a relay hop and
+     * TCP head-of-line blocking for input/DOM streaming.
+     */
+    val coBrowseRtcProvider: CoBrowseRtcProvider?
+        get() = null
+
+    /**
      * Optional plugin storage factory for persistent data.
      *
      * Returns null if plugin storage is not available.

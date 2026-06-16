@@ -512,6 +512,27 @@ interface BrowserHandle {
         // Default: no-op.
     }
 
+    /**
+     * Dispatch a native input event into the browser engine's input pipeline
+     * (trusted input — indistinguishable from local user interaction, unlike
+     * the synthetic DOM events of [applyCoBrowseControl]).
+     *
+     * [inputJson] is a small JSON object:
+     * - mouse: `{"kind":"down|up|move|drag","x":10,"y":20,"button":0,"clicks":1}`
+     *   (button: 0=primary, 1=middle, 2=secondary; x/y in viewport CSS px)
+     * - wheel: `{"kind":"wheel","x":10,"y":20,"dx":0,"dy":-120}`
+     * - key:   `{"kind":"keydown|keyup","key":"Enter","code":"KeyA","ch":"a",
+     *            "shift":false,"ctrl":false,"alt":false,"meta":false}`
+     *
+     * No-op unless remote control has been granted via
+     * [setCoBrowseControlEnabled]. Default no-op.
+     *
+     * @param inputJson JSON describing the native input event.
+     */
+    fun dispatchCoBrowseInput(inputJson: String) {
+        // Default: no-op.
+    }
+
     // ============================================================
     // DEVELOPER TOOLS
     // ============================================================

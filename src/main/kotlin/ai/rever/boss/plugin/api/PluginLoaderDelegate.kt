@@ -29,6 +29,18 @@ data class LoadedPluginInfo(
 )
 
 /**
+ * An installed plugin the current user cannot see because they lack its required
+ * permissions. Surfaced so the UI can explain *why* a plugin is hidden and *what*
+ * to ask an admin to grant. Empty for admins (they bypass the permission gate).
+ */
+@Serializable
+data class InaccessiblePluginInfo(
+    val pluginId: String,
+    val displayName: String,
+    val missingPermissions: List<String>
+)
+
+/**
  * Delegate interface for plugin loading/unloading operations.
  *
  * BossConsole implements this interface and registers it via:
@@ -144,4 +156,12 @@ interface PluginLoaderDelegate {
      * only take effect after a full restart (system/locked or JAR-swap updates).
      */
     fun restartApplication() {}
+
+    /**
+     * Installed plugins the current user cannot access because they lack required
+     * permissions, each with the specific missing permissions. Lets a plugin (e.g.
+     * the Plugin Manager) show an "ask an admin to grant X" banner instead of the
+     * plugin silently not appearing. Default empty for back-compat with older hosts.
+     */
+    fun getInaccessiblePlugins(): List<InaccessiblePluginInfo> = emptyList()
 }

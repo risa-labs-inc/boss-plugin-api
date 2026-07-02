@@ -105,6 +105,11 @@ data class McpToolDefinition(
      * still bounded by whether its plugin is active and any user toggle.
      * Admins bypass this check. Set via, e.g.,
      * `McpToolDefinition(...).apply { requiredPermissions = listOf("secrets.create") }`.
+     *
+     * NOTE: this and [requiresAdmin] are body properties (kept out of the data
+     * class constructor for binary compatibility), so they are EXCLUDED from
+     * `equals`/`hashCode`/`copy()` — `copy()` drops them (re-set after copying),
+     * and two definitions differing only in RBAC fields compare equal.
      */
     var requiredPermissions: List<String> = emptyList()
 

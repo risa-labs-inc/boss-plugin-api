@@ -25,7 +25,13 @@ data class McpToolResult(
  */
 class McpToolArgs(
     private val values: Map<String, Any?>,
-    /** The original JSON-object arguments string (`"{}"` if none), for advanced parsing. */
+    /**
+     * The original arguments string exactly as the client sent it (`"{}"` if
+     * none), for advanced parsing of nested structures. Parse defensively: when
+     * the client sent malformed JSON the typed getters all see an empty arg set,
+     * but this still holds the malformed original — it is NOT guaranteed to be
+     * a valid JSON object.
+     */
     val raw: String = "{}",
 ) {
     /** String value for [key], or null if absent/null. Non-string scalars are stringified. */
@@ -42,11 +48,15 @@ class McpToolArgs(
         else -> null
     }
 
-    /** Int value for [key], or null if absent/not an integer. */
+    /**
+     * Int value for [key], or null if absent, not a number, or outside Int
+     * range (no silent wrap/saturation — `9999999999` yields null, not
+     * `1410065407`). Doubles inside Int range truncate toward zero.
+     */
     fun int(key: String): Int? = when (val v = values[key]) {
         is Int -> v
-        is Long -> v.toInt()
-        is Double -> v.toInt()
+        is Long -> if (v in Int.MIN_VALUE.toLong()..Int.MAX_VALUE.toLong()) v.toInt() else null
+        is Double -> if (v >= Int.MIN_VALUE.toDouble() && v <= Int.MAX_VALUE.toDouble()) v.toInt() else null
         is String -> v.toIntOrNull()
         else -> null
     }

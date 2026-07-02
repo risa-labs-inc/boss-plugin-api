@@ -22,8 +22,11 @@ group = "ai.rever.boss.plugin.bundled"
 // 1.0.52: adds McpToolDefinition.withRbac(...) factory (safer alternative to
 // mutating requiredPermissions/requiresAdmin via .apply{}); hardens KDoc on
 // McpToolHandler (cancellation-cooperative requirement), McpToolProvider.tools()
-// (snapshot-at-recompute semantics), and McpToolRegistry.tools/allTools (RBAC
+// (snapshot-at-registration semantics), and McpToolRegistry.tools/allTools (RBAC
 // filtering + the deliberate metadata-only disclosure posture of allTools).
+// McpToolArgs.int() now returns null for values outside Int range instead of
+// silently wrapping (9999999999 -> null, not 1410065407); raw KDoc documents
+// that it may hold malformed JSON when the client sent malformed arguments.
 // No binary-breaking change.
 version = "1.0.52"
 

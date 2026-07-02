@@ -72,6 +72,15 @@ class McpToolArgs(
  * Throwing is tolerated (the host catches it and returns an error result), but
  * returning an [McpToolResult] with `isError = true` is preferred for clean
  * messages.
+ *
+ * **Must be cancellation-cooperative.** The host wraps every call in a timeout
+ * (`withTimeout`), which relies on the handler hitting a suspension point
+ * (`delay`, another `suspend fun`, `yield`, etc.) to actually be interrupted.
+ * A handler that runs a tight CPU-bound loop or a *blocking* (non-suspending)
+ * I/O call will NOT be cancelled when the timeout fires — it keeps running and
+ * the timeout only stops the caller from waiting on it. Wrap blocking calls
+ * with `withContext(Dispatchers.IO) { ... }` so cancellation and the timeout
+ * behave as advertised.
  */
 fun interface McpToolHandler {
     suspend fun call(args: McpToolArgs): McpToolResult
@@ -102,19 +111,52 @@ data class McpToolDefinition(
     /**
      * RBAC permissions the user must ALL hold for this tool to be exposed to
      * agents. Empty (default) means no per-tool permission gate — the tool is
-     * still bounded by whether its plugin is active and any user toggle.
-     * Admins bypass this check. Set via, e.g.,
-     * `McpToolDefinition(...).apply { requiredPermissions = listOf("secrets.create") }`.
-     *
-     * NOTE: this and [requiresAdmin] are body properties (kept out of the data
-     * class constructor for binary compatibility), so they are EXCLUDED from
-     * `equals`/`hashCode`/`copy()` — `copy()` drops them (re-set after copying),
-     * and two definitions differing only in RBAC fields compare equal.
+     * still bounded by whether its plugin is active and any user toggle, but is
+     * otherwise exposed to EVERY session, including one where no user is signed
+     * in yet (the host's initial RBAC state is "no admin, no permissions", which
+     * an empty requirement list trivially satisfies). The MCP server this backs
+     * is loopback-only (127.0.0.1) for the local machine's own agents, not a
+     * remote/multi-tenant gate — but a tool that must never run without an
+     * authenticated user should set a real permission or [requiresAdmin].
+     * Admins bypass this check. Prefer [McpToolDefinition.withRbac] over setting
+     * this directly — see its doc for why.
      */
     var requiredPermissions: List<String> = emptyList()
 
     /** When true, only administrators may use this tool (mirrors manifest `requiresAdmin`). */
     var requiresAdmin: Boolean = false
+
+    companion object {
+        /**
+         * Build an [McpToolDefinition] with its RBAC fields set at construction,
+         * instead of mutating [requiredPermissions]/[requiresAdmin] after the
+         * fact via `.apply { ... }`. Prefer this: because those fields are body
+         * properties excluded from `equals`/`copy()` (see their KDoc), a later
+         * `.copy()` of a definition built via `.apply {}` silently drops its RBAC
+         * gate. Building through this factory doesn't change that `.copy()`
+         * caveat, but keeps the RBAC assignment next to construction (one
+         * expression, nothing to accidentally omit) rather than a separate
+         * mutation call sites can forget.
+         */
+        fun withRbac(
+            name: String,
+            description: String,
+            handler: McpToolHandler,
+            inputSchema: String = """{"type":"object","properties":{}}""",
+            readOnly: Boolean = true,
+            requiredPermissions: List<String> = emptyList(),
+            requiresAdmin: Boolean = false,
+        ): McpToolDefinition = McpToolDefinition(
+            name = name,
+            description = description,
+            inputSchema = inputSchema,
+            readOnly = readOnly,
+            handler = handler,
+        ).apply {
+            this.requiredPermissions = requiredPermissions
+            this.requiresAdmin = requiresAdmin
+        }
+    }
 }
 
 /**
@@ -141,7 +183,17 @@ interface McpToolProvider {
     /** Unique id for this provider; convention is the owning plugin's pluginId. */
     val providerId: String
 
-    /** The tools this provider currently exposes. Queried at registration time. */
+    /**
+     * The tools this provider currently exposes.
+     *
+     * Queried once at registration and again on every subsequent
+     * register/unregister anywhere in the registry (a full recompute), NOT
+     * reactively — if your desired tool set changes at runtime without a
+     * register/unregister cycle, the registry will not notice until the next
+     * one. If a tool's availability depends on runtime state, check that state
+     * inside the tool's [McpToolHandler] instead of trying to change what
+     * [tools] returns.
+     */
     fun tools(): List<McpToolDefinition>
 }
 
@@ -163,16 +215,23 @@ data class RegisteredMcpTool(
  */
 interface McpToolRegistry {
     /**
-     * Tools currently exposed to MCP clients: contributed by an active provider
-     * AND not user-disabled. The bridge mirrors exactly this set onto the live
-     * MCP server, so it emits on every register/unregister and on enable/disable.
+     * Tools currently exposed to MCP clients: contributed by an active provider,
+     * not user-disabled, AND permitted for the current user (admin bypass;
+     * otherwise the tool's `requiresAdmin`/`requiredPermissions` gate must be
+     * satisfied). The bridge mirrors exactly this set onto the live MCP server,
+     * so it emits on every register/unregister, enable/disable, AND permission
+     * change (sign-in, sign-out, role change).
      */
     val tools: StateFlow<List<RegisteredMcpTool>>
 
     /**
-     * Every tool contributed by an active provider, including user-disabled ones.
-     * Management UIs (e.g. the Plugin Manager MCP tab) render this and cross-
-     * reference [disabledToolNames] to show each tool's on/off state.
+     * Every tool contributed by an active provider, including user-disabled AND
+     * permission-denied ones — this is deliberately NOT filtered by the current
+     * user's RBAC state. Management UIs (e.g. the Plugin Manager MCP tab) render
+     * this so a user can see a tool exists and what it needs, the same way the
+     * Plugin Store already shows a locked plugin's name/required permissions
+     * before it's installable. This is metadata disclosure only: it grants no
+     * invocation — [tools] and [invoke] are the actual gates.
      */
     val allTools: StateFlow<List<RegisteredMcpTool>>
 

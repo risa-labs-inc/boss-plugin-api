@@ -19,7 +19,13 @@ group = "ai.rever.boss.plugin.bundled"
 // 1.0.51: adds McpServerController (+McpServerState/McpAttachTargetInfo/
 // McpAttachOutcome) — terminal-tab exposes MCP server on/off + CLI attach via
 // registerPluginAPI so the Plugin Manager MCP tab can control it.
-version = "1.0.51"
+// 1.0.52: adds McpToolDefinition.withRbac(...) factory (safer alternative to
+// mutating requiredPermissions/requiresAdmin via .apply{}); hardens KDoc on
+// McpToolHandler (cancellation-cooperative requirement), McpToolProvider.tools()
+// (snapshot-at-recompute semantics), and McpToolRegistry.tools/allTools (RBAC
+// filtering + the deliberate metadata-only disclosure posture of allTools).
+// No binary-breaking change.
+version = "1.0.52"
 
 java {
     toolchain {

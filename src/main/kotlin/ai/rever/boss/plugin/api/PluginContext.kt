@@ -501,6 +501,52 @@ interface PluginContext {
     fun unregisterSearchProvider(providerId: String) {}
 
     // ============================================================
+    // MCP TOOL PROVIDER REGISTRATION
+    // Enables plugins to contribute tools to the `boss` MCP server.
+    // Tools are live only while the plugin is active — the host removes
+    // them automatically when the plugin is disabled or unloaded.
+    // ============================================================
+
+    /**
+     * Register a provider of MCP tools.
+     *
+     * Plugins implement [McpToolProvider] to expose typed tools to in-terminal
+     * agents (surfaced as `mcp__boss__<name>`). Register in `register()`; the
+     * host unregisters automatically on disable/unload, so the tool set always
+     * tracks the set of active plugins.
+     *
+     * Example usage:
+     * ```kotlin
+     * override fun register(context: PluginContext) {
+     *     context.registerMcpToolProvider(MyToolProvider())
+     * }
+     * ```
+     *
+     * @param provider The tool provider to register
+     */
+    fun registerMcpToolProvider(provider: McpToolProvider) {}
+
+    /**
+     * Unregister an MCP tool provider by id.
+     *
+     * Optional — the host also unregisters on disable/unload — but plugins may
+     * call it from `dispose()` for symmetry.
+     *
+     * @param providerId The [McpToolProvider.providerId] to unregister
+     */
+    fun unregisterMcpToolProvider(providerId: String) {}
+
+    /**
+     * Optional read-side registry of all plugin-contributed MCP tools.
+     *
+     * Returns null if MCP tooling is unavailable. Used by the MCP server bridge
+     * (the terminal-tab plugin) to mirror tools onto the live MCP server and to
+     * route tool calls; ordinary plugins do not need this.
+     */
+    val mcpToolRegistry: McpToolRegistry?
+        get() = null
+
+    // ============================================================
     // PLUGIN-TO-PLUGIN API ACCESS
     // These methods enable plugins to expose and consume APIs from
     // other plugins, supporting a decentralized plugin architecture.

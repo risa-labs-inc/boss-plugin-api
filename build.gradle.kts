@@ -8,7 +8,18 @@ plugins {
 }
 
 group = "ai.rever.boss.plugin.bundled"
-version = "1.0.48"
+// 1.0.48: adds the MCP tool-provider API (McpTool.kt) + PluginContext
+// registerMcpToolProvider/unregisterMcpToolProvider/mcpToolRegistry so any
+// plugin can contribute `mcp__boss__*` tools that appear/disappear with it.
+// 1.0.49: McpToolRegistry gains allTools + disabledToolNames + setToolEnabled
+// so the Plugin Manager can list and enable/disable individual MCP tools.
+// 1.0.50: McpToolDefinition gains requiredPermissions + requiresAdmin (body
+// props, binary-compatible) so MCP tools can be RBAC-gated; the host filters
+// exposed tools by the current user's permissions/admin status.
+// 1.0.51: adds McpServerController (+McpServerState/McpAttachTargetInfo/
+// McpAttachOutcome) — terminal-tab exposes MCP server on/off + CLI attach via
+// registerPluginAPI so the Plugin Manager MCP tab can control it.
+version = "1.0.51"
 
 java {
     toolchain {
@@ -73,6 +84,7 @@ tasks.register<Jar>("buildPluginJar") {
 
 // Sync version from build.gradle.kts into plugin.json (single source of truth)
 tasks.processResources {
+    inputs.property("pluginVersion", version)
     filesMatching("**/plugin.json") {
         filter { line ->
             line.replace(Regex(""""version"\s*:\s*"[^"]*""""), """"version": "\$version"""")

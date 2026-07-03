@@ -28,7 +28,7 @@ group = "ai.rever.boss.plugin.bundled"
 // silently wrapping (9999999999 -> null, not 1410065407); raw KDoc documents
 // that it may hold malformed JSON when the client sent malformed arguments.
 // No binary-breaking change.
-version = "1.0.55"
+version = "1.0.56"
 
 java {
     toolchain {

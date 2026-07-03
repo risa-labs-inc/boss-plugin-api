@@ -54,6 +54,20 @@ interface McpServerController {
     fun setEnabled(enabled: Boolean)
 
     /**
+     * Change the server's configured port (persisted; the running server
+     * reconciles live with a stop/start and re-registers attached CLIs on
+     * the new endpoint). Valid range 1024-65535 — implementations reject
+     * values outside it. Observe [state] for the port actually bound (which
+     * may be a fallback when the configured one is busy).
+     *
+     * Callers should guard invocation with a try/catch on
+     * [NoSuchMethodError]/[AbstractMethodError] and degrade (hide the
+     * control) — a host or terminal-tab predating this method may still be
+     * running.
+     */
+    fun setPort(port: Int)
+
+    /**
      * Register the MCP endpoint with the CLI identified by [targetKey]
      * (a [McpAttachTargetInfo.key]). Idempotent; on failure the ready-to-paste
      * config is copied to the clipboard and [McpAttachOutcome.message] says so.

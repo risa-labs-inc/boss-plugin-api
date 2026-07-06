@@ -28,7 +28,12 @@ group = "ai.rever.boss.plugin.bundled"
 // silently wrapping (9999999999 -> null, not 1410065407); raw KDoc documents
 // that it may hold malformed JSON when the client sent malformed arguments.
 // No binary-breaking change.
-version = "1.0.58"
+// 1.0.59: adds ConsoleLogsAPI (cross-plugin per-plugin log access, implemented
+// by the Console plugin via registerPluginAPI: logsForPlugin flow + the panel's
+// pluginFilter selection) and PluginLogMatcher (the shared keyword heuristic for
+// attributing host stdout/stderr lines to a plugin — LogEntryData carries no
+// plugin field). Purely additive.
+version = "1.0.59"
 
 java {
     toolchain {

@@ -11,6 +11,16 @@ interface PanelEventProvider {
      * Close the panel.
      */
     suspend fun closePanel(panelId: PanelId, windowId: String)
+
+    /**
+     * Reveal/activate a sidebar panel by its id — the same effect as the user
+     * clicking that panel's sidebar icon. Lets one plugin open another plugin's
+     * panel (e.g. the Toolbox launching Tool Creator).
+     *
+     * Default no-op so plugins built against this method degrade gracefully on
+     * hosts that predate it. Gate on minBossVersion when you depend on it.
+     */
+    suspend fun openPanel(panelId: PanelId, windowId: String) {}
 }
 
 /**

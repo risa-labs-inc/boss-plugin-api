@@ -154,6 +154,16 @@ interface WorkspaceDataProvider {
  * This interface abstracts SplitViewState functionality to allow
  * the Bookmarks panel to open tabs without direct coupling to SplitViewState.
  */
+/**
+ * Where [SplitViewOperations.openTabInSplit] places a tab, mirroring the host's
+ * terminal-link chooser:
+ * - [EXISTING_SPLIT]: reuse another already-open split pane (falls back to a new
+ *   vertical split if there is none).
+ * - [VERTICAL_SPLIT] / [HORIZONTAL_SPLIT]: create a new split of the active panel
+ *   in that orientation and place the tab there.
+ */
+enum class TabSplitMode { EXISTING_SPLIT, VERTICAL_SPLIT, HORIZONTAL_SPLIT }
+
 interface SplitViewOperations {
     /**
      * Open a URL in the active panel.
@@ -232,6 +242,23 @@ interface SplitViewOperations {
      * @param tabInfo The configuration describing the tab to open.
      */
     fun openTab(tabInfo: TabInfo) {}
+
+    /**
+     * Open a registered tab type into a SPLIT of the active panel instead of a
+     * new tab in it — the split half of the host's "new tab vs split" chooser.
+     * Like [openTab], the [tabInfo]'s [TabInfo.typeId] selects the registered
+     * factory, so a plugin can place e.g. a terminal ([TabInfo] with the
+     * terminal typeId, carrying its initial command / working directory) beside
+     * the current content.
+     *
+     * Default no-op so older hosts are unaffected — gate on minBossVersion when
+     * you depend on it (a no-op means nothing opens, so pair it with a fallback
+     * to [openTab] if the split silently does nothing).
+     *
+     * @param tabInfo The configuration describing the tab to open.
+     * @param mode Where to place it (see [TabSplitMode]).
+     */
+    fun openTabInSplit(tabInfo: TabInfo, mode: TabSplitMode) {}
 }
 
 /**

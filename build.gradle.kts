@@ -33,9 +33,10 @@ group = "ai.rever.boss.plugin.bundled"
 // pluginFilter selection) and PluginLogMatcher (the shared keyword heuristic for
 // attributing host stdout/stderr lines to a plugin — LogEntryData carries no
 // plugin field). Purely additive.
-// 1.0.60: adds SplitViewOperations.openTabInSplit(tabInfo, TabSplitMode) — the
-// split half of the "new tab vs split" chooser (existing/vertical/horizontal),
-// backed host-side by SplitViewState.splitPanel. Default no-op; purely additive.
+// 1.0.60: adds SplitViewOperations.openTabInSplit(tabInfo, TabSplitMode) and
+// openUrlInSplit(url, title, TabSplitMode) — the split half of the "new tab vs
+// split" chooser (existing/vertical/horizontal) for registered tab types and for
+// URLs, backed host-side by SplitViewState.splitPanel. Default no-ops; additive.
 version = "1.0.60"
 
 java {

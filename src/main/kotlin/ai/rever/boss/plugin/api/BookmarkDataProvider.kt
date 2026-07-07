@@ -259,6 +259,16 @@ interface SplitViewOperations {
      * @param mode Where to place it (see [TabSplitMode]).
      */
     fun openTabInSplit(tabInfo: TabInfo, mode: TabSplitMode) {}
+
+    /**
+     * Open a URL into a SPLIT of the active panel (browser tab), the split half
+     * of the "new tab vs split" chooser for links — the URL analogue of
+     * [openTabInSplit]. [openUrlInActivePanel] covers the new-tab case.
+     *
+     * Default no-op so older hosts are unaffected — gate on minBossVersion when
+     * you depend on it.
+     */
+    fun openUrlInSplit(url: String, title: String, mode: TabSplitMode) {}
 }
 
 /**

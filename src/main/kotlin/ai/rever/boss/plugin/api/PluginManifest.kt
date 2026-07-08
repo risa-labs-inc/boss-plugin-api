@@ -134,16 +134,47 @@ data class PluginManifest(
     /**
      * Whether this plugin requires admin privileges.
      * If true, the plugin will only be visible and active for admin users.
+     *
+     * Legacy gate, superseded by [requiredPermissions]. Still honored: a plugin
+     * with `requiresAdmin = true` additionally requires the user to be an admin.
      */
     @SerialName("requiresAdmin")
     val requiresAdmin: Boolean = false,
 
     /**
+     * Effective permissions the user must hold for this plugin to be visible and
+     * active (granular RBAC). The host shows/registers the plugin only if the
+     * user's effective permissions (from the JWT `user_permissions` claim, which
+     * includes permissions inherited via the role hierarchy) contain ALL of these.
+     *
+     * Empty (the default, and the case for legacy plugins that predate this field)
+     * means no special permission is required — the plugin is available to every
+     * authenticated user (baseline `user` level).
+     */
+    @SerialName("requiredPermissions")
+    val requiredPermissions: List<String> = emptyList(),
+
+    /**
+     * NEW permissions this plugin *introduces* to the RBAC system — distinct from
+     * [requiredPermissions], which lists what the user must already hold (and may
+     * reference existing system permissions like `role.read`).
+     *
+     * When the plugin is published to the store, each of these is auto-registered
+     * into the permission catalog as a non-system, **ungranted** entry; an admin
+     * then grants them to roles. Names must be namespaced `domain.action` and must
+     * NOT use a reserved system domain (role, user, api_key, rpa, secret, plugins).
+     * Any [requiredPermissions] entry that is not already a catalog permission
+     * should be declared here too, or publishing rejects it as a dangling requirement.
+     */
+    @SerialName("definedPermissions")
+    val definedPermissions: List<DefinedPermission> = emptyList(),
+
+    /**
      * Minimum BOSS version required to run this plugin (e.g., "8.16.27").
      * The plugin will not load if the host BOSS version is lower.
      *
-     * Use for HOST-implemented capabilities (see [HostImplemented]): new
-     * providers, member additions to host-compiled types, Compose bumps.
+     * Use for HOST-implemented capabilities: new providers, member additions
+     * to host-compiled API types, Compose bumps.
      */
     @SerialName("minBossVersion")
     val minBossVersion: String = "",
@@ -151,14 +182,99 @@ data class PluginManifest(
     /**
      * Minimum boss-plugin-api version required to run this plugin
      * (e.g., "1.0.62"). The plugin will not load if the installed api layer
-     * is older.
+     * (the newest boss-plugin-api jar resolved by the ApiClassLoader) is
+     * older.
      *
-     * Use for SDK-only additions — brand-new interfaces/types that ship via
-     * the boss-plugin-api jar alone (the plugin-to-plugin API pattern) and
-     * need no host release.
+     * Use for SDK-only additions — brand-new interfaces/types shipped via
+     * the boss-plugin-api jar alone, which need no host release.
      */
     @SerialName("minApiVersion")
     val minApiVersion: String = "",
+
+    /**
+     * Minimum IPC contract version this plugin's runtime requires from the
+     * host (semver, e.g. "1.0.0"). Used for out-of-process plugins and the
+     * microkernel runtime JAR itself so a runtime built against a newer IPC
+     * surface cannot silently attach to an older host — the spawner rejects
+     * the launch with a clear "update BossConsole" error.
+     *
+     * Blank means "unknown / not declared" (legacy JARs from before this
+     * field existed); treated as likely-compatible but logged at WARN.
+     */
+    @SerialName("minIpcVersion")
+    val minIpcVersion: String = "",
+
+    // ============================================================
+    // MICROKERNEL / PROCESS ISOLATION
+    // These fields support the OS-like multi-process architecture.
+    // ============================================================
+
+    /**
+     * Process isolation mode for this plugin.
+     * - "in-process": Plugin runs in the kernel JVM (default, backward compatible)
+     * - "out-of-process": Plugin runs in its own JVM or GraalVM native image
+     */
+    @SerialName("isolationMode")
+    val isolationMode: String = "in-process",
+
+    /**
+     * Capabilities this plugin exposes for use in Mastery DAG workflows.
+     * Each capability describes an action with typed input/output.
+     */
+    @SerialName("capabilities")
+    val capabilities: List<PluginCapability> = emptyList(),
+
+    /**
+     * Health monitoring contract for out-of-process plugins.
+     */
+    @SerialName("healthContract")
+    val healthContract: PluginHealthContract? = null,
+
+    /**
+     * Known failure modes and repair hints for the self-healing orchestrator.
+     */
+    @SerialName("repairHints")
+    val repairHints: List<PluginRepairHint> = emptyList(),
+
+    /**
+     * Paths to this plugin's source code files (quine self-description).
+     * Used by the orchestrator to read and understand the plugin for AI-powered repair.
+     */
+    @SerialName("sourceFiles")
+    val sourceFiles: List<String> = emptyList(),
+
+    /**
+     * Paths to configuration files this plugin reads.
+     */
+    @SerialName("configFiles")
+    val configFiles: List<String> = emptyList(),
+
+    /**
+     * Natural language description of what this plugin does.
+     * Used by the orchestrator for AI diagnosis and by Mastery for workflow generation.
+     */
+    @SerialName("behaviorSpec")
+    val behaviorSpec: String = "",
+
+    /**
+     * JSON Schema describing this plugin's configuration format.
+     * Used by the orchestrator for automated config repair.
+     */
+    @SerialName("configSchema")
+    val configSchema: String? = null,
+
+    /**
+     * Whether this plugin supports state snapshots for rollback on failure.
+     */
+    @SerialName("stateSnapshotEnabled")
+    val stateSnapshotEnabled: Boolean = false,
+
+    /**
+     * Path to GraalVM native image binary for this plugin (out-of-process mode only).
+     * If null, the plugin runs as a JVM subprocess.
+     */
+    @SerialName("nativeImagePath")
+    val nativeImagePath: String? = null,
 
     // ============================================================
     // BUNDLED PLUGIN SUPPORT
@@ -234,6 +350,12 @@ enum class PluginType {
     MIXED,
 
     /**
+     * Plugin that provides both panels and tab types (alias for MIXED).
+     */
+    @SerialName("hybrid")
+    HYBRID,
+
+    /**
      * Plugin that provides services or utilities without UI.
      */
     @SerialName("service")
@@ -264,6 +386,27 @@ data class PluginDependency(
      */
     @SerialName("optional")
     val optional: Boolean = false
+)
+
+/**
+ * A permission a plugin introduces to the RBAC system. Registered into the
+ * permission catalog (non-system, ungranted) when the plugin is published, then
+ * granted to roles by an admin. See [PluginManifest.definedPermissions].
+ */
+@Serializable
+data class DefinedPermission(
+    /**
+     * Permission name in `domain.action` form (e.g. "invoices.read").
+     * Must be namespaced and must not use a reserved system domain.
+     */
+    @SerialName("name")
+    val name: String,
+
+    /**
+     * Human-readable description shown in the role-management UI.
+     */
+    @SerialName("description")
+    val description: String = ""
 )
 
 /**
@@ -429,6 +572,11 @@ data class LoadedPlugin(
     val instance: Plugin,
 
     /**
+     * ClassLoader used to load this plugin.
+     */
+    val classLoader: java.net.URLClassLoader,
+
+    /**
      * Path to the plugin JAR file.
      */
     val jarPath: String,
@@ -449,9 +597,14 @@ data class LoadedPlugin(
  */
 enum class PluginState {
     /**
-     * Plugin is loaded and active.
+     * Plugin JAR loaded but not yet registered.
      */
     LOADED,
+
+    /**
+     * Plugin registered with the application.
+     */
+    REGISTERED,
 
     /**
      * Plugin is being initialized.
@@ -479,6 +632,105 @@ enum class PluginState {
     DISABLED
 }
 
+// ============================================================
+// MICROKERNEL DATA CLASSES
+// ============================================================
+
+/**
+ * A capability that a plugin exposes for use in Mastery DAG workflows.
+ */
+@Serializable
+data class PluginCapability(
+    /** Action name (e.g., "run_command", "open_file", "navigate") */
+    @SerialName("action")
+    val action: String,
+    /** JSON Schema for this action's input */
+    @SerialName("inputSchemaJson")
+    val inputSchemaJson: String = "{}",
+    /** JSON Schema for this action's output */
+    @SerialName("outputSchemaJson")
+    val outputSchemaJson: String = "{}",
+    /** Human-readable description */
+    @SerialName("description")
+    val description: String = "",
+)
+
+/**
+ * Health monitoring contract for out-of-process plugins.
+ */
+@Serializable
+data class PluginHealthContract(
+    /** How often heartbeats are expected (milliseconds) */
+    @SerialName("heartbeatIntervalMs")
+    val heartbeatIntervalMs: Long = 5000,
+    /** Maximum time to wait for process startup (milliseconds) */
+    @SerialName("startupTimeoutMs")
+    val startupTimeoutMs: Long = 30000,
+)
+
+/**
+ * Known failure mode and repair hint for the self-healing orchestrator.
+ */
+@Serializable
+data class PluginRepairHint(
+    /** Regex pattern matching stack trace or error message */
+    @SerialName("failurePattern")
+    val failurePattern: String,
+    /** Severity of this failure type */
+    @SerialName("severity")
+    val severity: RepairSeverity,
+    /** Recommended repair strategy */
+    @SerialName("strategy")
+    val strategy: RepairStrategy,
+    /** Human-readable description of the failure */
+    @SerialName("description")
+    val description: String,
+    /** Suggested fix for user escalation */
+    @SerialName("suggestedFix")
+    val suggestedFix: String? = null,
+)
+
+/**
+ * Severity of a plugin failure.
+ */
+@Serializable
+enum class RepairSeverity {
+    /** Temporary, likely resolves on restart */
+    @SerialName("transient")
+    TRANSIENT,
+    /** Degraded functionality, may need config/state fix */
+    @SerialName("degraded")
+    DEGRADED,
+    /** Fatal, requires code fix or rollback */
+    @SerialName("fatal")
+    FATAL,
+}
+
+/**
+ * Strategy for repairing a failed plugin process.
+ */
+@Serializable
+enum class RepairStrategy {
+    /** Simple restart */
+    @SerialName("restart")
+    RESTART,
+    /** Clear persisted state, restart fresh */
+    @SerialName("reset_state")
+    RESET_STATE,
+    /** AI-assisted config file patch */
+    @SerialName("patch_config")
+    PATCH_CONFIG,
+    /** AI-assisted source code patch (requires user approval) */
+    @SerialName("patch_source")
+    PATCH_SOURCE,
+    /** Revert to previous plugin version */
+    @SerialName("rollback")
+    ROLLBACK,
+    /** Show diagnostic report to user */
+    @SerialName("escalate")
+    ESCALATE,
+}
+
 /**
  * Constants for plugin manifest handling.
  */
@@ -489,7 +741,23 @@ object PluginManifestConstants {
     const val MANIFEST_PATH = "META-INF/boss-plugin/plugin.json"
 
     /**
-     * Current BOSS Plugin API version.
+     * Alternate manifest path for backward compatibility.
      */
-    const val CURRENT_API_VERSION = "1.0"
+    const val LEGACY_MANIFEST_PATH = "META-INF/plugin.json"
+
+    /**
+     * Directory name for plugins.
+     */
+    const val PLUGINS_DIR = "plugins"
+
+    /**
+     * Directory name for bundled plugins.
+     */
+    const val BUNDLED_PLUGINS_DIR = "bundled-plugins"
+
+    /**
+     * Current BOSS Plugin API version.
+     * Plugins must declare a compatible apiVersion in their manifest.
+     */
+    const val CURRENT_API_VERSION = "1.0.18"
 }

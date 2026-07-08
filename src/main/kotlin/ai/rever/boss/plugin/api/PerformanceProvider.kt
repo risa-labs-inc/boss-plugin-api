@@ -216,7 +216,9 @@ data class PerformanceSettingsData(
     val cpuCriticalThresholdPercent: Int = 90,
     val memorySampleIntervalMs: Long = 1000,
     val cpuSampleIntervalMs: Long = 2000,
-    val historyRetentionMinutes: Int = 30
+    val historyRetentionMinutes: Int = 30,
+    val pluginJvmHeapMb: Int = 512,
+    val pluginJvmInitialHeapMb: Int = 64,
 )
 
 /**

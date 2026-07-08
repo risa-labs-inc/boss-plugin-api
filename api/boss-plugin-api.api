@@ -167,6 +167,15 @@ public final class ai/rever/boss/plugin/api/ApplicationEventBus$DefaultImpls {
 	public static fun windowFocusChanges (Lai/rever/boss/plugin/api/ApplicationEventBus;)Lkotlinx/coroutines/flow/Flow;
 }
 
+public final class ai/rever/boss/plugin/api/ApplicationEventBusRegistry {
+	public static final field $stable I
+	public static final field INSTANCE Lai/rever/boss/plugin/api/ApplicationEventBusRegistry;
+	public final fun getBus ()Lai/rever/boss/plugin/api/ApplicationEventBus;
+	public final fun getSystemPublisher ()Lkotlin/jvm/functions/Function1;
+	public final fun setBus (Lai/rever/boss/plugin/api/ApplicationEventBus;)V
+	public final fun setSystemPublisher (Lkotlin/jvm/functions/Function1;)V
+}
+
 public abstract interface class ai/rever/boss/plugin/api/AuthDataProvider {
 	public abstract fun getCurrentUser ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getUserPermissions ()Lkotlinx/coroutines/flow/StateFlow;
@@ -200,6 +209,19 @@ public final class ai/rever/boss/plugin/api/AuthEventState : java/lang/Enum {
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lai/rever/boss/plugin/api/AuthEventState;
 	public static fun values ()[Lai/rever/boss/plugin/api/AuthEventState;
+}
+
+public abstract interface class ai/rever/boss/plugin/api/BackgroundTaskHandle {
+	public abstract fun cancel ()V
+	public abstract fun getJob ()Lkotlinx/coroutines/Job;
+	public abstract fun getName ()Ljava/lang/String;
+	public abstract fun isActive ()Z
+}
+
+public abstract interface class ai/rever/boss/plugin/api/BackgroundTaskProvider {
+	public abstract fun cancelAll ()I
+	public abstract fun getRunningTasks ()Ljava/util/List;
+	public abstract fun launchTask (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lai/rever/boss/plugin/api/BackgroundTaskHandle;
 }
 
 public abstract interface class ai/rever/boss/plugin/api/BookmarkDataProvider {
@@ -324,6 +346,12 @@ public final synthetic class ai/rever/boss/plugin/api/BrowserTabData$$serializer
 
 public final class ai/rever/boss/plugin/api/BrowserTabData$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public abstract interface class ai/rever/boss/plugin/api/CacheProvider {
+	public abstract fun clearPluginCache (Ljava/lang/String;)Z
+	public abstract fun getPluginCacheDirectory (Ljava/lang/String;)Ljava/lang/String;
+	public abstract fun getPluginCacheSize (Ljava/lang/String;)J
 }
 
 public abstract class ai/rever/boss/plugin/api/CanUnloadResult {
@@ -501,6 +529,38 @@ public abstract interface class ai/rever/boss/plugin/api/DeepLinkActionHandler {
 	public abstract fun handle (Ljava/lang/String;Ljava/util/Map;)Z
 }
 
+public final class ai/rever/boss/plugin/api/DefinedPermission {
+	public static final field $stable I
+	public static final field Companion Lai/rever/boss/plugin/api/DefinedPermission$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Lai/rever/boss/plugin/api/DefinedPermission;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/DefinedPermission;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lai/rever/boss/plugin/api/DefinedPermission;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDescription ()Ljava/lang/String;
+	public final fun getName ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class ai/rever/boss/plugin/api/DefinedPermission$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field $stable I
+	public static final field INSTANCE Lai/rever/boss/plugin/api/DefinedPermission$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lai/rever/boss/plugin/api/DefinedPermission;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lai/rever/boss/plugin/api/DefinedPermission;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ai/rever/boss/plugin/api/DefinedPermission$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
 public final class ai/rever/boss/plugin/api/DefinitionInfoData {
 	public static final field $stable I
 	public fun <init> (Ljava/lang/String;Lai/rever/boss/plugin/api/NavigationTargetKind;Ljava/lang/String;III)V
@@ -521,6 +581,38 @@ public final class ai/rever/boss/plugin/api/DefinitionInfoData {
 	public final fun getOffset ()I
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/DiagnosticEntry {
+	public static final field $stable I
+	public fun <init> (JLjava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
+	public synthetic fun <init> (JLjava/lang/String;Ljava/lang/String;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()J
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/util/Map;
+	public final fun copy (JLjava/lang/String;Ljava/lang/String;Ljava/util/Map;)Lai/rever/boss/plugin/api/DiagnosticEntry;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/DiagnosticEntry;JLjava/lang/String;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Lai/rever/boss/plugin/api/DiagnosticEntry;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCategory ()Ljava/lang/String;
+	public final fun getMessage ()Ljava/lang/String;
+	public final fun getMetadata ()Ljava/util/Map;
+	public final fun getTimestamp ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class ai/rever/boss/plugin/api/DiagnosticProvider {
+	public abstract fun clearDiagnostics ()V
+	public abstract fun getRecentDiagnostics (I)Ljava/util/List;
+	public static synthetic fun getRecentDiagnostics$default (Lai/rever/boss/plugin/api/DiagnosticProvider;IILjava/lang/Object;)Ljava/util/List;
+	public abstract fun reportDiagnostic (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
+	public static synthetic fun reportDiagnostic$default (Lai/rever/boss/plugin/api/DiagnosticProvider;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)V
+}
+
+public final class ai/rever/boss/plugin/api/DiagnosticProvider$DefaultImpls {
+	public static synthetic fun getRecentDiagnostics$default (Lai/rever/boss/plugin/api/DiagnosticProvider;IILjava/lang/Object;)Ljava/util/List;
+	public static synthetic fun reportDiagnostic$default (Lai/rever/boss/plugin/api/DiagnosticProvider;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)V
 }
 
 public final class ai/rever/boss/plugin/api/DialogButton : java/lang/Enum {
@@ -1370,6 +1462,32 @@ public final class ai/rever/boss/plugin/api/KeyChordSpec {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class ai/rever/boss/plugin/api/KeyboardShortcutInfo {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/util/List;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;)Lai/rever/boss/plugin/api/KeyboardShortcutInfo;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/KeyboardShortcutInfo;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lai/rever/boss/plugin/api/KeyboardShortcutInfo;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAction ()Ljava/lang/String;
+	public final fun getCategory ()Ljava/lang/String;
+	public final fun getDescription ()Ljava/lang/String;
+	public final fun getKey ()Ljava/lang/String;
+	public final fun getModifiers ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class ai/rever/boss/plugin/api/KeyboardShortcutProvider {
+	public abstract fun getShortcuts ()Ljava/util/List;
+	public abstract fun getShortcutsByCategory (Ljava/lang/String;)Ljava/util/List;
+	public abstract fun isMacOS ()Z
+}
+
 public final class ai/rever/boss/plugin/api/LanguageData : java/lang/Enum {
 	public static final field Companion Lai/rever/boss/plugin/api/LanguageData$Companion;
 	public static final field GO Lai/rever/boss/plugin/api/LanguageData;
@@ -1434,16 +1552,18 @@ public final class ai/rever/boss/plugin/api/LastGcInfoData$Companion {
 
 public final class ai/rever/boss/plugin/api/LoadedPlugin {
 	public static final field $stable I
-	public fun <init> (Lai/rever/boss/plugin/api/PluginManifest;Lai/rever/boss/plugin/api/Plugin;Ljava/lang/String;JLai/rever/boss/plugin/api/PluginState;)V
-	public synthetic fun <init> (Lai/rever/boss/plugin/api/PluginManifest;Lai/rever/boss/plugin/api/Plugin;Ljava/lang/String;JLai/rever/boss/plugin/api/PluginState;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lai/rever/boss/plugin/api/PluginManifest;Lai/rever/boss/plugin/api/Plugin;Ljava/net/URLClassLoader;Ljava/lang/String;JLai/rever/boss/plugin/api/PluginState;)V
+	public synthetic fun <init> (Lai/rever/boss/plugin/api/PluginManifest;Lai/rever/boss/plugin/api/Plugin;Ljava/net/URLClassLoader;Ljava/lang/String;JLai/rever/boss/plugin/api/PluginState;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Lai/rever/boss/plugin/api/PluginManifest;
 	public final fun component2 ()Lai/rever/boss/plugin/api/Plugin;
-	public final fun component3 ()Ljava/lang/String;
-	public final fun component4 ()J
-	public final fun component5 ()Lai/rever/boss/plugin/api/PluginState;
-	public final fun copy (Lai/rever/boss/plugin/api/PluginManifest;Lai/rever/boss/plugin/api/Plugin;Ljava/lang/String;JLai/rever/boss/plugin/api/PluginState;)Lai/rever/boss/plugin/api/LoadedPlugin;
-	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/LoadedPlugin;Lai/rever/boss/plugin/api/PluginManifest;Lai/rever/boss/plugin/api/Plugin;Ljava/lang/String;JLai/rever/boss/plugin/api/PluginState;ILjava/lang/Object;)Lai/rever/boss/plugin/api/LoadedPlugin;
+	public final fun component3 ()Ljava/net/URLClassLoader;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()J
+	public final fun component6 ()Lai/rever/boss/plugin/api/PluginState;
+	public final fun copy (Lai/rever/boss/plugin/api/PluginManifest;Lai/rever/boss/plugin/api/Plugin;Ljava/net/URLClassLoader;Ljava/lang/String;JLai/rever/boss/plugin/api/PluginState;)Lai/rever/boss/plugin/api/LoadedPlugin;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/LoadedPlugin;Lai/rever/boss/plugin/api/PluginManifest;Lai/rever/boss/plugin/api/Plugin;Ljava/net/URLClassLoader;Ljava/lang/String;JLai/rever/boss/plugin/api/PluginState;ILjava/lang/Object;)Lai/rever/boss/plugin/api/LoadedPlugin;
 	public fun equals (Ljava/lang/Object;)Z
+	public final fun getClassLoader ()Ljava/net/URLClassLoader;
 	public final fun getInstance ()Lai/rever/boss/plugin/api/Plugin;
 	public final fun getJarPath ()Ljava/lang/String;
 	public final fun getLoadedAt ()J
@@ -2305,6 +2425,8 @@ public final class ai/rever/boss/plugin/api/PanelMenuItem {
 
 public class ai/rever/boss/plugin/api/PanelRegistry {
 	public static final field $stable I
+	public static final field Companion Lai/rever/boss/plugin/api/PanelRegistry$Companion;
+	public static final field RESERVED_PANEL_ID_PREFIX Ljava/lang/String;
 	public fun <init> ()V
 	public fun addChangeListener (Lkotlin/jvm/functions/Function0;)V
 	public fun createComponent (Lai/rever/boss/plugin/api/PanelId;Lcom/arkivanov/decompose/ComponentContext;)Lai/rever/boss/plugin/api/PanelComponentWithUI;
@@ -2314,6 +2436,9 @@ public class ai/rever/boss/plugin/api/PanelRegistry {
 	public fun registerPanel (Lai/rever/boss/plugin/api/PanelInfo;Lkotlin/jvm/functions/Function2;)V
 	public fun removeChangeListener (Lkotlin/jvm/functions/Function0;)V
 	public fun unregisterPanel (Lai/rever/boss/plugin/api/PanelId;)V
+}
+
+public final class ai/rever/boss/plugin/api/PanelRegistry$Companion {
 }
 
 public final class ai/rever/boss/plugin/api/PendingSidebarCommand {
@@ -2379,9 +2504,11 @@ public final class ai/rever/boss/plugin/api/PerformanceSettingsData {
 	public static final field $stable I
 	public static final field Companion Lai/rever/boss/plugin/api/PerformanceSettingsData$Companion;
 	public fun <init> ()V
-	public fun <init> (ZZIIIIJJI)V
-	public synthetic fun <init> (ZZIIIIJJIILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (ZZIIIIJJIII)V
+	public synthetic fun <init> (ZZIIIIJJIIIILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Z
+	public final fun component10 ()I
+	public final fun component11 ()I
 	public final fun component2 ()Z
 	public final fun component3 ()I
 	public final fun component4 ()I
@@ -2390,8 +2517,8 @@ public final class ai/rever/boss/plugin/api/PerformanceSettingsData {
 	public final fun component7 ()J
 	public final fun component8 ()J
 	public final fun component9 ()I
-	public final fun copy (ZZIIIIJJI)Lai/rever/boss/plugin/api/PerformanceSettingsData;
-	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/PerformanceSettingsData;ZZIIIIJJIILjava/lang/Object;)Lai/rever/boss/plugin/api/PerformanceSettingsData;
+	public final fun copy (ZZIIIIJJIII)Lai/rever/boss/plugin/api/PerformanceSettingsData;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/PerformanceSettingsData;ZZIIIIJJIIIILjava/lang/Object;)Lai/rever/boss/plugin/api/PerformanceSettingsData;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getCpuCriticalThresholdPercent ()I
 	public final fun getCpuSampleIntervalMs ()J
@@ -2401,6 +2528,8 @@ public final class ai/rever/boss/plugin/api/PerformanceSettingsData {
 	public final fun getMemoryCriticalThresholdPercent ()I
 	public final fun getMemorySampleIntervalMs ()J
 	public final fun getMemoryWarningThresholdPercent ()I
+	public final fun getPluginJvmHeapMb ()I
+	public final fun getPluginJvmInitialHeapMb ()I
 	public final fun getShowIndicator ()Z
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
@@ -2537,16 +2666,55 @@ public final class ai/rever/boss/plugin/api/Plugin$DefaultImpls {
 	public static fun dispose (Lai/rever/boss/plugin/api/Plugin;)V
 }
 
+public final class ai/rever/boss/plugin/api/PluginCapability {
+	public static final field $stable I
+	public static final field Companion Lai/rever/boss/plugin/api/PluginCapability$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lai/rever/boss/plugin/api/PluginCapability;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/PluginCapability;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lai/rever/boss/plugin/api/PluginCapability;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAction ()Ljava/lang/String;
+	public final fun getDescription ()Ljava/lang/String;
+	public final fun getInputSchemaJson ()Ljava/lang/String;
+	public final fun getOutputSchemaJson ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class ai/rever/boss/plugin/api/PluginCapability$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field $stable I
+	public static final field INSTANCE Lai/rever/boss/plugin/api/PluginCapability$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lai/rever/boss/plugin/api/PluginCapability;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lai/rever/boss/plugin/api/PluginCapability;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ai/rever/boss/plugin/api/PluginCapability$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
 public abstract interface class ai/rever/boss/plugin/api/PluginContext {
 	public fun getActiveTabsProvider ()Lai/rever/boss/plugin/api/ActiveTabsProvider;
 	public fun getApplicationEventBus ()Lai/rever/boss/plugin/api/ApplicationEventBus;
 	public fun getAuthDataProvider ()Lai/rever/boss/plugin/api/AuthDataProvider;
+	public fun getBackgroundTaskProvider ()Lai/rever/boss/plugin/api/BackgroundTaskProvider;
 	public fun getBookmarkDataProvider ()Lai/rever/boss/plugin/api/BookmarkDataProvider;
 	public fun getBrowserService ()Lai/rever/boss/plugin/browser/BrowserService;
+	public fun getCacheProvider ()Lai/rever/boss/plugin/api/CacheProvider;
 	public fun getClipboardProvider ()Lai/rever/boss/plugin/api/ClipboardProvider;
 	public fun getCoBrowseRtcProvider ()Lai/rever/boss/plugin/api/CoBrowseRtcProvider;
 	public fun getContextMenuProvider ()Lai/rever/boss/plugin/api/ContextMenuProvider;
 	public fun getDashboardContentProvider ()Lai/rever/boss/plugin/api/DashboardContentProvider;
+	public fun getDiagnosticProvider ()Lai/rever/boss/plugin/api/DiagnosticProvider;
 	public fun getDirectoryPickerProvider ()Lai/rever/boss/plugin/api/DirectoryPickerProvider;
 	public fun getDownloadDataProvider ()Lai/rever/boss/plugin/api/DownloadDataProvider;
 	public fun getEditorContentProvider ()Lai/rever/boss/plugin/api/EditorContentProvider;
@@ -2554,6 +2722,7 @@ public abstract interface class ai/rever/boss/plugin/api/PluginContext {
 	public fun getFileSystemDataProvider ()Lai/rever/boss/plugin/api/FileSystemDataProvider;
 	public fun getGenericDialogProvider ()Lai/rever/boss/plugin/api/GenericDialogProvider;
 	public fun getGitDataProvider ()Lai/rever/boss/plugin/api/GitDataProvider;
+	public fun getKeyboardShortcutProvider ()Lai/rever/boss/plugin/api/KeyboardShortcutProvider;
 	public fun getLogDataProvider ()Lai/rever/boss/plugin/api/LogDataProvider;
 	public fun getManifest ()Lai/rever/boss/plugin/api/PluginManifest;
 	public fun getMcpToolRegistry ()Lai/rever/boss/plugin/api/McpToolRegistry;
@@ -2606,12 +2775,15 @@ public final class ai/rever/boss/plugin/api/PluginContext$DefaultImpls {
 	public static fun getActiveTabsProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/ActiveTabsProvider;
 	public static fun getApplicationEventBus (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/ApplicationEventBus;
 	public static fun getAuthDataProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/AuthDataProvider;
+	public static fun getBackgroundTaskProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/BackgroundTaskProvider;
 	public static fun getBookmarkDataProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/BookmarkDataProvider;
 	public static fun getBrowserService (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/browser/BrowserService;
+	public static fun getCacheProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/CacheProvider;
 	public static fun getClipboardProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/ClipboardProvider;
 	public static fun getCoBrowseRtcProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/CoBrowseRtcProvider;
 	public static fun getContextMenuProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/ContextMenuProvider;
 	public static fun getDashboardContentProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/DashboardContentProvider;
+	public static fun getDiagnosticProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/DiagnosticProvider;
 	public static fun getDirectoryPickerProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/DirectoryPickerProvider;
 	public static fun getDownloadDataProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/DownloadDataProvider;
 	public static fun getEditorContentProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/EditorContentProvider;
@@ -2619,6 +2791,7 @@ public final class ai/rever/boss/plugin/api/PluginContext$DefaultImpls {
 	public static fun getFileSystemDataProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/FileSystemDataProvider;
 	public static fun getGenericDialogProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/GenericDialogProvider;
 	public static fun getGitDataProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/GitDataProvider;
+	public static fun getKeyboardShortcutProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/KeyboardShortcutProvider;
 	public static fun getLogDataProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/LogDataProvider;
 	public static fun getManifest (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/PluginManifest;
 	public static fun getMcpToolRegistry (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/McpToolRegistry;
@@ -2698,6 +2871,39 @@ public final class ai/rever/boss/plugin/api/PluginDependency$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
+public final class ai/rever/boss/plugin/api/PluginHealthContract {
+	public static final field $stable I
+	public static final field Companion Lai/rever/boss/plugin/api/PluginHealthContract$Companion;
+	public fun <init> ()V
+	public fun <init> (JJ)V
+	public synthetic fun <init> (JJILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()J
+	public final fun component2 ()J
+	public final fun copy (JJ)Lai/rever/boss/plugin/api/PluginHealthContract;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/PluginHealthContract;JJILjava/lang/Object;)Lai/rever/boss/plugin/api/PluginHealthContract;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getHeartbeatIntervalMs ()J
+	public final fun getStartupTimeoutMs ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class ai/rever/boss/plugin/api/PluginHealthContract$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field $stable I
+	public static final field INSTANCE Lai/rever/boss/plugin/api/PluginHealthContract$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lai/rever/boss/plugin/api/PluginHealthContract;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lai/rever/boss/plugin/api/PluginHealthContract;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ai/rever/boss/plugin/api/PluginHealthContract$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
 public final class ai/rever/boss/plugin/api/PluginLifecycleEvent : ai/rever/boss/plugin/api/ApplicationEvent {
 	public static final field $stable I
 	public fun <init> (Ljava/lang/String;Lai/rever/boss/plugin/api/PluginLifecycleState;Ljava/lang/String;J)V
@@ -2768,8 +2974,8 @@ public final class ai/rever/boss/plugin/api/PluginLogMatcher {
 public final class ai/rever/boss/plugin/api/PluginManifest {
 	public static final field $stable I
 	public static final field Companion Lai/rever/boss/plugin/api/PluginManifest$Companion;
-	public fun <init> (ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/api/PluginType;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lai/rever/boss/plugin/api/PluginSandboxConfig;Ljava/util/List;ZLai/rever/boss/plugin/api/PluginUnloadActions;Lai/rever/boss/plugin/api/PluginPanelConfig;ZLjava/lang/String;Ljava/lang/String;ZIZ)V
-	public synthetic fun <init> (ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/api/PluginType;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lai/rever/boss/plugin/api/PluginSandboxConfig;Ljava/util/List;ZLai/rever/boss/plugin/api/PluginUnloadActions;Lai/rever/boss/plugin/api/PluginPanelConfig;ZLjava/lang/String;Ljava/lang/String;ZIZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/api/PluginType;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lai/rever/boss/plugin/api/PluginSandboxConfig;Ljava/util/List;ZLai/rever/boss/plugin/api/PluginUnloadActions;Lai/rever/boss/plugin/api/PluginPanelConfig;ZLjava/util/List;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lai/rever/boss/plugin/api/PluginHealthContract;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;ZLjava/lang/String;ZIZ)V
+	public synthetic fun <init> (ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/api/PluginType;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lai/rever/boss/plugin/api/PluginSandboxConfig;Ljava/util/List;ZLai/rever/boss/plugin/api/PluginUnloadActions;Lai/rever/boss/plugin/api/PluginPanelConfig;ZLjava/util/List;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lai/rever/boss/plugin/api/PluginHealthContract;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;ZLjava/lang/String;ZIZIILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()I
 	public final fun component10 ()Ljava/lang/String;
 	public final fun component11 ()Ljava/util/List;
@@ -2779,38 +2985,64 @@ public final class ai/rever/boss/plugin/api/PluginManifest {
 	public final fun component15 ()Lai/rever/boss/plugin/api/PluginUnloadActions;
 	public final fun component16 ()Lai/rever/boss/plugin/api/PluginPanelConfig;
 	public final fun component17 ()Z
-	public final fun component18 ()Ljava/lang/String;
-	public final fun component19 ()Ljava/lang/String;
+	public final fun component18 ()Ljava/util/List;
+	public final fun component19 ()Ljava/util/List;
 	public final fun component2 ()Ljava/lang/String;
-	public final fun component20 ()Z
-	public final fun component21 ()I
-	public final fun component22 ()Z
+	public final fun component20 ()Ljava/lang/String;
+	public final fun component21 ()Ljava/lang/String;
+	public final fun component22 ()Ljava/lang/String;
+	public final fun component23 ()Ljava/lang/String;
+	public final fun component24 ()Ljava/util/List;
+	public final fun component25 ()Lai/rever/boss/plugin/api/PluginHealthContract;
+	public final fun component26 ()Ljava/util/List;
+	public final fun component27 ()Ljava/util/List;
+	public final fun component28 ()Ljava/util/List;
+	public final fun component29 ()Ljava/lang/String;
 	public final fun component3 ()Ljava/lang/String;
+	public final fun component30 ()Ljava/lang/String;
+	public final fun component31 ()Z
+	public final fun component32 ()Ljava/lang/String;
+	public final fun component33 ()Z
+	public final fun component34 ()I
+	public final fun component35 ()Z
 	public final fun component4 ()Ljava/lang/String;
 	public final fun component5 ()Ljava/lang/String;
 	public final fun component6 ()Ljava/lang/String;
 	public final fun component7 ()Lai/rever/boss/plugin/api/PluginType;
 	public final fun component8 ()Ljava/lang/String;
 	public final fun component9 ()Ljava/lang/String;
-	public final fun copy (ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/api/PluginType;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lai/rever/boss/plugin/api/PluginSandboxConfig;Ljava/util/List;ZLai/rever/boss/plugin/api/PluginUnloadActions;Lai/rever/boss/plugin/api/PluginPanelConfig;ZLjava/lang/String;Ljava/lang/String;ZIZ)Lai/rever/boss/plugin/api/PluginManifest;
-	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/PluginManifest;ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/api/PluginType;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lai/rever/boss/plugin/api/PluginSandboxConfig;Ljava/util/List;ZLai/rever/boss/plugin/api/PluginUnloadActions;Lai/rever/boss/plugin/api/PluginPanelConfig;ZLjava/lang/String;Ljava/lang/String;ZIZILjava/lang/Object;)Lai/rever/boss/plugin/api/PluginManifest;
+	public final fun copy (ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/api/PluginType;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lai/rever/boss/plugin/api/PluginSandboxConfig;Ljava/util/List;ZLai/rever/boss/plugin/api/PluginUnloadActions;Lai/rever/boss/plugin/api/PluginPanelConfig;ZLjava/util/List;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lai/rever/boss/plugin/api/PluginHealthContract;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;ZLjava/lang/String;ZIZ)Lai/rever/boss/plugin/api/PluginManifest;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/PluginManifest;ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/api/PluginType;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lai/rever/boss/plugin/api/PluginSandboxConfig;Ljava/util/List;ZLai/rever/boss/plugin/api/PluginUnloadActions;Lai/rever/boss/plugin/api/PluginPanelConfig;ZLjava/util/List;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lai/rever/boss/plugin/api/PluginHealthContract;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;ZLjava/lang/String;ZIZIILjava/lang/Object;)Lai/rever/boss/plugin/api/PluginManifest;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getApiVersion ()Ljava/lang/String;
 	public final fun getAuthor ()Ljava/lang/String;
+	public final fun getBehaviorSpec ()Ljava/lang/String;
 	public final fun getCanUnload ()Z
+	public final fun getCapabilities ()Ljava/util/List;
+	public final fun getConfigFiles ()Ljava/util/List;
+	public final fun getConfigSchema ()Ljava/lang/String;
+	public final fun getDefinedPermissions ()Ljava/util/List;
 	public final fun getDependencies ()Ljava/util/List;
 	public final fun getDescription ()Ljava/lang/String;
 	public final fun getDisplayName ()Ljava/lang/String;
+	public final fun getHealthContract ()Lai/rever/boss/plugin/api/PluginHealthContract;
+	public final fun getIsolationMode ()Ljava/lang/String;
 	public final fun getLoadPriority ()I
 	public final fun getMainClass ()Ljava/lang/String;
 	public final fun getManifestVersion ()I
 	public final fun getMinApiVersion ()Ljava/lang/String;
 	public final fun getMinBossVersion ()Ljava/lang/String;
+	public final fun getMinIpcVersion ()Ljava/lang/String;
+	public final fun getNativeImagePath ()Ljava/lang/String;
 	public final fun getPanel ()Lai/rever/boss/plugin/api/PluginPanelConfig;
 	public final fun getPluginId ()Ljava/lang/String;
+	public final fun getRepairHints ()Ljava/util/List;
+	public final fun getRequiredPermissions ()Ljava/util/List;
 	public final fun getRequiresAdmin ()Z
 	public final fun getSandbox ()Lai/rever/boss/plugin/api/PluginSandboxConfig;
 	public final fun getSharedPackages ()Ljava/util/List;
+	public final fun getSourceFiles ()Ljava/util/List;
+	public final fun getStateSnapshotEnabled ()Z
 	public final fun getSystemPlugin ()Z
 	public final fun getType ()Lai/rever/boss/plugin/api/PluginType;
 	public final fun getUnloadActions ()Lai/rever/boss/plugin/api/PluginUnloadActions;
@@ -2839,9 +3071,12 @@ public final class ai/rever/boss/plugin/api/PluginManifest$Companion {
 
 public final class ai/rever/boss/plugin/api/PluginManifestConstants {
 	public static final field $stable I
+	public static final field BUNDLED_PLUGINS_DIR Ljava/lang/String;
 	public static final field CURRENT_API_VERSION Ljava/lang/String;
 	public static final field INSTANCE Lai/rever/boss/plugin/api/PluginManifestConstants;
+	public static final field LEGACY_MANIFEST_PATH Ljava/lang/String;
 	public static final field MANIFEST_PATH Ljava/lang/String;
+	public static final field PLUGINS_DIR Ljava/lang/String;
 }
 
 public final class ai/rever/boss/plugin/api/PluginPanelConfig {
@@ -2882,6 +3117,44 @@ public final synthetic class ai/rever/boss/plugin/api/PluginPanelConfig$$seriali
 
 public final class ai/rever/boss/plugin/api/PluginPanelConfig$Companion {
 	public final fun parseLocationString (Ljava/lang/String;)Lai/rever/boss/plugin/api/Panel;
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class ai/rever/boss/plugin/api/PluginRepairHint {
+	public static final field $stable I
+	public static final field Companion Lai/rever/boss/plugin/api/PluginRepairHint$Companion;
+	public fun <init> (Ljava/lang/String;Lai/rever/boss/plugin/api/RepairSeverity;Lai/rever/boss/plugin/api/RepairStrategy;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Lai/rever/boss/plugin/api/RepairSeverity;Lai/rever/boss/plugin/api/RepairStrategy;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lai/rever/boss/plugin/api/RepairSeverity;
+	public final fun component3 ()Lai/rever/boss/plugin/api/RepairStrategy;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Lai/rever/boss/plugin/api/RepairSeverity;Lai/rever/boss/plugin/api/RepairStrategy;Ljava/lang/String;Ljava/lang/String;)Lai/rever/boss/plugin/api/PluginRepairHint;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/PluginRepairHint;Ljava/lang/String;Lai/rever/boss/plugin/api/RepairSeverity;Lai/rever/boss/plugin/api/RepairStrategy;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lai/rever/boss/plugin/api/PluginRepairHint;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDescription ()Ljava/lang/String;
+	public final fun getFailurePattern ()Ljava/lang/String;
+	public final fun getSeverity ()Lai/rever/boss/plugin/api/RepairSeverity;
+	public final fun getStrategy ()Lai/rever/boss/plugin/api/RepairStrategy;
+	public final fun getSuggestedFix ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class ai/rever/boss/plugin/api/PluginRepairHint$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field $stable I
+	public static final field INSTANCE Lai/rever/boss/plugin/api/PluginRepairHint$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lai/rever/boss/plugin/api/PluginRepairHint;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lai/rever/boss/plugin/api/PluginRepairHint;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ai/rever/boss/plugin/api/PluginRepairHint$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
@@ -2986,6 +3259,7 @@ public final class ai/rever/boss/plugin/api/PluginState : java/lang/Enum {
 	public static final field ERROR Lai/rever/boss/plugin/api/PluginState;
 	public static final field INITIALIZING Lai/rever/boss/plugin/api/PluginState;
 	public static final field LOADED Lai/rever/boss/plugin/api/PluginState;
+	public static final field REGISTERED Lai/rever/boss/plugin/api/PluginState;
 	public static final field UNLOADED Lai/rever/boss/plugin/api/PluginState;
 	public static final field UNLOADING Lai/rever/boss/plugin/api/PluginState;
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
@@ -3048,6 +3322,7 @@ public final class ai/rever/boss/plugin/api/PluginStoreApiKeyProvider$DefaultImp
 
 public final class ai/rever/boss/plugin/api/PluginType : java/lang/Enum {
 	public static final field Companion Lai/rever/boss/plugin/api/PluginType$Companion;
+	public static final field HYBRID Lai/rever/boss/plugin/api/PluginType;
 	public static final field MIXED Lai/rever/boss/plugin/api/PluginType;
 	public static final field PANEL Lai/rever/boss/plugin/api/PluginType;
 	public static final field SERVICE Lai/rever/boss/plugin/api/PluginType;
@@ -3233,6 +3508,37 @@ public final class ai/rever/boss/plugin/api/RegisteredMcpTool {
 	public final fun getProviderId ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/RepairSeverity : java/lang/Enum {
+	public static final field Companion Lai/rever/boss/plugin/api/RepairSeverity$Companion;
+	public static final field DEGRADED Lai/rever/boss/plugin/api/RepairSeverity;
+	public static final field FATAL Lai/rever/boss/plugin/api/RepairSeverity;
+	public static final field TRANSIENT Lai/rever/boss/plugin/api/RepairSeverity;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lai/rever/boss/plugin/api/RepairSeverity;
+	public static fun values ()[Lai/rever/boss/plugin/api/RepairSeverity;
+}
+
+public final class ai/rever/boss/plugin/api/RepairSeverity$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class ai/rever/boss/plugin/api/RepairStrategy : java/lang/Enum {
+	public static final field Companion Lai/rever/boss/plugin/api/RepairStrategy$Companion;
+	public static final field ESCALATE Lai/rever/boss/plugin/api/RepairStrategy;
+	public static final field PATCH_CONFIG Lai/rever/boss/plugin/api/RepairStrategy;
+	public static final field PATCH_SOURCE Lai/rever/boss/plugin/api/RepairStrategy;
+	public static final field RESET_STATE Lai/rever/boss/plugin/api/RepairStrategy;
+	public static final field RESTART Lai/rever/boss/plugin/api/RepairStrategy;
+	public static final field ROLLBACK Lai/rever/boss/plugin/api/RepairStrategy;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lai/rever/boss/plugin/api/RepairStrategy;
+	public static fun values ()[Lai/rever/boss/plugin/api/RepairStrategy;
+}
+
+public final class ai/rever/boss/plugin/api/RepairStrategy$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
 public final class ai/rever/boss/plugin/api/RoleInfoData {

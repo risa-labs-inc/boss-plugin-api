@@ -239,6 +239,9 @@ interface SplitViewOperations {
      * registered without the host needing to know about it. The default
      * implementation is a no-op so existing implementors are unaffected.
      *
+     * In-process plugins only: the IPC/out-of-process proxy doesn't forward this,
+     * so for sandboxed/out-of-process plugins it is a no-op.
+     *
      * @param tabInfo The configuration describing the tab to open.
      */
     fun openTab(tabInfo: TabInfo) {}
@@ -247,13 +250,10 @@ interface SplitViewOperations {
      * Open a registered tab type into a SPLIT of the active panel instead of a
      * new tab in it — the split half of the host's "new tab vs split" chooser.
      * Like [openTab], the [tabInfo]'s [TabInfo.typeId] selects the registered
-     * factory, so a plugin can place e.g. a terminal ([TabInfo] with the
-     * terminal typeId, carrying its initial command / working directory) beside
-     * the current content.
+     * factory, so a plugin can place e.g. a terminal beside the current content.
      *
      * Default no-op so older hosts are unaffected — gate on minBossVersion when
-     * you depend on it (a no-op means nothing opens, so pair it with a fallback
-     * to [openTab] if the split silently does nothing).
+     * you depend on it (pair with a fallback to [openTab] if it silently no-ops).
      *
      * @param tabInfo The configuration describing the tab to open.
      * @param mode Where to place it (see [TabSplitMode]).
@@ -261,12 +261,9 @@ interface SplitViewOperations {
     fun openTabInSplit(tabInfo: TabInfo, mode: TabSplitMode) {}
 
     /**
-     * Open a URL into a SPLIT of the active panel (browser tab), the split half
-     * of the "new tab vs split" chooser for links — the URL analogue of
-     * [openTabInSplit]. [openUrlInActivePanel] covers the new-tab case.
-     *
-     * Default no-op so older hosts are unaffected — gate on minBossVersion when
-     * you depend on it.
+     * Open a URL into a SPLIT of the active panel (browser tab) — the URL
+     * analogue of [openTabInSplit]; [openUrlInActivePanel] covers the new-tab
+     * case. Default no-op so older hosts are unaffected.
      */
     fun openUrlInSplit(url: String, title: String, mode: TabSplitMode) {}
 }

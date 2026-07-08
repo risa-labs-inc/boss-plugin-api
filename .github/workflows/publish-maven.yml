@@ -1,0 +1,33 @@
+name: Publish to GitHub Packages
+
+# Publishes ai.rever.boss.plugin:boss-plugin-api after each release so
+# BossConsole can pin the API as a normal Maven dependency. The release
+# workflow bump-pushes the version before tagging, so checking out the tag
+# yields the released version.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name || github.ref }}
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Publish
+        run: ./gradlew publishMavenPublicationToGitHubPackagesRepository
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

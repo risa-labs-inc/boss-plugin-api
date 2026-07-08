@@ -141,9 +141,24 @@ data class PluginManifest(
     /**
      * Minimum BOSS version required to run this plugin (e.g., "8.16.27").
      * The plugin will not load if the host BOSS version is lower.
+     *
+     * Use for HOST-implemented capabilities (see [HostImplemented]): new
+     * providers, member additions to host-compiled types, Compose bumps.
      */
     @SerialName("minBossVersion")
     val minBossVersion: String = "",
+
+    /**
+     * Minimum boss-plugin-api version required to run this plugin
+     * (e.g., "1.0.62"). The plugin will not load if the installed api layer
+     * is older.
+     *
+     * Use for SDK-only additions — brand-new interfaces/types that ship via
+     * the boss-plugin-api jar alone (the plugin-to-plugin API pattern) and
+     * need no host release.
+     */
+    @SerialName("minApiVersion")
+    val minApiVersion: String = "",
 
     // ============================================================
     // BUNDLED PLUGIN SUPPORT

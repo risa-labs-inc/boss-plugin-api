@@ -8,7 +8,7 @@ Core provider APIs for BOSS plugins. This plugin provides the foundational APIs 
 
 - **Plugin ID**: `ai.rever.boss.plugin.api`
 - **Main Class**: `ai.rever.boss.plugin.bundled.api.BossPluginAPIPlugin`
-- **API Version**: 1.0.22
+- **API Version**: see `build.gradle.kts` (single source of truth; the changelog comment above `version` documents each release)
 
 ## Essential Commands
 
@@ -49,7 +49,20 @@ build.gradle.kts   → Build config + version (single source of truth)
 
 **`build.gradle.kts` is the single source of truth for version.**
 
-The `processResources` task automatically syncs the version into `plugin.json` at build time. Never manually edit the version in `plugin.json` — only change it in `build.gradle.kts`.
+The `processResources` task automatically syncs the version into `plugin.json` at build time. Never manually edit the version in `plugin.json` — only change it in `build.gradle.kts`. The release workflow bump-pushes the version before building, so the version in `main` is the one already released; the next merge releases version+1.
+
+### Evolution rules (runtime-updatable API layer)
+
+The host resolves the newest installed api jar into a shared **ApiClassLoader** at startup (parent of every plugin classloader) and publishes its version as the `boss.api.version` property (`BossApiRuntime`). Consequences:
+
+- **New types** (interfaces/objects/data classes) ship via this jar alone — no BossConsole release. Consumers gate with manifest `minApiVersion`.
+- **Member changes to existing types** the host compiles in are shadowed by the host's copy — they require a BossConsole release and `minBossVersion` gating. Mark such types `@HostImplemented`.
+- Only additive changes; new interface methods always get default bodies. Never evolve sealed hierarchies or data classes across the boundary.
+- CI enforces additive-only evolution via the kotlinx binary-compatibility-validator (`./gradlew apiCheck`; regenerate the dump with `./gradlew apiDump` and commit `api/boss-plugin-api.api`).
+
+### Maven publishing
+
+Each release also publishes `ai.rever.boss.plugin:boss-plugin-api` to GitHub Packages (`.github/workflows/publish-maven.yml`) so BossConsole pins the API as a normal dependency instead of hand-mirroring sources.
 
 ## Code Quality
 

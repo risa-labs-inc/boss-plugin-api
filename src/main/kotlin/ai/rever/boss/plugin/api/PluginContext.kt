@@ -547,6 +547,63 @@ interface PluginContext {
         get() = null
 
     // ============================================================
+    // UI EXTENSION REGISTRIES
+    // Enables plugins to extend host chrome (panel top-bar menus,
+    // settings pages, deep-link actions, keyboard shortcuts, status
+    // bar) without host code changes. All registrations are removed
+    // automatically when the plugin is disabled or unloaded. All
+    // register/unregister methods default to no-ops so plugins built
+    // against them degrade gracefully on older hosts (gate on
+    // minBossVersion for the host release that renders them).
+    // ============================================================
+
+    /**
+     * Contribute menu items to the shared top bar of sidebar panels
+     * (kebab + right-click menu). See [PanelMenuContribution] for the
+     * cross-plugin targeting story.
+     */
+    fun registerPanelMenuContribution(contribution: PanelMenuContribution) {}
+
+    /** Unregister a panel menu contribution by [PanelMenuContribution.contributionId]. */
+    fun unregisterPanelMenuContribution(contributionId: String) {}
+
+    /**
+     * Register a settings page rendered inside the host settings window
+     * under a "Plugins" divider. See [SettingsPageProvider].
+     */
+    fun registerSettingsPage(provider: SettingsPageProvider) {}
+
+    /** Unregister a settings page by [SettingsPageProvider.pageId]. */
+    fun unregisterSettingsPage(pageId: String) {}
+
+    /**
+     * Register a handler for `boss://plugin?id=<handlerId>&action=…` deep
+     * links. See [DeepLinkActionHandler].
+     */
+    fun registerDeepLinkActionHandler(handler: DeepLinkActionHandler) {}
+
+    /** Unregister a deep-link action handler by [DeepLinkActionHandler.handlerId]. */
+    fun unregisterDeepLinkActionHandler(handlerId: String) {}
+
+    /**
+     * Register global keyboard actions (GLOBAL context only). See
+     * [ShortcutActionProvider] for binding-conflict rules.
+     */
+    fun registerShortcutActionProvider(provider: ShortcutActionProvider) {}
+
+    /** Unregister a shortcut provider by [ShortcutActionProvider.providerId]. */
+    fun unregisterShortcutActionProvider(providerId: String) {}
+
+    /**
+     * Register a widget in the host status (bottom) bar. See
+     * [StatusBarItemProvider].
+     */
+    fun registerStatusBarItem(provider: StatusBarItemProvider) {}
+
+    /** Unregister a status-bar item by [StatusBarItemProvider.itemId]. */
+    fun unregisterStatusBarItem(itemId: String) {}
+
+    // ============================================================
     // PLUGIN-TO-PLUGIN API ACCESS
     // These methods enable plugins to expose and consume APIs from
     // other plugins, supporting a decentralized plugin architecture.

@@ -1,7 +1,6 @@
 package ai.rever.boss.plugin.api
 
 import androidx.compose.ui.graphics.vector.ImageVector
-import kotlinx.coroutines.flow.StateFlow
 
 /**
  * A single menu item contributed to the shared top bar of sidebar panels.
@@ -54,17 +53,13 @@ interface PanelMenuContribution {
         get() = null
 
     /**
-     * Items to show for [panelId]. Queried when a menu opens — must be cheap
-     * and non-blocking.
+     * Items to show for [panelId]. May be queried whenever a panel's top bar
+     * (re)composes — not only when a menu opens — so it MUST be cheap,
+     * non-blocking, and side-effect free. Registrations are re-queried on
+     * plugin lifecycle and role changes; re-register the contribution to
+     * change its item set outside those events.
      */
     fun items(panelId: PanelId): List<PanelMenuItem>
-
-    /**
-     * Optional reactive invalidation: bump the value to make the host
-     * re-query [items] while a menu could be visible.
-     */
-    val revision: StateFlow<Int>?
-        get() = null
 
     /**
      * Called when the user clicks a contributed item. Arguments are the

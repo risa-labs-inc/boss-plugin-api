@@ -9,7 +9,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
  *
  * Register via [PluginContext.registerSettingsPage]; the host unregisters
  * automatically on disable/unload. Content is wrapped in the host's plugin
- * error boundary — a crashing page cannot take down the settings window.
+ * extension boundary: a crash attributed to the owning plugin replaces the
+ * page with a compact error notice instead of taking down the settings
+ * window.
  *
  * Persistence: use [PluginContext.pluginStorageFactory]; there is no separate
  * settings persistence helper.
@@ -35,6 +37,16 @@ interface SettingsPageProvider {
 
     /** RBAC: only admins see this page. */
     val requiresAdmin: Boolean
+        get() = false
+
+    /**
+     * When false (default), the host wraps [Content] in its own vertical
+     * scroll — the page must NOT contain a fill-height scrollable
+     * (LazyColumn / verticalScroll) or Compose throws "Vertical viewport was
+     * given unbounded height". Set true to take over scrolling: the host
+     * gives the page the full content area and the page scrolls itself.
+     */
+    val selfScrolling: Boolean
         get() = false
 
     @Composable

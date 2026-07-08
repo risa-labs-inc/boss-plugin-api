@@ -10,8 +10,10 @@ enum class StatusBarAlignment { LEFT, RIGHT }
 /**
  * A widget contributed to the host status (bottom) bar.
  *
- * Content is wrapped in the host's plugin error boundary and should be a
- * small, single-row composable (text, icon + text, tiny indicator).
+ * Content is wrapped in the host's plugin extension boundary — a crash
+ * attributed to the owning plugin collapses the widget to a compact error
+ * marker instead of taking down the status bar. Keep it a small, single-row
+ * composable (text, icon + text, tiny indicator).
  *
  * Register via [PluginContext.registerStatusBarItem]; the host unregisters
  * automatically on disable/unload.

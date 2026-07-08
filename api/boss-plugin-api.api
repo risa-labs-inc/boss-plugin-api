@@ -2385,14 +2385,12 @@ public final class ai/rever/boss/plugin/api/PanelLifecycle$DefaultImpls {
 
 public abstract interface class ai/rever/boss/plugin/api/PanelMenuContribution {
 	public abstract fun getContributionId ()Ljava/lang/String;
-	public fun getRevision ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getTargetPanels ()Ljava/util/Set;
 	public abstract fun items (Lai/rever/boss/plugin/api/PanelId;)Ljava/util/List;
 	public abstract fun onItemClick (Lai/rever/boss/plugin/api/PanelId;Ljava/lang/String;Ljava/lang/String;)V
 }
 
 public final class ai/rever/boss/plugin/api/PanelMenuContribution$DefaultImpls {
-	public static fun getRevision (Lai/rever/boss/plugin/api/PanelMenuContribution;)Lkotlinx/coroutines/flow/StateFlow;
 	public static fun getTargetPanels (Lai/rever/boss/plugin/api/PanelMenuContribution;)Ljava/util/Set;
 }
 
@@ -4022,12 +4020,14 @@ public abstract interface class ai/rever/boss/plugin/api/SettingsPageProvider {
 	public abstract fun getPageId ()Ljava/lang/String;
 	public fun getRequiredPermissions ()Ljava/util/Set;
 	public fun getRequiresAdmin ()Z
+	public fun getSelfScrolling ()Z
 }
 
 public final class ai/rever/boss/plugin/api/SettingsPageProvider$DefaultImpls {
 	public static fun getOrder (Lai/rever/boss/plugin/api/SettingsPageProvider;)I
 	public static fun getRequiredPermissions (Lai/rever/boss/plugin/api/SettingsPageProvider;)Ljava/util/Set;
 	public static fun getRequiresAdmin (Lai/rever/boss/plugin/api/SettingsPageProvider;)Z
+	public static fun getSelfScrolling (Lai/rever/boss/plugin/api/SettingsPageProvider;)Z
 }
 
 public abstract interface class ai/rever/boss/plugin/api/SettingsProvider {

@@ -3,6 +3,12 @@ package ai.rever.boss.plugin.api
 /**
  * A key chord, expressed in the host keymap's vocabulary.
  *
+ * Plugin chords MUST include at least one of Cmd/Ctrl/Alt: the host's
+ * keyboard interceptor ignores modifier-less and Shift-only events (they
+ * belong to text entry), so such a chord can never fire. The registry
+ * rejects a defaultBinding without one of those modifiers (warned, treated
+ * as unbound — the user can still rebind to a reachable chord in Settings).
+ *
  * @param key The main key, e.g. "K", "F5", "Enter".
  * @param modifiers Modifier names, e.g. ["Cmd", "Shift"]. Platform-mapped by
  *   the host (Cmd = Ctrl on Windows/Linux presets).

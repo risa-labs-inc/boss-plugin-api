@@ -138,6 +138,10 @@ val apiCoreJar = tasks.register<Jar>("apiCoreJar") {
     archiveBaseName.set("boss-plugin-api-core")
     from(sourceSets.main.get().output) {
         include("ai/rever/boss/plugin/api/**")
+        // Top-level declarations (e.g. the LocalXxx composition locals) are
+        // resolved through the Kotlin module map — without it only classes
+        // resolve and file-facade members appear missing.
+        include("META-INF/*.kotlin_module")
     }
 }
 

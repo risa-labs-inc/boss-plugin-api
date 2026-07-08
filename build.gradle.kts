@@ -37,7 +37,7 @@ group = "ai.rever.boss.plugin.bundled"
 // openUrlInSplit(url, title, TabSplitMode) — the split half of the "new tab vs
 // split" chooser (existing/vertical/horizontal) for registered tab types and for
 // URLs, backed host-side by SplitViewState.splitPanel. Default no-ops; additive.
-version = "1.0.60"
+version = "1.0.61"
 
 java {
     toolchain {

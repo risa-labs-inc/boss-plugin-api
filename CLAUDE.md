@@ -60,9 +60,9 @@ The host resolves the newest installed api jar into a shared **ApiClassLoader** 
 - Only additive changes; new interface methods always get default bodies. Never evolve sealed hierarchies or data classes across the boundary.
 - CI enforces additive-only evolution via the kotlinx binary-compatibility-validator (`./gradlew apiCheck`; regenerate the dump with `./gradlew apiDump` and commit `api/boss-plugin-api.api`).
 
-### Maven publishing
+### Distribution: store/GitHub-releases ONLY
 
-Each release also publishes `ai.rever.boss.plugin:boss-plugin-api` to GitHub Packages (`.github/workflows/publish-maven.yml`) so BossConsole pins the API as a normal dependency instead of hand-mirroring sources.
+There is deliberately no Maven publication. The released jar is the single artifact: the Plugin Store serves it, the host's ApiClassLoader loads it at runtime (hot-swappable — a newer api plugin triggers unload-all → swap → reload-all, no restart), and BossConsole's build downloads the pinned release jar and filters the api package locally for compilation (`plugins/plugin-api-core`, `fetchApiPluginJar`).
 
 ## Code Quality
 

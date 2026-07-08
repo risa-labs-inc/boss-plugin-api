@@ -449,6 +449,42 @@ interface PluginContext {
         get() = null
 
     /**
+     * Optional keyboard shortcut provider for querying key bindings.
+     *
+     * Returns null if keyboard shortcut information is not available.
+     * Dynamic plugins can use this to display shortcut information.
+     */
+    val keyboardShortcutProvider: KeyboardShortcutProvider?
+        get() = null
+
+    /**
+     * Optional cache provider for managing plugin cached data.
+     *
+     * Returns null if cache management is not available.
+     * Dynamic plugins can use this to manage their own cache directories.
+     */
+    val cacheProvider: CacheProvider?
+        get() = null
+
+    /**
+     * Optional background task provider for structured task management.
+     *
+     * Returns null if task management is not available.
+     * Dynamic plugins can use this for named, trackable background tasks.
+     */
+    val backgroundTaskProvider: BackgroundTaskProvider?
+        get() = null
+
+    /**
+     * Optional diagnostic provider for plugin diagnostic reporting.
+     *
+     * Returns null if diagnostic reporting is not available.
+     * Dynamic plugins can use this to report and query diagnostic info.
+     */
+    val diagnosticProvider: DiagnosticProvider?
+        get() = null
+
+    /**
      * Optional directory picker provider for file browser plugins.
      *
      * Returns null if directory picker functionality is not available.
@@ -545,6 +581,63 @@ interface PluginContext {
      */
     val mcpToolRegistry: McpToolRegistry?
         get() = null
+
+    // ============================================================
+    // UI EXTENSION REGISTRIES
+    // Enables plugins to extend host chrome (panel top-bar menus,
+    // settings pages, deep-link actions, keyboard shortcuts, status
+    // bar) without host code changes. All registrations are removed
+    // automatically when the plugin is disabled or unloaded. All
+    // register/unregister methods default to no-ops so plugins built
+    // against them degrade gracefully on older hosts (gate on
+    // minBossVersion for the host release that renders them).
+    // ============================================================
+
+    /**
+     * Contribute menu items to the shared top bar of sidebar panels
+     * (kebab + right-click menu). See [PanelMenuContribution] for the
+     * cross-plugin targeting story.
+     */
+    fun registerPanelMenuContribution(contribution: PanelMenuContribution) {}
+
+    /** Unregister a panel menu contribution by [PanelMenuContribution.contributionId]. */
+    fun unregisterPanelMenuContribution(contributionId: String) {}
+
+    /**
+     * Register a settings page rendered inside the host settings window
+     * under a "Plugins" divider. See [SettingsPageProvider].
+     */
+    fun registerSettingsPage(provider: SettingsPageProvider) {}
+
+    /** Unregister a settings page by [SettingsPageProvider.pageId]. */
+    fun unregisterSettingsPage(pageId: String) {}
+
+    /**
+     * Register a handler for `boss://plugin?id=<handlerId>&action=…` deep
+     * links. See [DeepLinkActionHandler].
+     */
+    fun registerDeepLinkActionHandler(handler: DeepLinkActionHandler) {}
+
+    /** Unregister a deep-link action handler by [DeepLinkActionHandler.handlerId]. */
+    fun unregisterDeepLinkActionHandler(handlerId: String) {}
+
+    /**
+     * Register global keyboard actions (GLOBAL context only). See
+     * [ShortcutActionProvider] for binding-conflict rules.
+     */
+    fun registerShortcutActionProvider(provider: ShortcutActionProvider) {}
+
+    /** Unregister a shortcut provider by [ShortcutActionProvider.providerId]. */
+    fun unregisterShortcutActionProvider(providerId: String) {}
+
+    /**
+     * Register a widget in the host status (bottom) bar. See
+     * [StatusBarItemProvider].
+     */
+    fun registerStatusBarItem(provider: StatusBarItemProvider) {}
+
+    /** Unregister a status-bar item by [StatusBarItemProvider.itemId]. */
+    fun unregisterStatusBarItem(itemId: String) {}
 
     // ============================================================
     // PLUGIN-TO-PLUGIN API ACCESS

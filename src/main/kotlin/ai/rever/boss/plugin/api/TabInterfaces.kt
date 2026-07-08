@@ -42,7 +42,43 @@ interface TabTypeInfo {
     val typeId: TabTypeId
     val displayName: String
     val icon: ImageVector
+
+    /**
+     * Non-null to make this tab type appear as an option in the host's
+     * New Tab dialog. Defaults to null (hidden) so existing tab types are
+     * unaffected.
+     */
+    val newTabSpec: NewTabSpec?
+        get() = null
+
+    /**
+     * Build the [TabInfo] to open for the New Tab dialog's input. Return
+     * null to reject the input (the dialog stays open). Only called when
+     * [newTabSpec] is non-null.
+     */
+    fun createTabInfo(input: String, context: NewTabContext): TabInfo? = null
 }
+
+/**
+ * Display metadata for a tab type's entry in the host New Tab dialog.
+ */
+data class NewTabSpec(
+    /** Options are sorted ascending; built-ins come first. */
+    val order: Int = 100,
+    val inputLabel: String = "Input",
+    val inputPlaceholder: String = "",
+    /** When true, confirming with empty input is allowed (terminal-style). */
+    val inputOptional: Boolean = false,
+    val confirmLabel: String = "Open",
+)
+
+/**
+ * Context passed to [TabTypeInfo.createTabInfo] from the New Tab dialog.
+ */
+data class NewTabContext(
+    val projectPath: String? = null,
+    val windowId: String? = null,
+)
 
 /**
  * Extended TabInfo interface for terminal tabs.

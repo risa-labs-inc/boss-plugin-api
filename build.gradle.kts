@@ -5,6 +5,8 @@ plugins {
     kotlin("plugin.serialization") version "2.3.0"
     id("org.jetbrains.compose") version "1.10.0"
     id("org.jetbrains.kotlin.plugin.compose") version "2.3.0"
+    id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.17.0"
+    `maven-publish`
 }
 
 group = "ai.rever.boss.plugin.bundled"
@@ -37,6 +39,18 @@ group = "ai.rever.boss.plugin.bundled"
 // openUrlInSplit(url, title, TabSplitMode) — the split half of the "new tab vs
 // split" chooser (existing/vertical/horizontal) for registered tab types and for
 // URLs, backed host-side by SplitViewState.splitPanel. Default no-ops; additive.
+// 1.0.62: the runtime-updatable API layer. Adds BossApiRuntime (feature
+// detection against the installed api jar via the host-set boss.api.version
+// property), PluginManifest.minApiVersion (gate for SDK-only additions, vs
+// minBossVersion for host-implemented ones), @HostImplemented (documentation
+// marker for types whose member changes require a host release), and the UI
+// extension registry contracts rendered by host >= the platform release:
+// PanelMenuContribution/PanelMenuItem (panel top-bar menu items, cross-plugin
+// targeting), TabTypeInfo.newTabSpec/createTabInfo + NewTabSpec/NewTabContext
+// (New Tab dialog entries), SettingsPageProvider, DeepLinkActionHandler
+// (boss://plugin?id&action=…), ShortcutActionProvider/PluginShortcutSpec/
+// KeyChordSpec (global shortcuts), StatusBarItemProvider. All additive with
+// default no-op PluginContext hooks.
 version = "1.0.61"
 
 java {
@@ -112,4 +126,52 @@ tasks.processResources {
 
 tasks.build {
     dependsOn("buildPluginJar")
+}
+
+// Filtered class jar: ONLY the `ai.rever.boss.plugin.api` package, published
+// as boss-plugin-api-core for BossConsole's plugin-api-core passthrough. The
+// full SDK jar also carries the ui/logging/scrollbar/browser/bookmark/
+// workspace packages, which the host provides as its own modules — pinning
+// the fat jar would put duplicate FQCNs on the host classpath. Class files
+// are unchanged (path-filtered from the same compilation).
+val apiCoreJar = tasks.register<Jar>("apiCoreJar") {
+    archiveBaseName.set("boss-plugin-api-core")
+    from(sourceSets.main.get().output) {
+        include("ai/rever/boss/plugin/api/**")
+        // Top-level declarations (e.g. the LocalXxx composition locals) are
+        // resolved through the Kotlin module map — without it only classes
+        // resolve and file-facade members appear missing.
+        include("META-INF/*.kotlin_module")
+    }
+}
+
+// Publish to GitHub Packages so BossConsole can pin the API as a normal
+// Maven dependency (libs.versions.toml) instead of hand-mirroring sources.
+// Run by .github/workflows/publish-maven.yml on each release.
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            groupId = "ai.rever.boss.plugin"
+            artifactId = "boss-plugin-api"
+            from(components["java"])
+        }
+        create<MavenPublication>("apiCore") {
+            groupId = "ai.rever.boss.plugin"
+            artifactId = "boss-plugin-api-core"
+            artifact(apiCoreJar)
+            // Deliberately no POM dependencies: the host's plugin-api-core
+            // module declares compose/decompose/coroutines/sibling modules
+            // itself, exactly as the source mirror did.
+        }
+    }
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/risa-labs-inc/boss-plugin-api")
+            credentials {
+                username = System.getenv("GITHUB_ACTOR") ?: findProperty("gpr.user")?.toString() ?: ""
+                password = System.getenv("GITHUB_TOKEN") ?: findProperty("gpr.key")?.toString() ?: ""
+            }
+        }
+    }
 }

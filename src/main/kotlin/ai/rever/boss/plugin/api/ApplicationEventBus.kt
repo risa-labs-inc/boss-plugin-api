@@ -39,8 +39,7 @@ interface ApplicationEventBus {
      * @return Flow of file change events
      */
     fun fileChanges(): Flow<FileChangeEvent> =
-        @Suppress("UNCHECKED_CAST")
-        eventsOfType(FileChangeEvent::class.java as Class<FileChangeEvent>)
+        eventsOfType(FileChangeEvent::class.java)
 
     /**
      * Subscribe to project selection events.
@@ -48,8 +47,7 @@ interface ApplicationEventBus {
      * @return Flow of project selection events
      */
     fun projectChanges(): Flow<ProjectChangeEvent> =
-        @Suppress("UNCHECKED_CAST")
-        eventsOfType(ProjectChangeEvent::class.java as Class<ProjectChangeEvent>)
+        eventsOfType(ProjectChangeEvent::class.java)
 
     /**
      * Subscribe to window focus events.
@@ -57,8 +55,7 @@ interface ApplicationEventBus {
      * @return Flow of window focus events
      */
     fun windowFocusChanges(): Flow<WindowFocusEvent> =
-        @Suppress("UNCHECKED_CAST")
-        eventsOfType(WindowFocusEvent::class.java as Class<WindowFocusEvent>)
+        eventsOfType(WindowFocusEvent::class.java)
 
     /**
      * Subscribe to plugin lifecycle events.
@@ -66,8 +63,7 @@ interface ApplicationEventBus {
      * @return Flow of plugin lifecycle events
      */
     fun pluginLifecycleEvents(): Flow<PluginLifecycleEvent> =
-        @Suppress("UNCHECKED_CAST")
-        eventsOfType(PluginLifecycleEvent::class.java as Class<PluginLifecycleEvent>)
+        eventsOfType(PluginLifecycleEvent::class.java)
 
     /**
      * Subscribe to tab events.
@@ -75,8 +71,7 @@ interface ApplicationEventBus {
      * @return Flow of tab events
      */
     fun tabEvents(): Flow<TabEvent> =
-        @Suppress("UNCHECKED_CAST")
-        eventsOfType(TabEvent::class.java as Class<TabEvent>)
+        eventsOfType(TabEvent::class.java)
 
     /**
      * Subscribe to authentication events.
@@ -84,8 +79,7 @@ interface ApplicationEventBus {
      * @return Flow of authentication events
      */
     fun authEvents(): Flow<AuthEvent> =
-        @Suppress("UNCHECKED_CAST")
-        eventsOfType(AuthEvent::class.java as Class<AuthEvent>)
+        eventsOfType(AuthEvent::class.java)
 
     /**
      * Subscribe to terminal session events.
@@ -93,8 +87,37 @@ interface ApplicationEventBus {
      * @return Flow of terminal session events
      */
     fun terminalSessionEvents(): Flow<TerminalSessionEvent> =
-        @Suppress("UNCHECKED_CAST")
-        eventsOfType(TerminalSessionEvent::class.java as Class<TerminalSessionEvent>)
+        eventsOfType(TerminalSessionEvent::class.java)
+}
+
+/**
+ * Process-global registry for the single application event bus.
+ *
+ * The bus implementation and the host-side `publishSystemEvent` bridge live in the
+ * `composeApp` module, whose package is NOT shared/parent-first. In-process plugins are
+ * loaded by classloaders that can resolve their own copies of those host classes, so the
+ * host and a plugin may each see a different `ApplicationEventBusImpl` class — and thus a
+ * different per-classloader `instance` singleton. The result: the host emits system events
+ * to one instance while plugins subscribe to another, and the events are silently dropped.
+ *
+ * This registry lives in `ai.rever.boss.plugin.api`, which IS a shared/parent-first package
+ * (see `PluginClassLoader.defaultSharedPackages`), so there is exactly ONE copy across the
+ * host and every in-process plugin. The bus implementation registers itself here on creation,
+ * and the host publishes system events through [systemPublisher]. This guarantees host-emitted
+ * events reach the same bus instance that plugins subscribe to, regardless of classloader.
+ */
+object ApplicationEventBusRegistry {
+    /** The single shared bus instance, or null until the first one is created. */
+    @Volatile
+    var bus: ApplicationEventBus? = null
+
+    /**
+     * Publishes a host/system [ApplicationEvent] onto the shared bus, bypassing the
+     * plugin-facing [ApplicationEventBus.publish] gate. Set by the bus implementation when
+     * it is created; null until then (in which case host system events are a no-op).
+     */
+    @Volatile
+    var systemPublisher: ((ApplicationEvent) -> Unit)? = null
 }
 
 /**

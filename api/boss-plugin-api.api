@@ -2700,6 +2700,39 @@ public final class ai/rever/boss/plugin/api/PluginCapability$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
+public final class ai/rever/boss/plugin/api/PluginClassStatData {
+	public static final field $stable I
+	public static final field Companion Lai/rever/boss/plugin/api/PluginClassStatData$Companion;
+	public fun <init> (Ljava/lang/String;JJ)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()J
+	public final fun component3 ()J
+	public final fun copy (Ljava/lang/String;JJ)Lai/rever/boss/plugin/api/PluginClassStatData;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/PluginClassStatData;Ljava/lang/String;JJILjava/lang/Object;)Lai/rever/boss/plugin/api/PluginClassStatData;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBytes ()J
+	public final fun getClassName ()Ljava/lang/String;
+	public final fun getInstances ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class ai/rever/boss/plugin/api/PluginClassStatData$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field $stable I
+	public static final field INSTANCE Lai/rever/boss/plugin/api/PluginClassStatData$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lai/rever/boss/plugin/api/PluginClassStatData;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lai/rever/boss/plugin/api/PluginClassStatData;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ai/rever/boss/plugin/api/PluginClassStatData$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
 public abstract interface class ai/rever/boss/plugin/api/PluginContext {
 	public fun getActiveTabsProvider ()Lai/rever/boss/plugin/api/ActiveTabsProvider;
 	public fun getApplicationEventBus ()Lai/rever/boss/plugin/api/ApplicationEventBus;
@@ -3075,6 +3108,59 @@ public final class ai/rever/boss/plugin/api/PluginManifestConstants {
 	public static final field LEGACY_MANIFEST_PATH Ljava/lang/String;
 	public static final field MANIFEST_PATH Ljava/lang/String;
 	public static final field PLUGINS_DIR Ljava/lang/String;
+}
+
+public abstract interface class ai/rever/boss/plugin/api/PluginMemoryProbeAPI {
+	public abstract fun leakSignals (Ljava/lang/String;)Ljava/util/List;
+	public abstract fun sampleHistory (Ljava/lang/String;)Ljava/util/List;
+	public abstract fun sampleMemory (Ljava/lang/String;I)Lai/rever/boss/plugin/api/PluginMemorySampleData;
+	public static synthetic fun sampleMemory$default (Lai/rever/boss/plugin/api/PluginMemoryProbeAPI;Ljava/lang/String;IILjava/lang/Object;)Lai/rever/boss/plugin/api/PluginMemorySampleData;
+}
+
+public final class ai/rever/boss/plugin/api/PluginMemoryProbeAPI$DefaultImpls {
+	public static synthetic fun sampleMemory$default (Lai/rever/boss/plugin/api/PluginMemoryProbeAPI;Ljava/lang/String;IILjava/lang/Object;)Lai/rever/boss/plugin/api/PluginMemorySampleData;
+}
+
+public final class ai/rever/boss/plugin/api/PluginMemorySampleData {
+	public static final field $stable I
+	public static final field Companion Lai/rever/boss/plugin/api/PluginMemorySampleData$Companion;
+	public fun <init> (JLjava/lang/String;Ljava/lang/String;IJJLjava/util/List;)V
+	public synthetic fun <init> (JLjava/lang/String;Ljava/lang/String;IJJLjava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()J
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()I
+	public final fun component5 ()J
+	public final fun component6 ()J
+	public final fun component7 ()Ljava/util/List;
+	public final fun copy (JLjava/lang/String;Ljava/lang/String;IJJLjava/util/List;)Lai/rever/boss/plugin/api/PluginMemorySampleData;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/PluginMemorySampleData;JLjava/lang/String;Ljava/lang/String;IJJLjava/util/List;ILjava/lang/Object;)Lai/rever/boss/plugin/api/PluginMemorySampleData;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAtMs ()J
+	public final fun getClassCount ()I
+	public final fun getInstanceCount ()J
+	public final fun getPackagePrefix ()Ljava/lang/String;
+	public final fun getPluginId ()Ljava/lang/String;
+	public final fun getTopClasses ()Ljava/util/List;
+	public final fun getTotalBytes ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class ai/rever/boss/plugin/api/PluginMemorySampleData$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field $stable I
+	public static final field INSTANCE Lai/rever/boss/plugin/api/PluginMemorySampleData$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lai/rever/boss/plugin/api/PluginMemorySampleData;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lai/rever/boss/plugin/api/PluginMemorySampleData;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ai/rever/boss/plugin/api/PluginMemorySampleData$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
 public final class ai/rever/boss/plugin/api/PluginPanelConfig {

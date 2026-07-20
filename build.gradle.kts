@@ -59,7 +59,7 @@ group = "ai.rever.boss.plugin.bundled"
 // @HostImplemented to FileSystemDataProvider — first use of the marker; the
 // interface is host-implemented, so member changes like this one ship only
 // with a BossConsole release.
-version = "1.0.65"
+version = "1.0.66"
 
 java {
     toolchain {

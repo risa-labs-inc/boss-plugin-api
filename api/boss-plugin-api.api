@@ -1078,15 +1078,26 @@ public abstract interface class ai/rever/boss/plugin/api/FileSystemDataProvider 
 	public abstract fun createFolder-0E7RQCE (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun delete-gIAlu-s (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun directoryHasChildren (Ljava/lang/String;)Z
+	public fun directoryHasChildren (Ljava/lang/String;Z)Z
 	public abstract fun getDownloadsDirectory ()Ljava/lang/String;
 	public abstract fun getHomeDirectory ()Ljava/lang/String;
+	public fun getSupportsHiddenEntries ()Z
 	public abstract fun openFile (Ljava/lang/String;Ljava/lang/String;)V
 	public abstract fun readFile-gIAlu-s (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun rename-0E7RQCE (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun revealInFileManager-IoAF18A (Ljava/lang/String;)Ljava/lang/Object;
 	public abstract fun scanDirectory (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun scanDirectory (Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun scanDirectoryWithDepth (Ljava/lang/String;IILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun scanDirectoryWithDepth (Ljava/lang/String;IIZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun writeFile-0E7RQCE (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class ai/rever/boss/plugin/api/FileSystemDataProvider$DefaultImpls {
+	public static fun directoryHasChildren (Lai/rever/boss/plugin/api/FileSystemDataProvider;Ljava/lang/String;Z)Z
+	public static fun getSupportsHiddenEntries (Lai/rever/boss/plugin/api/FileSystemDataProvider;)Z
+	public static fun scanDirectory (Lai/rever/boss/plugin/api/FileSystemDataProvider;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static fun scanDirectoryWithDepth (Lai/rever/boss/plugin/api/FileSystemDataProvider;Ljava/lang/String;IIZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class ai/rever/boss/plugin/api/FileTreeUtils {

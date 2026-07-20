@@ -42,6 +42,49 @@ interface FileSystemDataProvider {
     fun directoryHasChildren(path: String): Boolean
 
     /**
+     * Whether this provider honors the [showHidden] flag on the
+     * scanDirectory / scanDirectoryWithDepth / directoryHasChildren
+     * overloads below. Providers that return false ignore the flag — the
+     * overloads' default implementations delegate to the legacy methods,
+     * which filter hidden (dot) entries unconditionally. Callers that need
+     * hidden entries must check this before relying on the flag.
+     */
+    val supportsHiddenEntries: Boolean get() = false
+
+    /**
+     * Scan a directory, optionally including hidden (dot) entries.
+     *
+     * Default implementation ignores [showHidden] and delegates to the
+     * legacy [scanDirectory]; see [supportsHiddenEntries].
+     */
+    suspend fun scanDirectory(path: String, showHidden: Boolean): FileNodeData? =
+        scanDirectory(path)
+
+    /**
+     * Scan a directory with depth control, optionally including hidden
+     * (dot) entries.
+     *
+     * Default implementation ignores [showHidden] and delegates to the
+     * legacy [scanDirectoryWithDepth]; see [supportsHiddenEntries].
+     */
+    suspend fun scanDirectoryWithDepth(
+        path: String,
+        maxDepth: Int,
+        startDepth: Int,
+        showHidden: Boolean
+    ): FileNodeData? = scanDirectoryWithDepth(path, maxDepth, startDepth)
+
+    /**
+     * Check if a directory has any children, optionally counting hidden
+     * (dot) entries.
+     *
+     * Default implementation ignores [showHidden] and delegates to the
+     * legacy [directoryHasChildren]; see [supportsHiddenEntries].
+     */
+    fun directoryHasChildren(path: String, showHidden: Boolean): Boolean =
+        directoryHasChildren(path)
+
+    /**
      * Open a file in the editor.
      *
      * @param path Full path to the file

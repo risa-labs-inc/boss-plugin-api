@@ -13,6 +13,7 @@ import kotlinx.serialization.Serializable
  * - plugin-panel-codebase depends only on this interface
  * - At registration time, composeApp provides the implementation
  */
+@HostImplemented
 interface FileSystemDataProvider {
     /**
      * Scan a directory and return its file tree.
@@ -77,6 +78,10 @@ interface FileSystemDataProvider {
     /**
      * Check if a directory has any children, optionally counting hidden
      * (dot) entries.
+     *
+     * Implementations must preserve the legacy method's cheapness contract:
+     * short-circuit on the first matching entry rather than listing the
+     * whole directory.
      *
      * Default implementation ignores [showHidden] and delegates to the
      * legacy [directoryHasChildren]; see [supportsHiddenEntries].

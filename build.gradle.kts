@@ -50,6 +50,15 @@ group = "ai.rever.boss.plugin.bundled"
 // (boss://plugin?id&action=…), ShortcutActionProvider/PluginShortcutSpec/
 // KeyChordSpec (global shortcuts), StatusBarItemProvider. All additive with
 // default no-op PluginContext hooks.
+// 1.0.65: adds FileSystemDataProvider.supportsHiddenEntries (default false)
+// plus showHidden overloads of scanDirectory/scanDirectoryWithDepth/
+// directoryHasChildren whose default implementations delegate to the legacy
+// dot-filtering methods — additive, binary-compatible. Hosts opt in by
+// overriding and flipping the flag (BossConsole implements it); callers must
+// check supportsHiddenEntries before relying on showHidden. Also applies
+// @HostImplemented to FileSystemDataProvider — first use of the marker; the
+// interface is host-implemented, so member changes like this one ship only
+// with a BossConsole release.
 version = "1.0.65"
 
 java {

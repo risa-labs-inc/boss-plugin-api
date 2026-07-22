@@ -1561,6 +1561,50 @@ public final class ai/rever/boss/plugin/api/LastGcInfoData$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
+public final class ai/rever/boss/plugin/api/LlmApiFormat : java/lang/Enum {
+	public static final field ANTHROPIC_MESSAGES Lai/rever/boss/plugin/api/LlmApiFormat;
+	public static final field OPENAI_CHAT Lai/rever/boss/plugin/api/LlmApiFormat;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lai/rever/boss/plugin/api/LlmApiFormat;
+	public static fun values ()[Lai/rever/boss/plugin/api/LlmApiFormat;
+}
+
+public final class ai/rever/boss/plugin/api/LlmConfig {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/api/LlmApiFormat;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;FI)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/api/LlmApiFormat;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;FIILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Lai/rever/boss/plugin/api/LlmApiFormat;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun component7 ()F
+	public final fun component8 ()I
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/api/LlmApiFormat;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;FI)Lai/rever/boss/plugin/api/LlmConfig;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/LlmConfig;Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/api/LlmApiFormat;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;FIILjava/lang/Object;)Lai/rever/boss/plugin/api/LlmConfig;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getApiFormat ()Lai/rever/boss/plugin/api/LlmApiFormat;
+	public final fun getApiKey ()Ljava/lang/String;
+	public final fun getBaseUrl ()Ljava/lang/String;
+	public final fun getDisplayName ()Ljava/lang/String;
+	public final fun getMaxTokens ()I
+	public final fun getModelId ()Ljava/lang/String;
+	public final fun getProviderId ()Ljava/lang/String;
+	public final fun getTemperature ()F
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class ai/rever/boss/plugin/api/LlmProvider {
+	public abstract fun activeConfig ()Lai/rever/boss/plugin/api/LlmConfig;
+	public fun configuredProviders ()Ljava/util/List;
+}
+
+public final class ai/rever/boss/plugin/api/LlmProvider$DefaultImpls {
+	public static fun configuredProviders (Lai/rever/boss/plugin/api/LlmProvider;)Ljava/util/List;
+}
+
 public final class ai/rever/boss/plugin/api/LoadedPlugin {
 	public static final field $stable I
 	public fun <init> (Lai/rever/boss/plugin/api/PluginManifest;Lai/rever/boss/plugin/api/Plugin;Ljava/net/URLClassLoader;Ljava/lang/String;JLai/rever/boss/plugin/api/PluginState;)V
@@ -2765,6 +2809,7 @@ public abstract interface class ai/rever/boss/plugin/api/PluginContext {
 	public fun getGenericDialogProvider ()Lai/rever/boss/plugin/api/GenericDialogProvider;
 	public fun getGitDataProvider ()Lai/rever/boss/plugin/api/GitDataProvider;
 	public fun getKeyboardShortcutProvider ()Lai/rever/boss/plugin/api/KeyboardShortcutProvider;
+	public fun getLlmProvider ()Lai/rever/boss/plugin/api/LlmProvider;
 	public fun getLogDataProvider ()Lai/rever/boss/plugin/api/LogDataProvider;
 	public fun getManifest ()Lai/rever/boss/plugin/api/PluginManifest;
 	public fun getMcpToolRegistry ()Lai/rever/boss/plugin/api/McpToolRegistry;
@@ -2834,6 +2879,7 @@ public final class ai/rever/boss/plugin/api/PluginContext$DefaultImpls {
 	public static fun getGenericDialogProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/GenericDialogProvider;
 	public static fun getGitDataProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/GitDataProvider;
 	public static fun getKeyboardShortcutProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/KeyboardShortcutProvider;
+	public static fun getLlmProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/LlmProvider;
 	public static fun getLogDataProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/LogDataProvider;
 	public static fun getManifest (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/PluginManifest;
 	public static fun getMcpToolRegistry (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/McpToolRegistry;

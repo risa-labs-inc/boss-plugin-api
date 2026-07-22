@@ -59,6 +59,11 @@ group = "ai.rever.boss.plugin.bundled"
 // @HostImplemented to FileSystemDataProvider — first use of the marker; the
 // interface is host-implemented, so member changes like this one ship only
 // with a BossConsole release.
+// 1.0.68: adds the LLM provider access layer — LlmProvider/LlmConfig/LlmApiFormat
+// (new SDK types; consumers gate with minApiVersion) + PluginContext.llmProvider
+// (host-implemented, default null; needs a BossConsole release + minBossVersion to
+// return a real value). Lets AI plugins (e.g. the Jupyter notebook) reuse the
+// user's configured provider keys/model instead of managing their own. Additive.
 version = "1.0.67"
 
 java {

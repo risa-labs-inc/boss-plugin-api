@@ -502,6 +502,22 @@ interface PluginContext {
     val projectDataProvider: ProjectDataProvider?
         get() = null
 
+    /**
+     * Optional access to the host's configured LLM providers (Settings → LLM
+     * Providers) — API keys, endpoints, and the selected model.
+     *
+     * Returns null when LLM access isn't available. Plugins that offer AI
+     * features (e.g. the Jupyter notebook) use this to reuse the host's keys
+     * instead of managing their own; they must hide AI affordances when it is
+     * null or [LlmProvider.activeConfig] returns null.
+     *
+     * Host-implemented: a real value requires a BossConsole release. Gate with
+     * manifest `minBossVersion` (host impl) — the new [LlmProvider]/[LlmConfig]
+     * types themselves ship with the api jar and gate with `minApiVersion`.
+     */
+    val llmProvider: LlmProvider?
+        get() = null
+
     // ============================================================
     // SEARCH PROVIDER REGISTRATION
     // Enables plugins to contribute to global search results

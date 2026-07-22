@@ -64,7 +64,7 @@ group = "ai.rever.boss.plugin.bundled"
 // (host-implemented, default null; needs a BossConsole release + minBossVersion to
 // return a real value). Lets AI plugins (e.g. the Jupyter notebook) reuse the
 // user's configured provider keys/model instead of managing their own. Additive.
-version = "1.0.67"
+version = "1.0.68"
 
 java {
     toolchain {

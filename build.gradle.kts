@@ -65,11 +65,18 @@ group = "ai.rever.boss.plugin.bundled"
 // return a real value). Lets AI plugins (e.g. the Jupyter notebook) reuse the
 // user's configured provider keys/model instead of managing their own. Additive.
 // 1.0.69: adds BookmarkDataProvider.addBookmarks — bulk insert that creates the
-// collection if absent and persists once for the whole batch. Declared with a
-// default body so implementations built against <=1.0.68 stay binary compatible;
-// the bookmarks plugin overrides it to do a single save. Motivated by password/
-// bookmark import, where looping the single-item addBookmark fired one full
-// collections.json rewrite per bookmark. Additive.
+// collection if absent and persists once for the whole batch — plus
+// supportsBulkBookmarkAdd so callers can tell a real implementation from the
+// compatibility shim. Declared with a default body so implementations built
+// against <=1.0.68 stay binary compatible; the bookmarks plugin overrides it to
+// do a single save. Motivated by password/bookmark import, where looping the
+// single-item addBookmark fired one full collections.json rewrite per bookmark.
+//
+// NOT jar-only: BookmarkDataProvider is inside the api package that
+// plugin-api-core filters into the host and serves parent-first, so the host's
+// pinned copy is what every plugin resolves. Consumers must gate on
+// minBossVersion, not just minApiVersion — same shape as the 1.0.65
+// FileSystemDataProvider change. Additive.
 version = "1.0.68"
 
 java {

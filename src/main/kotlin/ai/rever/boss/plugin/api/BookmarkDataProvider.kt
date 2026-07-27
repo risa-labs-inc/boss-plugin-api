@@ -30,25 +30,61 @@ interface BookmarkDataProvider {
     /**
      * Add a bookmark to a collection.
      *
-     * Note that implementations are expected to no-op if no collection named
-     * [collectionName] exists — call [createCollection] first. Prefer
-     * [addBookmarks] when inserting more than one at a time.
+     * The reference implementation no-ops when no collection named
+     * [collectionName] exists; behaviour is otherwise undefined, so call
+     * [createCollection] first. Prefer [addBookmarks] when inserting more than
+     * one at a time.
      */
     fun addBookmark(collectionName: String, bookmark: Bookmark)
+
+    /**
+     * Whether [addBookmarks] is implemented natively rather than falling back
+     * to the per-item shim below.
+     *
+     * The shim is a real JVM default method, so it always resolves — a caller
+     * cannot tell the two apart by catching [LinkageError], and reflecting on
+     * the declaring class is unreliable (an override that delegates to `super`
+     * looks native; `by` delegation and IPC proxies look native regardless).
+     * Check this instead when the difference matters.
+     *
+     * @since 1.0.69
+     */
+    val supportsBulkBookmarkAdd: Boolean get() = false
 
     /**
      * Add several bookmarks to a collection in a single operation, creating the
      * collection if it does not already exist.
      *
-     * Implementations **must persist once for the whole batch**. The default
-     * body below does not — it exists only so that implementations compiled
-     * against an earlier API remain binary compatible, and it inherits the
-     * per-item write amplification (and, on plugin versions before the atomic
-     * write landed, the risk of a torn save) that this method is here to avoid.
+     * Contract for implementations:
+     * - **Persist once for the whole batch.** The shim below does not; it
+     *   exists only so implementations compiled against an earlier API stay
+     *   binary compatible, and it inherits the per-item write amplification
+     *   (and, before the atomic write landed, the risk of a torn save) that
+     *   this method exists to avoid. Override it and set
+     *   [supportsBulkBookmarkAdd].
+     * - **An empty list is a no-op** — it must not create the collection.
+     * - **Entries are appended, not de-duplicated.** Callers importing from an
+     *   external source are responsible for filtering entries they already
+     *   have; [isTabBookmarked] encodes the usual comparison.
+     * - Get-or-create is **not atomic** here. Call from a single thread, or
+     *   make it atomic in the implementation.
+     *
+     * Returns nothing deliberately: callers that need the resulting collection
+     * should resolve it from [collections], which is also where the
+     * duplicate-name ambiguity has to be handled anyway.
+     *
+     * Gate on `minBossVersion` before depending on this. `BookmarkDataProvider`
+     * is compiled into the host and served parent-first, so on a host pinned
+     * below 1.0.69 the method does not exist at all, whatever api jar the
+     * plugin was built against.
      *
      * @since 1.0.69
      */
     fun addBookmarks(collectionName: String, bookmarks: List<Bookmark>) {
+        // Matches the documented contract, and the override in the reference
+        // implementation: an empty batch creates nothing.
+        if (bookmarks.isEmpty()) return
+
         // createCollection appends unconditionally — it is not get-or-create —
         // and addBookmark resolves a collection by name, taking the first match.
         // Creating blindly would leave a duplicate empty collection behind while

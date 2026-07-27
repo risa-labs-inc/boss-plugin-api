@@ -13,7 +13,13 @@ import kotlinx.coroutines.flow.StateFlow
  *
  * This interface abstracts BookmarkManager functionality to allow
  * the Bookmarks panel to be extracted to a separate module.
+ *
+ * Implemented by the bookmarks plugin, but marked [HostImplemented] because the
+ * host compiles this type in and serves it parent-first: the host's pinned copy
+ * is what every plugin resolves, so a member change here ships with a
+ * BossConsole release and must be gated on `minBossVersion`.
  */
+@HostImplemented
 interface BookmarkDataProvider {
     /**
      * All bookmark collections.
@@ -47,9 +53,15 @@ interface BookmarkDataProvider {
      * looks native; `by` delegation and IPC proxies look native regardless).
      * Check this instead when the difference matters.
      *
+     * Only readable on hosts >= 1.0.69. On an older host the getter is absent
+     * from the host's parent-first copy and reading it throws
+     * `NoSuchMethodError`, exactly as [addBookmarks] would — so this
+     * distinguishes native from shim, never present from absent. Gate on
+     * `minBossVersion` first, then consult it.
+     *
      * @since 1.0.69
      */
-    val supportsBulkBookmarkAdd: Boolean get() = false
+    val supportsBulkAdd: Boolean get() = false
 
     /**
      * Add several bookmarks to a collection in a single operation, creating the
@@ -61,11 +73,17 @@ interface BookmarkDataProvider {
      *   binary compatible, and it inherits the per-item write amplification
      *   (and, before the atomic write landed, the risk of a torn save) that
      *   this method exists to avoid. Override it and set
-     *   [supportsBulkBookmarkAdd].
+     *   [supportsBulkAdd].
      * - **An empty list is a no-op** — it must not create the collection.
      * - **Entries are appended, not de-duplicated.** Callers importing from an
      *   external source are responsible for filtering entries they already
-     *   have; [isTabBookmarked] encodes the usual comparison.
+     *   have. [isTabBookmarked] encodes the usual field comparison, but takes a
+     *   `TabConfig` (pass `bookmark.tabConfig`) and searches every collection,
+     *   not just this one.
+     * - **Callers must supply distinct ids.** `Bookmark.generateId()` is
+     *   millisecond-based, so bookmarks built in a loop collide — and
+     *   `removeBookmark`/`updateBookmark` match by id, so a collision makes one
+     *   delete or rewrite all of its twins.
      * - Get-or-create is **not atomic** here. Call from a single thread, or
      *   make it atomic in the implementation.
      *
@@ -85,14 +103,15 @@ interface BookmarkDataProvider {
         // implementation: an empty batch creates nothing.
         if (bookmarks.isEmpty()) return
 
-        // createCollection appends unconditionally — it is not get-or-create —
-        // and addBookmark resolves a collection by name, taking the first match.
-        // Creating blindly would leave a duplicate empty collection behind while
-        // the bookmarks landed in the original.
-        if (collections.value.none { it.name == collectionName }) {
-            createCollection(collectionName)
-        }
-        bookmarks.forEach { addBookmark(collectionName, it) }
+        // Resolve through createCollection's return value rather than reading
+        // `collections` back. Going via the flow would assume createCollection
+        // publishes synchronously and stores the name verbatim; if either fails
+        // to hold, every addBookmark below takes its documented no-op path and
+        // the whole batch vanishes with no way for the caller to notice.
+        val target =
+            collections.value.firstOrNull { it.name == collectionName }
+                ?: createCollection(collectionName)
+        bookmarks.forEach { addBookmark(target.name, it) }
     }
 
     /**

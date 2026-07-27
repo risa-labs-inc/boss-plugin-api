@@ -66,7 +66,7 @@ group = "ai.rever.boss.plugin.bundled"
 // user's configured provider keys/model instead of managing their own. Additive.
 // 1.0.69: adds BookmarkDataProvider.addBookmarks — bulk insert that creates the
 // collection if absent and persists once for the whole batch — plus
-// supportsBulkBookmarkAdd so callers can tell a real implementation from the
+// supportsBulkAdd so callers can tell a real implementation from the
 // compatibility shim. Declared with a default body so implementations built
 // against <=1.0.68 stay binary compatible; the bookmarks plugin overrides it to
 // do a single save. Motivated by password/bookmark import, where looping the
@@ -76,7 +76,8 @@ group = "ai.rever.boss.plugin.bundled"
 // plugin-api-core filters into the host and serves parent-first, so the host's
 // pinned copy is what every plugin resolves. Consumers must gate on
 // minBossVersion, not just minApiVersion — same shape as the 1.0.65
-// FileSystemDataProvider change. Additive.
+// FileSystemDataProvider change, and BookmarkDataProvider is now marked
+// @HostImplemented to say so at the declaration site. Additive.
 version = "1.0.68"
 
 java {

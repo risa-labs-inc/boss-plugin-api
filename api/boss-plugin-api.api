@@ -233,7 +233,7 @@ public abstract interface class ai/rever/boss/plugin/api/BookmarkDataProvider {
 	public abstract fun findBookmarkForTab (Lai/rever/boss/plugin/workspace/TabConfig;)Lkotlin/Pair;
 	public abstract fun getCollections ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getFavoriteWorkspaces ()Lkotlinx/coroutines/flow/StateFlow;
-	public fun getSupportsBulkBookmarkAdd ()Z
+	public fun getSupportsBulkAdd ()Z
 	public abstract fun isFavorite (Ljava/lang/String;)Z
 	public abstract fun isTabBookmarked (Lai/rever/boss/plugin/workspace/TabConfig;)Z
 	public abstract fun markBookmarkAsAccessed (Ljava/lang/String;Ljava/lang/String;)V
@@ -246,7 +246,7 @@ public abstract interface class ai/rever/boss/plugin/api/BookmarkDataProvider {
 
 public final class ai/rever/boss/plugin/api/BookmarkDataProvider$DefaultImpls {
 	public static fun addBookmarks (Lai/rever/boss/plugin/api/BookmarkDataProvider;Ljava/lang/String;Ljava/util/List;)V
-	public static fun getSupportsBulkBookmarkAdd (Lai/rever/boss/plugin/api/BookmarkDataProvider;)Z
+	public static fun getSupportsBulkAdd (Lai/rever/boss/plugin/api/BookmarkDataProvider;)Z
 }
 
 public final class ai/rever/boss/plugin/api/BookmarkDataProviderKt {

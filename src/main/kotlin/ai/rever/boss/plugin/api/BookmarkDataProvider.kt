@@ -29,8 +29,35 @@ interface BookmarkDataProvider {
 
     /**
      * Add a bookmark to a collection.
+     *
+     * Note that implementations are expected to no-op if no collection named
+     * [collectionName] exists — call [createCollection] first. Prefer
+     * [addBookmarks] when inserting more than one at a time.
      */
     fun addBookmark(collectionName: String, bookmark: Bookmark)
+
+    /**
+     * Add several bookmarks to a collection in a single operation, creating the
+     * collection if it does not already exist.
+     *
+     * Implementations **must persist once for the whole batch**. The default
+     * body below does not — it exists only so that implementations compiled
+     * against an earlier API remain binary compatible, and it inherits the
+     * per-item write amplification (and, on plugin versions before the atomic
+     * write landed, the risk of a torn save) that this method is here to avoid.
+     *
+     * @since 1.0.69
+     */
+    fun addBookmarks(collectionName: String, bookmarks: List<Bookmark>) {
+        // createCollection appends unconditionally — it is not get-or-create —
+        // and addBookmark resolves a collection by name, taking the first match.
+        // Creating blindly would leave a duplicate empty collection behind while
+        // the bookmarks landed in the original.
+        if (collections.value.none { it.name == collectionName }) {
+            createCollection(collectionName)
+        }
+        bookmarks.forEach { addBookmark(collectionName, it) }
+    }
 
     /**
      * Remove a bookmark from a collection.

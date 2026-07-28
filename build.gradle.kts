@@ -78,7 +78,7 @@ group = "ai.rever.boss.plugin.bundled"
 // minBossVersion, not just minApiVersion — same shape as the 1.0.65
 // FileSystemDataProvider change, and BookmarkDataProvider is now marked
 // @HostImplemented to say so at the declaration site. Additive.
-version = "1.0.68"
+version = "1.0.69"
 
 java {
     toolchain {

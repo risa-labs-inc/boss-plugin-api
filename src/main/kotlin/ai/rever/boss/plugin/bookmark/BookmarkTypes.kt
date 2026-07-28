@@ -55,6 +55,12 @@ data class Bookmark(
     companion object {
         /**
          * Generate a unique bookmark ID based on current timestamp.
+         *
+         * Millisecond resolution, so bookmarks built in a loop — an import, a
+         * migration — collide. That is not benign: [BookmarkCollection.removeBookmark]
+         * filters by id and [BookmarkCollection.updateBookmark] maps by it, so one
+         * delete or edit hits every twin. Callers creating several at once must
+         * supply their own distinct ids.
          */
         fun generateId(): String = "bookmark-${Clock.System.now().toEpochMilliseconds()}"
     }
@@ -97,6 +103,9 @@ data class BookmarkCollection(
     companion object {
         /**
          * Generate a unique collection ID based on current timestamp.
+         *
+         * Same millisecond-resolution caveat as [Bookmark.generateId]: an
+         * importer creating several collections in one pass must supply ids.
          */
         fun generateId(): String = "collection-${Clock.System.now().toEpochMilliseconds()}"
 

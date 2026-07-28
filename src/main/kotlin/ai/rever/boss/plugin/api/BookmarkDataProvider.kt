@@ -13,7 +13,13 @@ import kotlinx.coroutines.flow.StateFlow
  *
  * This interface abstracts BookmarkManager functionality to allow
  * the Bookmarks panel to be extracted to a separate module.
+ *
+ * Implemented by the bookmarks plugin, but marked [HostImplemented] because the
+ * host compiles this type in and serves it parent-first: the host's pinned copy
+ * is what every plugin resolves, so a member change here ships with a
+ * BossConsole release and must be gated on `minBossVersion`.
  */
+@HostImplemented
 interface BookmarkDataProvider {
     /**
      * All bookmark collections.
@@ -29,8 +35,99 @@ interface BookmarkDataProvider {
 
     /**
      * Add a bookmark to a collection.
+     *
+     * The reference implementation no-ops when no collection named
+     * [collectionName] exists; behaviour is otherwise undefined, so call
+     * [createCollection] first. Prefer [addBookmarks] when inserting more than
+     * one at a time.
      */
     fun addBookmark(collectionName: String, bookmark: Bookmark)
+
+    /**
+     * Whether [addBookmarks] is implemented natively rather than falling back
+     * to the per-item shim below.
+     *
+     * The shim is a real JVM default method, so it always resolves — a caller
+     * cannot tell the two apart by catching [LinkageError], and reflecting on
+     * the declaring class is unreliable (an override that delegates to `super`
+     * looks native; `by` delegation and IPC proxies look native regardless).
+     * Check this instead when the difference matters.
+     *
+     * **An override of [addBookmarks] that does not also override this is a
+     * bug.** The flag cannot be derived from the presence of an override, so
+     * forgetting it makes a perfectly good implementation report `false` and be
+     * throttled for nothing.
+     *
+     * Two independent version axes decide what a caller sees:
+     * - the member *existing* tracks the host — it lives in the host's
+     *   parent-first copy, so on a host below 1.0.69 reading it throws
+     *   `NoSuchMethodError` exactly as [addBookmarks] would;
+     * - the value being `true` tracks the *bookmarks plugin*, which is what
+     *   supplies the override.
+     *
+     * So this separates native from shim, never present from absent. Gate on
+     * `minBossVersion` first, then consult it.
+     *
+     * @since 1.0.69
+     */
+    val supportsBulkAdd: Boolean get() = false
+
+    /**
+     * Add several bookmarks to a collection in a single operation, creating the
+     * collection if it does not already exist.
+     *
+     * Contract for implementations:
+     * - **Persist once for the whole batch.** The shim below does not; it
+     *   exists only so implementations compiled against an earlier API stay
+     *   binary compatible, and it inherits the per-item write amplification
+     *   (and, before the atomic write landed, the risk of a torn save) that
+     *   this method exists to avoid. Override it and set
+     *   [supportsBulkAdd].
+     * - **An empty list is a no-op** — it must not create the collection.
+     * - **Entries are appended, not de-duplicated.** Callers importing from an
+     *   external source are responsible for filtering entries they already
+     *   have. [isTabBookmarked] encodes the usual field comparison, but takes a
+     *   `TabConfig` (pass `bookmark.tabConfig`) and searches every collection,
+     *   not just this one.
+     * - **Callers must supply distinct ids.** `Bookmark.generateId()` is
+     *   millisecond-based, so bookmarks built in a loop collide — and
+     *   `removeBookmark`/`updateBookmark` match by id, so a collision makes one
+     *   delete or rewrite all of its twins.
+     * - Get-or-create is **not atomic** here. Call from a single thread, or
+     *   make it atomic in the implementation.
+     * - **Implementations should persist all-or-nothing.** The shim cannot: it
+     *   forwards item by item, so a write that fails midway leaves a partial
+     *   batch, and the caller sees `Unit` either way. An importer that needs to
+     *   know how much landed must count from [collections] itself.
+     * - **[collectionName] is matched exactly**, case included. Passing "work"
+     *   where "Work" exists creates a second collection.
+     *
+     * Returns nothing deliberately: callers that need the resulting collection
+     * should resolve it from [collections], which is also where the
+     * duplicate-name ambiguity has to be handled anyway.
+     *
+     * Gate on `minBossVersion` before depending on this. `BookmarkDataProvider`
+     * is compiled into the host and served parent-first, so on a host pinned
+     * below 1.0.69 the method does not exist at all, whatever api jar the
+     * plugin was built against.
+     *
+     * @since 1.0.69
+     */
+    fun addBookmarks(collectionName: String, bookmarks: List<Bookmark>) {
+        // Matches the documented contract, and the override in the reference
+        // implementation: an empty batch creates nothing.
+        if (bookmarks.isEmpty()) return
+
+        // Resolve through createCollection's return value rather than reading
+        // `collections` back. Going via the flow would assume createCollection
+        // publishes synchronously and stores the name verbatim; if either fails
+        // to hold, every addBookmark below takes its documented no-op path and
+        // the whole batch vanishes with no way for the caller to notice.
+        val target =
+            collections.value.firstOrNull { it.name == collectionName }
+                ?: createCollection(collectionName)
+        bookmarks.forEach { addBookmark(target.name, it) }
+    }
 
     /**
      * Remove a bookmark from a collection.

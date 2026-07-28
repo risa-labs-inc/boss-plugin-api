@@ -53,10 +53,19 @@ interface BookmarkDataProvider {
      * looks native; `by` delegation and IPC proxies look native regardless).
      * Check this instead when the difference matters.
      *
-     * Only readable on hosts >= 1.0.69. On an older host the getter is absent
-     * from the host's parent-first copy and reading it throws
-     * `NoSuchMethodError`, exactly as [addBookmarks] would — so this
-     * distinguishes native from shim, never present from absent. Gate on
+     * **An override of [addBookmarks] that does not also override this is a
+     * bug.** The flag cannot be derived from the presence of an override, so
+     * forgetting it makes a perfectly good implementation report `false` and be
+     * throttled for nothing.
+     *
+     * Two independent version axes decide what a caller sees:
+     * - the member *existing* tracks the host — it lives in the host's
+     *   parent-first copy, so on a host below 1.0.69 reading it throws
+     *   `NoSuchMethodError` exactly as [addBookmarks] would;
+     * - the value being `true` tracks the *bookmarks plugin*, which is what
+     *   supplies the override.
+     *
+     * So this separates native from shim, never present from absent. Gate on
      * `minBossVersion` first, then consult it.
      *
      * @since 1.0.69
@@ -86,6 +95,12 @@ interface BookmarkDataProvider {
      *   delete or rewrite all of its twins.
      * - Get-or-create is **not atomic** here. Call from a single thread, or
      *   make it atomic in the implementation.
+     * - **Implementations should persist all-or-nothing.** The shim cannot: it
+     *   forwards item by item, so a write that fails midway leaves a partial
+     *   batch, and the caller sees `Unit` either way. An importer that needs to
+     *   know how much landed must count from [collections] itself.
+     * - **[collectionName] is matched exactly**, case included. Passing "work"
+     *   where "Work" exists creates a second collection.
      *
      * Returns nothing deliberately: callers that need the resulting collection
      * should resolve it from [collections], which is also where the

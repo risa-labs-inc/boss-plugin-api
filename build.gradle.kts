@@ -78,6 +78,29 @@ group = "ai.rever.boss.plugin.bundled"
 // minBossVersion, not just minApiVersion — same shape as the 1.0.65
 // FileSystemDataProvider change, and BookmarkDataProvider is now marked
 // @HostImplemented to say so at the declaration site. Additive.
+// 1.0.70: adds LlmProviderSettingsAPI — the seam that lets the plugin owning AI
+// provider configuration serve its settings panel to the host and back
+// PluginContext.llmProvider. Extends LlmProvider rather than redeclaring
+// activeConfig()/configuredProviders(), so the host can relay the registered instance
+// straight to other plugins instead of keeping a parallel copy of that state.
+// supportsSettingsPanel accompanies the defaulted panel member so the host can tell
+// "no settings UI" from "drew a blank page" (same shape as 1.0.65
+// supportsHiddenEntries / 1.0.69 supportsBulkAdd). The interface itself is jar-only:
+// gate with minApiVersion.
+//
+// Also adds LlmApiFormat.GOOGLE_GENERATIVE, needed now that Google Gemini is a
+// supported provider (it speaks neither the Anthropic nor the OpenAI-compatible
+// format, and takes its credential as a query parameter).
+//
+// NOT jar-only, for that constant: LlmApiFormat is inside the api package that
+// plugin-api-core filters into the host and serves parent-first, so the host's pinned
+// copy is what every plugin resolves. A plugin using GOOGLE_GENERATIVE must gate on
+// minBossVersion for the release that pins 1.0.70, not minApiVersion alone, or it
+// fails with NoSuchFieldError. LlmApiFormat/LlmConfig/LlmProvider are now marked
+// @HostImplemented to say so at the declaration site, and the enum documents that
+// callers must treat it as open (always an else branch) so the next constant is
+// cheaper — apiCheck reports both hazards as cleanly additive and cannot see the
+// parent-first shadowing. Additive.
 version = "1.0.70"
 
 java {

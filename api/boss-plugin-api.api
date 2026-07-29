@@ -1615,11 +1615,13 @@ public final class ai/rever/boss/plugin/api/LlmProvider$DefaultImpls {
 
 public abstract interface class ai/rever/boss/plugin/api/LlmProviderSettingsAPI : ai/rever/boss/plugin/api/LlmProvider {
 	public fun LlmProviderSettingsPanel (Landroidx/compose/ui/Modifier;Landroidx/compose/runtime/Composer;I)V
+	public fun getSupportsSettingsPanel ()Z
 }
 
 public final class ai/rever/boss/plugin/api/LlmProviderSettingsAPI$DefaultImpls {
 	public static fun LlmProviderSettingsPanel (Lai/rever/boss/plugin/api/LlmProviderSettingsAPI;Landroidx/compose/ui/Modifier;Landroidx/compose/runtime/Composer;I)V
 	public static fun configuredProviders (Lai/rever/boss/plugin/api/LlmProviderSettingsAPI;)Ljava/util/List;
+	public static fun getSupportsSettingsPanel (Lai/rever/boss/plugin/api/LlmProviderSettingsAPI;)Z
 }
 
 public final class ai/rever/boss/plugin/api/LoadedPlugin {

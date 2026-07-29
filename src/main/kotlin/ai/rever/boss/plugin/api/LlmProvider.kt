@@ -1,15 +1,17 @@
 package ai.rever.boss.plugin.api
 
 /**
- * Read-only access to the LLM provider settings the user configured in the host
- * (Settings → LLM Providers). Lets plugins reuse the host's API keys and selected
+ * Read-only access to the AI provider configuration the user set up in
+ * Settings → AI Providers. Lets plugins reuse the configured API keys and selected
  * model instead of managing their own credentials.
  *
- * The implementation is backed by the host's LLM settings store; a provider's key
- * resolves from the environment first, then the value saved in settings.
+ * The implementation is backed by the plugin that owns provider configuration (see
+ * [LlmProviderSettingsAPI]), which stores credentials as secrets and resolves a
+ * provider's key from the environment first, then from the stored secret.
  *
  * Like every provider on [PluginContext], this may be null — plugins must degrade
- * gracefully (hide AI affordances) when LLM access isn't available.
+ * gracefully (hide AI affordances) when LLM access isn't available. It is also null
+ * when the owning plugin isn't installed or hasn't finished registering.
  */
 interface LlmProvider {
     /**
@@ -66,8 +68,14 @@ enum class LlmApiFormat {
 
     /**
      * OpenAI-compatible Chat Completions (`Authorization: Bearer`,
-     * `/v1/chat/completions`, `messages` with a `system` role). Together AI is
-     * wire-compatible with this format.
+     * `/v1/chat/completions`, `messages` with a `system` role). Together AI, xAI
+     * and Moonshot (Kimi) are wire-compatible with this format.
      */
-    OPENAI_CHAT
+    OPENAI_CHAT,
+
+    /**
+     * Google Gemini generative language API (`?key=` query parameter,
+     * `/v1beta/models/{model}:generateContent`, `contents` with `parts`).
+     */
+    GOOGLE_GENERATIVE,
 }

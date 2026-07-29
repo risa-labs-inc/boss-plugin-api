@@ -503,17 +503,20 @@ interface PluginContext {
         get() = null
 
     /**
-     * Optional access to the host's configured LLM providers (Settings → LLM
-     * Providers) — API keys, endpoints, and the selected model.
+     * Optional access to the configured AI providers (Settings → AI Providers) —
+     * API keys, endpoints, and the selected model.
      *
      * Returns null when LLM access isn't available. Plugins that offer AI
-     * features (e.g. the Jupyter notebook) use this to reuse the host's keys
+     * features (e.g. the Jupyter notebook) use this to reuse the configured keys
      * instead of managing their own; they must hide AI affordances when it is
      * null or [LlmProvider.activeConfig] returns null.
      *
-     * Host-implemented: a real value requires a BossConsole release. Gate with
-     * manifest `minBossVersion` (host impl) — the new [LlmProvider]/[LlmConfig]
-     * types themselves ship with the api jar and gate with `minApiVersion`.
+     * Host-implemented, but the host only relays: the value is the
+     * [LlmProviderSettingsAPI] registered by the plugin that owns provider
+     * configuration, so this is null whenever that plugin isn't installed or
+     * hasn't finished registering. Gate with manifest `minBossVersion` (host
+     * relay) — the [LlmProvider]/[LlmConfig] types themselves ship with the api
+     * jar and gate with `minApiVersion`.
      */
     val llmProvider: LlmProvider?
         get() = null

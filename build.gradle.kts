@@ -101,7 +101,7 @@ group = "ai.rever.boss.plugin.bundled"
 // callers must treat it as open (always an else branch) so the next constant is
 // cheaper — apiCheck reports both hazards as cleanly additive and cannot see the
 // parent-first shadowing. Additive.
-version = "1.0.70"
+version = "1.0.71"
 
 java {
     toolchain {

@@ -266,3 +266,143 @@ enum class TerminalSessionEventType {
     DESTROYED,
     TITLE_CHANGED
 }
+
+/**
+ * Navigation and engagement activity in the integrated browser.
+ *
+ * **This event deliberately carries only [domain] — never the full URL, path, query
+ * string, or page title.** The reduction to a registrable domain happens in the host,
+ * before the event is constructed, so a full URL never enters the event at all. That is
+ * the safety property: consumers cannot recover the page a user was on, only the site.
+ *
+ * BOSS is used in healthcare contexts, so do **not** widen this event with a `url`,
+ * `path`, `query`, or `title` field. A consumer that needs page-level detail should be
+ * treated as a new privacy decision, not an additive change. Note that downstream
+ * analytics scrubbers deny properties named `url`/`uri`/`href`/`link` outright, so such a
+ * field would in practice be silently dropped rather than delivered.
+ *
+ * The engagement fields answer "how much is this site used" without saying what was on
+ * the screen: how long a visit lasted, how much of that was active rather than left open
+ * in a background tab, and how deep into a site the user got.
+ *
+ * @property browserEventType what happened. Treat as open — always keep an `else` branch.
+ * @property domain registrable domain (eTLD+1), lowercased and `www.`-stripped —
+ *   e.g. `"availity.com"` for `https://portal.availity.com/auth?patient=123`.
+ * @property windowId the BOSS window the browser is hosted in, when known.
+ * @property navigationType how the user got here, on [BrowserEventType.PAGE_VIEWED].
+ * @property dwellMs wall-clock time the page was open, on [BrowserEventType.PAGE_LEFT].
+ * @property activeMs the portion of [dwellMs] the page was actually focused and receiving
+ *   input. A page left open in a background tab overnight has a huge [dwellMs] and a tiny
+ *   [activeMs]; reporting only the former would badly overstate engagement.
+ * @property pageIndexInVisit 1-based position of this page within an unbroken run of
+ *   navigations on the same [domain] — navigation depth, without the paths that produced
+ *   it. Resets when the user leaves the site.
+ */
+data class BrowserEvent(
+    val browserEventType: BrowserEventType,
+    val domain: String,
+    val windowId: String? = null,
+    val navigationType: BrowserNavigationType? = null,
+    val dwellMs: Long? = null,
+    val activeMs: Long? = null,
+    val pageIndexInVisit: Int? = null,
+    override val timestamp: Long = System.currentTimeMillis()
+) : ApplicationEvent
+
+/**
+ * Type of browser navigation/engagement event.
+ *
+ * Treat as **open**: always keep an `else` branch. Adding a constant here becomes a
+ * `minBossVersion` change once a BossConsole release pins this api version, because the
+ * host's filtered copy of this package shadows the runtime jar parent-first.
+ */
+enum class BrowserEventType {
+    PAGE_VIEWED,
+    PAGE_LEFT,
+    TAB_OPENED,
+    TAB_CLOSED,
+    TAB_ACTIVATED
+}
+
+/**
+ * How a navigation was initiated.
+ *
+ * Distinguishes deliberate destinations (typed, bookmark) from incidental ones (a link,
+ * a reload) so engagement figures aren't inflated by refreshes. Treat as **open**.
+ */
+enum class BrowserNavigationType {
+    TYPED,
+    LINK,
+    BACK_FORWARD,
+    RELOAD,
+    OTHER
+}
+
+/**
+ * A user interaction *inside* a page in the integrated browser.
+ *
+ * **Structural attributes only.** This event describes the shape of what was interacted
+ * with — the kind of element and where it sits in the document — and never the content
+ * of the page or of the interaction. The host's collector is written so the following are
+ * not merely stripped but never read out of the DOM in the first place:
+ *
+ * - element text, `textContent`, `innerText`, `placeholder`, `title`, `alt`
+ * - `aria-label` and any other label, and `id` or `class` attributes
+ * - input `value` — for any field, of any type
+ * - `href`, `src`, `action`, and every other URL-bearing attribute
+ * - clipboard contents on [BrowserInteractionType.COPY] / [BrowserInteractionType.PASTE],
+ *   which record only that it happened
+ *
+ * That exclusion list is the whole design. In a healthcare deployment the page body is
+ * PHI: a label reads "Patient MRN", an input value *is* the MRN, and an `id` is routinely
+ * `patient-4417`. Reporting which *kind* of control was clicked at which *position* is
+ * safe; reporting anything the page rendered is not. Widening this event is a privacy
+ * decision requiring review, not an additive change.
+ *
+ * @property interactionType what the user did. Treat as open — always keep an `else`.
+ * @property domain registrable domain (eTLD+1) the interaction happened on.
+ * @property elementTag lowercased HTML tag, e.g. `"button"`, `"a"`, `"input"`.
+ * @property elementRole ARIA **role** — a structural classification like `"tab"` or
+ *   `"menuitem"`. Not `aria-label`, which is a human-readable label and is never read.
+ * @property inputType the `type` attribute of an input (`"checkbox"`, `"text"`, …), which
+ *   says what kind of control it is and never what was entered into it.
+ * @property fieldName a form field's `name` attribute — a schema identifier chosen by the
+ *   site's developer, not user data. Host-sanitized: length-capped, restricted charset,
+ *   long digit runs redacted.
+ * @property elementPath bounded structural path of **tag names and sibling positions
+ *   only**, e.g. `"form>div:2>button:1"`. Carries no ids, classes, or text, so it
+ *   distinguishes controls on a page without describing them.
+ * @property scrollDepthPercent furthest scroll reached, quantised to 25/50/75/100.
+ * @property repeatCount how many times the interaction repeated in quick succession —
+ *   the signal behind [BrowserInteractionType.RAGE_CLICK].
+ * @property windowId the BOSS window the browser is hosted in, when known.
+ */
+data class BrowserInteractionEvent(
+    val interactionType: BrowserInteractionType,
+    val domain: String,
+    val elementTag: String? = null,
+    val elementRole: String? = null,
+    val inputType: String? = null,
+    val fieldName: String? = null,
+    val elementPath: String? = null,
+    val scrollDepthPercent: Int? = null,
+    val repeatCount: Int? = null,
+    val windowId: String? = null,
+    override val timestamp: Long = System.currentTimeMillis()
+) : ApplicationEvent
+
+/**
+ * Kind of in-page interaction.
+ *
+ * Treat as **open**: always keep an `else` branch. Adding a constant here becomes a
+ * `minBossVersion` change once a BossConsole release pins this api version.
+ */
+enum class BrowserInteractionType {
+    CLICK,
+    RAGE_CLICK,
+    SCROLL_DEPTH,
+    FIELD_FOCUSED,
+    FORM_SUBMITTED,
+    COPY,
+    PASTE
+}

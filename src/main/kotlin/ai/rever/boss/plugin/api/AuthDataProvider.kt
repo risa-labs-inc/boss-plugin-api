@@ -231,7 +231,9 @@ interface PluginStoreApiKeyProvider {
 
     /**
      * Check if the current user can manage API keys.
-     * Returns true if user is admin or has plugin_admin role.
+     * Returns true if the user is an admin or holds the `api_key.create`
+     * permission — the same gate the Plugin Store enforces on its /api-keys
+     * routes.
      */
     suspend fun canManageApiKeys(): Boolean
 }

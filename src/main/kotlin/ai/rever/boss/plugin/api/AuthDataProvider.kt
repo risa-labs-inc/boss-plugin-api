@@ -232,8 +232,15 @@ interface PluginStoreApiKeyProvider {
     /**
      * Check if the current user can manage API keys.
      * Returns true if the user is an admin or holds the `api_key.create`
-     * permission — the same gate the Plugin Store enforces on its /api-keys
-     * routes.
+     * permission — the same gate the Plugin Store enforces on key *creation*.
+     * (Listing and revoking are ownership-scoped only, so that a user whose role
+     * was revoked can still clean up their own keys.)
+     *
+     * Note on host versions: this describes the contract from the host release
+     * that carries the `api_key.create` check. Earlier hosts tested for a
+     * literal `plugin_admin` role that no migration ever created, so the branch
+     * was dead and this collapsed to admin-only. Plugins that need the newer
+     * behaviour should set `minBossVersion` accordingly.
      */
     suspend fun canManageApiKeys(): Boolean
 }

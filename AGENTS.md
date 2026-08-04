@@ -49,26 +49,26 @@ build.gradle.kts   → Build config + version (single source of truth)
 
 **`build.gradle.kts` is the single source of truth for version.**
 
-The `processResources` task automatically syncs the version into `plugin.json` at build time. Never manually edit the version in `plugin.json` — only change it in `build.gradle.kts`. The release workflow bump-pushes the version before building, so the version in `main` is the one already released; the next merge releases version+1.
+The `processResources` task automatically syncs the version into `plugin.json` at build time. Never manually edit the version in `plugin.json` - only change it in `build.gradle.kts`. The release workflow bump-pushes the version before building, so the version in `main` is the one already released; the next merge releases version+1.
 
 ### Evolution rules (runtime-updatable API layer)
 
 The host resolves the newest installed api jar into a shared **ApiClassLoader** at startup (parent of every plugin classloader) and publishes its version as the `boss.api.version` property (`BossApiRuntime`). Consequences:
 
-- **New types** (interfaces/objects/data classes) ship via this jar alone — no BossConsole release. Consumers gate with manifest `minApiVersion`.
-- **Member changes to existing types** the host compiles in are shadowed by the host's copy — they require a BossConsole release and `minBossVersion` gating. Mark such types `@HostImplemented`.
+- **New types** (interfaces/objects/data classes) ship via this jar alone - no BossConsole release. Consumers gate with manifest `minApiVersion`.
+- **Member changes to existing types** the host compiles in are shadowed by the host's copy - they require a BossConsole release and `minBossVersion` gating. Mark such types `@HostImplemented`.
 - Only additive changes; new interface methods always get default bodies. Never evolve sealed hierarchies or data classes across the boundary.
 - CI enforces additive-only evolution via the kotlinx binary-compatibility-validator (`./gradlew apiCheck`; regenerate the dump with `./gradlew apiDump` and commit `api/boss-plugin-api.api`).
 
 ### Distribution: store/GitHub-releases ONLY
 
-There is deliberately no Maven publication. The released jar is the single artifact: the Plugin Store serves it, the host's ApiClassLoader loads it at runtime (hot-swappable — a newer api plugin triggers unload-all → swap → reload-all, no restart), and BossConsole's build downloads the pinned release jar and filters the api package locally for compilation (`plugins/plugin-api-core`, `fetchApiPluginJar`).
+There is deliberately no Maven publication. The released jar is the single artifact: the Plugin Store serves it, the host's ApiClassLoader loads it at runtime (hot-swappable - a newer api plugin triggers unload-all → swap → reload-all, no restart), and BossConsole's build downloads the pinned release jar and filters the api package locally for compilation (`plugins/plugin-api-core`, `fetchApiPluginJar`).
 
 ## Code Quality
 
 - Use Compose Multiplatform APIs (not Android-specific)
 - All Kotlin files must end with a newline
-- Handle null providers gracefully — show fallback UI, never crash
+- Handle null providers gracefully - show fallback UI, never crash
 
 ## CI/CD
 

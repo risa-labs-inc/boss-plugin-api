@@ -101,7 +101,20 @@ group = "ai.rever.boss.plugin.bundled"
 // callers must treat it as open (always an else branch) so the next constant is
 // cheaper — apiCheck reports both hazards as cleanly additive and cannot see the
 // parent-first shadowing. Additive.
-version = "1.0.71"
+// 1.0.72: adds BossDialog/BossAlertDialog + BossOverlayHost/LocalHeavyweightOverlays
+// (ai.rever.boss.plugin.ui.BossDialog.kt) so a plugin's dialogs can escape above the
+// browser surface. Under JxBrowser HARDWARE_ACCELERATED - the default on every
+// platform since BossConsole 9.4.1 - Chromium composites its own native window over
+// the Compose scene, so a plain Compose Dialog in a plugin panel is drawn BEHIND the
+// page. Swap Dialog( for BossDialog( and AlertDialog( for BossAlertDialog(.
+//
+// SAME parent-first hazard as LlmApiFormat above, and worse because it is silent: the
+// registry these read is populated by the HOST's copy of the class, so a plugin built
+// against 1.0.72 running on an older host gets a null renderer and falls back to the
+// lightweight dialog - i.e. exactly the occluded dialog it was trying to fix, with no
+// error. Gate on minBossVersion for the release that pins 1.0.72, not minApiVersion.
+// The host logs one warning when it happens. Additive.
+version = "1.0.72"
 
 java {
     toolchain {

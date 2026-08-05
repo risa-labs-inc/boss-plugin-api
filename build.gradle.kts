@@ -101,6 +101,21 @@ group = "ai.rever.boss.plugin.bundled"
 // callers must treat it as open (always an else branch) so the next constant is
 // cheaper — apiCheck reports both hazards as cleanly additive and cannot see the
 // parent-first shadowing. Additive.
+// 1.0.72: adds browser telemetry — BrowserEvent/BrowserEventType (navigation and
+// engagement: page viewed/left, dwell + active ms, tab open/close/activate) and
+// BrowserInteractionEvent/BrowserInteractionType (in-page interaction: clicks, rage
+// clicks, scroll depth, field focus, form submit, copy/paste). Both carry only a
+// registrable domain and structural element attributes — never a URL, path, query,
+// page title, element text, input value, or label. The host reduces and sanitizes
+// before constructing either event, so a consumer cannot recover page-level detail
+// even by accident.
+//
+// Jar-only: every type here is new, so no host copy exists to shadow them
+// parent-first. Consumers gate with minApiVersion. Note this is a one-time property
+// — once a BossConsole release pins 1.0.72, plugin-api-core filters these into the
+// host and ADDING A CONSTANT to any of these enums becomes a minBossVersion change,
+// same trap as 1.0.70's LlmApiFormat.GOOGLE_GENERATIVE. Each enum documents that
+// callers must treat it as open. Additive.
 version = "1.0.71"
 
 java {

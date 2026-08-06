@@ -1,5 +1,7 @@
 package ai.rever.boss.plugin.ui
 
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.geometry.Offset
@@ -433,6 +435,9 @@ fun BossPopup(
     content: @Composable () -> Unit,
 ) {
     val renderer = BossOverlayHost.popupRenderer
+    if (BossOverlayHost.useHeavyweightOverlays && renderer == null) {
+        SideEffect { BossOverlayHost.reportMissingPopupRenderer() }
+    }
     val heavyweight =
         shouldRouteHeavyweight(
             useHeavyweightOverlays = BossOverlayHost.useHeavyweightOverlays,
@@ -443,31 +448,75 @@ fun BossPopup(
     // BossPopupAnchoring.AnchorBounds has something real to anchor to. Measured here rather than
     // asked of the caller: a caller cannot convert its own layout position into window space without
     // reaching for LocalAwtWindow, which plugin code should not have to do. The Box contributes no
-    // size, so it is layout-neutral wherever it is placed.
-    var anchorInWindow by remember { mutableStateOf(IntRect.Zero) }
+    // size, so it is layout-neutral wherever it is placed - see the layout modifier below, which is
+    // what makes that true rather than merely intended.
+    // Position and width arrive from two different callbacks with no guaranteed order between
+    // them, so neither computes the rect. Both are state, and the rect is DERIVED during
+    // composition - which also means a later measurement updates it, rather than whichever
+    // callback happened to run last winning.
     val density = LocalDensity.current.density
+    // NULL until measured, which is a distinct state from "measured at the origin". The renderer used
+    // to be invoked on the very first composition, before onGloballyPositioned had run, so an anchored
+    // popup was placed at the window origin with no width and then snapped into place - a visible
+    // flash in the top-left corner for as long as the overlay window took to appear.
+    var anchorPositionPx by remember { mutableStateOf<Offset?>(null) }
+    var measuredWidthPx by remember { mutableStateOf(0) }
+    val anchorInWindow =
+        anchorPositionPx?.let { anchorRectInDp(it, IntSize(measuredWidthPx, 0), density) }
     Box(
         modifier =
             Modifier
-                // fillMaxWidth so the probe ADOPTS the caller's width, rather than trying to read it
-                // back off the parent. Walking up with parentLayoutCoordinates does not reliably land
-                // on the caller's layout - modifier nodes have coordinates of their own - and it
-                // returned a zero width, which let the content inherit the overlay window's width and
-                // then get clamped to x = 0. Filling is deterministic and needs no traversal.
+                // Measure at the caller's full width, then report 0x0 to the parent.
                 //
-                // Layout-safe because the probe renders nothing on this path: it has zero height, and
-                // its parent's width is already decided by the caller. Height stays zero, so the
-                // anchor's bottom is its top, which is what "open below the anchor" means for a
-                // zero-height probe placed where the popup should start.
-                .fillMaxWidth()
+                // The width has to be ADOPTED rather than read back: walking up with
+                // parentLayoutCoordinates does not reliably land on the caller's layout - modifier
+                // nodes have coordinates of their own - and returned zero, which let the content
+                // inherit the overlay window's width instead of the anchor's.
+                //
+                // But adopting it with fillMaxWidth() is NOT layout-neutral, despite reporting no
+                // height: fillMaxWidth sets minWidth = maxWidth, so the probe claims the full width
+                // from its parent. In a Row it starves later siblings; in a Column with
+                // Arrangement.spacedBy it adds a phantom gap; and on the lightweight path it becomes
+                // the Popup's anchor parent, changing placement even for OFF_SCREEN installs that
+                // never route heavyweight. Compose's own Popup emits a genuine 0x0 node, and this is
+                // documented as a drop-in for it, so it must too. Measuring and then reporting 0x0
+                // gets the width without any of that.
+                //
+                // ORDER MATTERS. onGloballyPositioned must sit OUTSIDE the layout modifier: modifiers
+                // wrap left to right, so placing it inside made it observe the collapsed content
+                // rather than the placed node, and it reported the origin with zero size. Outside, it
+                // sees the node as the PARENT sees it - correct position, zero size - and the width
+                // comes from the measurement captured within.
                 .onGloballyPositioned { coordinates ->
-                    anchorInWindow =
-                        anchorRectInDp(coordinates.positionInWindow(), coordinates.size, density)
+                    anchorPositionPx = coordinates.positionInWindow()
+                }.layout { measurable, constraints ->
+                    val placeable = measurable.measure(constraints)
+                    // The CONSTRAINT, not the placeable. On the heavyweight path this Box has no
+                    // inline content - the renderer opens a window - so the placeable measures 0 and
+                    // the anchor would report no width at all. maxWidth is what the caller is
+                    // offering, which is the width the popup should adopt. Unbounded (a scrolling
+                    // parent) has no such answer, so fall back to whatever the content measured.
+                    measuredWidthPx =
+                        if (constraints.hasBoundedWidth) constraints.maxWidth else placeable.width
+                    // Report 0x0 but still PLACE the child: the lightweight path nests a real Popup
+                    // in here, and an unplaced subtree would never compose it.
+                    layout(0, 0) { placeable.place(0, 0) }
                 },
     ) {
-        if (heavyweight && renderer != null) {
-            renderer(onDismissRequest, anchorInWindow, anchoring, offset, focusable, content)
-        } else {
+        // An anchored popup waits for its anchor. Cursor anchoring never reads it, so that path must
+        // NOT wait - it would delay every context menu by a frame for no reason.
+        val placeable =
+            anchoring != BossPopupAnchoring.AnchorBounds || anchorInWindow != null
+        if (heavyweight && renderer != null && placeable) {
+            renderer(
+                onDismissRequest,
+                anchorInWindow ?: IntRect.Zero,
+                anchoring,
+                offset,
+                focusable,
+                content,
+            )
+        } else if (!heavyweight || renderer == null) {
             Popup(
                 onDismissRequest = onDismissRequest,
                 offset = offset,
@@ -539,3 +588,7 @@ enum class BossPopupAnchoring {
      */
     AnchorBounds,
 }
+
+// Treat this enum as OPEN when matching on it: it crosses the plugin boundary and the host compiles
+// its own copy, so a third constant added later reaches plugins built against two constants. Always
+// include an else branch, for the same reason `LlmApiFormat` documents in the api repo.

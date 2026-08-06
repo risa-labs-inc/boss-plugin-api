@@ -6041,6 +6041,7 @@ public final class ai/rever/boss/plugin/ui/BossOverlayHost {
 	public final fun getPopupRenderer ()Lkotlin/jvm/functions/Function8;
 	public final fun getUseHeavyweightOverlays ()Z
 	public final fun reportMissingModalRenderer ()V
+	public final fun reportMissingPopupRenderer ()V
 	public final fun setDiagnostics (Lkotlin/jvm/functions/Function1;)V
 	public final fun setModalRenderer (Lkotlin/jvm/functions/Function5;)V
 	public final fun setOpenHeavyweightPopups (I)V

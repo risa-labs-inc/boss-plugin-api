@@ -6035,12 +6035,12 @@ public final class ai/rever/boss/plugin/ui/BossOverlayHost {
 	public static final field $stable I
 	public static final field INSTANCE Lai/rever/boss/plugin/ui/BossOverlayHost;
 	public final fun getDiagnostics ()Lkotlin/jvm/functions/Function1;
-	public final fun getModalRenderer ()Lkotlin/jvm/functions/Function4;
+	public final fun getModalRenderer ()Lkotlin/jvm/functions/Function5;
 	public final fun getOpenHeavyweightPopups ()I
 	public final fun getUseHeavyweightOverlays ()Z
 	public final fun reportMissingModalRenderer ()V
 	public final fun setDiagnostics (Lkotlin/jvm/functions/Function1;)V
-	public final fun setModalRenderer (Lkotlin/jvm/functions/Function4;)V
+	public final fun setModalRenderer (Lkotlin/jvm/functions/Function5;)V
 	public final fun setOpenHeavyweightPopups (I)V
 	public final fun setUseHeavyweightOverlays (Z)V
 }

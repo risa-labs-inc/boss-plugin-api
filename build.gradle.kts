@@ -108,12 +108,14 @@ group = "ai.rever.boss.plugin.bundled"
 // the Compose scene, so a plain Compose Dialog in a plugin panel is drawn BEHIND the
 // page. Swap Dialog( for BossDialog( and AlertDialog( for BossAlertDialog(.
 //
-// SAME parent-first hazard as LlmApiFormat above, and worse because it is silent: the
-// registry these read is populated by the HOST's copy of the class, so a plugin built
-// against 1.0.72 running on an older host gets a null renderer and falls back to the
-// lightweight dialog - i.e. exactly the occluded dialog it was trying to fix, with no
-// error. Gate on minBossVersion for the release that pins 1.0.72, not minApiVersion.
-// The host logs one warning when it happens. Additive.
+// Which gate to declare, and this is the one place people will look. minApiVersion: 1.0.72
+// is what makes the symbols RESOLVE, and it is the minimum needed to install and run:
+// ApiClassLoader serves brand-new types out of this jar on a host that lacks them. It does
+// NOT promise the dialog clears the browser surface - on such a host the fallback is the
+// pre-fix, occluded dialog, silently. So: minApiVersion alone if you only need to compile
+// and behave no worse than before; ALSO gate on the minBossVersion of the release carrying
+// the host's copy if your feature depends on the dialog actually being in front. The host
+// logs one warning when the renderer is missing. Additive.
 version = "1.0.72"
 
 java {

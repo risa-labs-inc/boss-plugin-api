@@ -6023,6 +6023,40 @@ public final class ai/rever/boss/plugin/ui/BossComponentsKt {
 	public static final fun BossToggle (Ljava/lang/String;ZLkotlin/jvm/functions/Function1;Landroidx/compose/ui/Modifier;Ljava/lang/String;ZLandroidx/compose/runtime/Composer;II)V
 }
 
+public final class ai/rever/boss/plugin/ui/BossDialogKt {
+	public static final fun BossAlertDialog-6oU6zVQ (Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function2;Landroidx/compose/ui/Modifier;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Landroidx/compose/ui/graphics/Shape;JJLandroidx/compose/ui/window/DialogProperties;Landroidx/compose/runtime/Composer;II)V
+	public static final fun BossAlertDialog-wqdebIU (Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function2;Landroidx/compose/ui/Modifier;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Landroidx/compose/ui/graphics/Shape;JJLandroidx/compose/ui/window/DialogProperties;Landroidx/compose/runtime/Composer;II)V
+	public static final fun BossDialog (Lkotlin/jvm/functions/Function0;Landroidx/compose/ui/window/DialogProperties;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;II)V
+	public static final fun BossPopup-K5zGePQ (Lkotlin/jvm/functions/Function0;JZLai/rever/boss/plugin/ui/BossPopupAnchoring;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;II)V
+	public static final fun getLocalHeavyweightOverlays ()Landroidx/compose/runtime/ProvidableCompositionLocal;
+	public static final fun shouldRouteHeavyweight (ZZZ)Z
+}
+
+public final class ai/rever/boss/plugin/ui/BossOverlayHost {
+	public static final field $stable I
+	public static final field INSTANCE Lai/rever/boss/plugin/ui/BossOverlayHost;
+	public final fun getDiagnostics ()Lkotlin/jvm/functions/Function1;
+	public final fun getModalRenderer ()Lkotlin/jvm/functions/Function5;
+	public final fun getOpenHeavyweightPopups ()I
+	public final fun getPopupRenderer ()Lkotlin/jvm/functions/Function8;
+	public final fun getUseHeavyweightOverlays ()Z
+	public final fun reportMissingModalRenderer ()V
+	public final fun reportMissingPopupRenderer ()V
+	public final fun setDiagnostics (Lkotlin/jvm/functions/Function1;)V
+	public final fun setModalRenderer (Lkotlin/jvm/functions/Function5;)V
+	public final fun setOpenHeavyweightPopups (I)V
+	public final fun setPopupRenderer (Lkotlin/jvm/functions/Function8;)V
+	public final fun setUseHeavyweightOverlays (Z)V
+}
+
+public final class ai/rever/boss/plugin/ui/BossPopupAnchoring : java/lang/Enum {
+	public static final field AnchorBounds Lai/rever/boss/plugin/ui/BossPopupAnchoring;
+	public static final field Cursor Lai/rever/boss/plugin/ui/BossPopupAnchoring;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lai/rever/boss/plugin/ui/BossPopupAnchoring;
+	public static fun values ()[Lai/rever/boss/plugin/ui/BossPopupAnchoring;
+}
+
 public final class ai/rever/boss/plugin/ui/BossThemeColors {
 	public static final field $stable I
 	public static final field INSTANCE Lai/rever/boss/plugin/ui/BossThemeColors;

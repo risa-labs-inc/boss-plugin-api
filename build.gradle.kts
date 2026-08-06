@@ -101,7 +101,22 @@ group = "ai.rever.boss.plugin.bundled"
 // callers must treat it as open (always an else branch) so the next constant is
 // cheaper — apiCheck reports both hazards as cleanly additive and cannot see the
 // parent-first shadowing. Additive.
-version = "1.0.71"
+// 1.0.72: adds BossDialog/BossAlertDialog + BossOverlayHost/LocalHeavyweightOverlays
+// (ai.rever.boss.plugin.ui.BossDialog.kt) so a plugin's dialogs can escape above the
+// browser surface. Under JxBrowser HARDWARE_ACCELERATED - the default on every
+// platform since BossConsole 9.4.1 - Chromium composites its own native window over
+// the Compose scene, so a plain Compose Dialog in a plugin panel is drawn BEHIND the
+// page. Swap Dialog( for BossDialog( and AlertDialog( for BossAlertDialog(.
+//
+// Which gate to declare, and this is the one place people will look. minApiVersion: 1.0.72
+// is what makes the symbols RESOLVE, and it is the minimum needed to install and run:
+// ApiClassLoader serves brand-new types out of this jar on a host that lacks them. It does
+// NOT promise the dialog clears the browser surface - on such a host the fallback is the
+// pre-fix, occluded dialog, silently. So: minApiVersion alone if you only need to compile
+// and behave no worse than before; ALSO gate on the minBossVersion of the release carrying
+// the host's copy if your feature depends on the dialog actually being in front. The host
+// logs one warning when the renderer is missing. Additive.
+version = "1.0.72"
 
 java {
     toolchain {

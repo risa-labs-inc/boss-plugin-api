@@ -116,7 +116,7 @@ group = "ai.rever.boss.plugin.bundled"
 // and behave no worse than before; ALSO gate on the minBossVersion of the release carrying
 // the host's copy if your feature depends on the dialog actually being in front. The host
 // logs one warning when the renderer is missing. Additive.
-version = "1.0.72"
+version = "1.0.73"
 
 java {
     toolchain {

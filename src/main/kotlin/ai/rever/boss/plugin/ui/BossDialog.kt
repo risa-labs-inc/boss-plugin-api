@@ -1,5 +1,12 @@
 package ai.rever.boss.plugin.ui
 
+import kotlinx.coroutines.delay
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -123,10 +130,31 @@ fun BossDialog(
 }
 
 /**
+ * How long a freshly-opened heavyweight modal refuses pointer input.
+ *
+ * Short enough to be imperceptible, long enough to outlast the release of the click that opened the
+ * dialog. See [ScrimmedModalContent] for what goes wrong without it.
+ */
+private const val INPUT_ARM_DELAY_MS = 200L
+
+/**
  * Full-window scrim with the card centered on it.
  *
  * The card carries a no-op click handler so a click inside it is consumed rather than falling
  * through to the scrim and dismissing the dialog the user is filling in.
+ *
+ * **Input is refused until the pointer is known to be idle**, which is not belt-and-braces: a
+ * heavyweight modal is a new window that appears directly UNDER the cursor, and the click that
+ * opened it may still be in flight. Cmd-clicking a link in a terminal opened the link dialog with
+ * the mouse button still down, and the release then landed on whichever option happened to sit
+ * beneath the pointer and chose it - the user picked an option they never aimed at. The lightweight
+ * path cannot do this: it draws inside the existing window, whose press it already saw.
+ *
+ * Two arming rules, because either one alone loses a click:
+ *  - any pointer event with no button held arms it, which covers the in-flight release and any
+ *    stray movement;
+ *  - a [INPUT_ARM_DELAY_MS] timer arms it too, for a dialog opened from the keyboard or a menu,
+ *    where no pointer event may ever arrive and the first real click would otherwise be eaten.
  */
 @Composable
 private fun ScrimmedModalContent(
@@ -136,12 +164,28 @@ private fun ScrimmedModalContent(
 ) {
     val scrimInteraction = remember { MutableInteractionSource() }
     val cardInteraction = remember { MutableInteractionSource() }
+    var armed by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        delay(INPUT_ARM_DELAY_MS)
+        armed = true
+    }
     Box(
         modifier =
             Modifier
                 .fillMaxSize()
                 .background(Color.Black.copy(alpha = SCRIM_ALPHA))
-                .then(
+                // Initial pass, so this runs BEFORE the scrim's and the card's own handlers and can
+                // take the event away from them entirely.
+                .pointerInput(armed) {
+                    if (armed) return@pointerInput
+                    awaitPointerEventScope {
+                        while (!armed) {
+                            val event = awaitPointerEvent(PointerEventPass.Initial)
+                            if (event.changes.none { it.pressed }) armed = true
+                            event.changes.forEach { it.consume() }
+                        }
+                    }
+                }.then(
                     if (dismissOnClickOutside) {
                         Modifier.clickable(
                             interactionSource = scrimInteraction,

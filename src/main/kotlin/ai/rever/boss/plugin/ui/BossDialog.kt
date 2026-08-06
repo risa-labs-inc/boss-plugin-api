@@ -1,27 +1,5 @@
 package ai.rever.boss.plugin.ui
 
-import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.layout.layout
-import androidx.compose.ui.layout.positionInWindow
-import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.geometry.Rect
-import kotlin.math.roundToInt
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.unit.IntRect
-import androidx.compose.ui.window.PopupProperties
-import androidx.compose.ui.window.Popup
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.focus.focusProperties
-import androidx.compose.runtime.SideEffect
-import kotlinx.coroutines.delay
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.pointer.PointerEventPass
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -42,20 +20,41 @@ import androidx.compose.material.ProvideTextStyle
 import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.takeOrElse
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntRect
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
+import kotlin.math.roundToInt
+import kotlinx.coroutines.delay
 
 /**
  * Whether the window hosting this composition is one that needs heavyweight overlays.
@@ -122,7 +121,9 @@ private const val SCRIM_ALPHA = 0.4f
  * @param onDismissRequest Called on Escape, on a click outside the card, or when focus leaves the
  *   application. Not called when the caller's own buttons close the dialog.
  * @param properties `dismissOnClickOutside` is honoured on both paths; `dismissOnBackPress` maps
- *   to Escape, which the heavyweight window handles itself.
+ *   to Escape, which the heavyweight window handles itself. Every OTHER property, including
+ *   `usePlatformDefaultWidth`, is IGNORED on the heavyweight path - the card is intrinsically sized
+ *   there and there is no platform dialog to configure.
  */
 @Composable
 fun BossDialog(
@@ -213,9 +214,15 @@ internal fun ScrimmedModalContent(
     // only read inside the effect, so a plain holder would do; kept as state so the pointer handler
     // and the timer share one obvious source of truth.
     val pointerDown = remember { mutableStateOf(false) }
+    // Retries rather than asking once. A single shot has no recovery path: if this window sees a
+    // press whose release is delivered somewhere else - pointer dragged out and released over another
+    // window or another application - `armed` would stay false forever and the loop below would eat
+    // every event, leaving the dialog permanently mouse-dead with only Escape as a way out.
     LaunchedEffect(Unit) {
-        delay(INPUT_ARM_DELAY_MS)
-        if (shouldArmModalInput(pointerDown.value)) armed = true
+        while (!armed) {
+            delay(INPUT_ARM_DELAY_MS)
+            if (shouldArmModalInput(pointerDown.value)) armed = true
+        }
     }
     Box(
         modifier =
@@ -229,18 +236,27 @@ internal fun ScrimmedModalContent(
                     awaitPointerEventScope {
                         while (!armed) {
                             val event = awaitPointerEvent(PointerEventPass.Initial)
-                            pointerDown.value = event.changes.any { it.pressed }
+                            // Exit clears a stale press: the release for it will be delivered to
+                            // whatever the pointer moved onto, never to this window.
+                            pointerDown.value =
+                                event.type != PointerEventType.Exit && event.changes.any { it.pressed }
                             if (shouldArmModalInput(pointerDown.value)) armed = true
                             event.changes.forEach { it.consume() }
                         }
                     }
                 }.then(
                     if (dismissOnClickOutside) {
-                        Modifier.clickable(
-                            interactionSource = scrimInteraction,
-                            indication = null,
-                            onClick = onDismissRequest,
-                        )
+                        // canFocus = false for the same reason as the card: `clickable` installs a
+                        // focus target with Enter/Space semantics, so a full-window scrim would join
+                        // the dialog's traversal order and dismiss it from the keyboard - surprising
+                        // in a dialog with text fields - and announce itself to accessibility.
+                        Modifier
+                            .focusProperties { canFocus = false }
+                            .clickable(
+                                interactionSource = scrimInteraction,
+                                indication = null,
+                                onClick = onDismissRequest,
+                            )
                     } else {
                         Modifier
                     },
@@ -269,10 +285,10 @@ internal fun ScrimmedModalContent(
 // ---------------------------------------------------------------------------
 // Design-system stand-ins.
 //
-// The host's copy of this file reads BossTheme.space / .radius / .type. This copy of the package
-// predates those tokens, so the values they resolve to are inlined here instead. Nothing below ever
-// runs - a plugin resolves this package parent-first from the host (see BossOverlayHost) - but the
-// card is described the same way so reading either copy tells the same story.
+// The host's copy reads BossTheme.space / .radius / .type. This copy of the package predates those
+// tokens, so the values they resolve to are inlined. This body is NOT dead: ApiClassLoader serves
+// these types from the jar on a host that lacks them compiled in, so it is what runs on the fallback
+// path. Colors go through BossThemeColors, the indirection layer the rest of this package uses.
 // ---------------------------------------------------------------------------
 
 /** BossRadii.dialog */
@@ -377,12 +393,12 @@ fun BossAlertDialog(
                     .width(AlertWidth)
                     .wrapContentHeight(),
             shape = shape ?: RoundedCornerShape(DIALOG_RADIUS),
-            color = backgroundColor.takeOrElse { BossColors.darkBackground },
-            contentColor = contentColor.takeOrElse { BossColors.darkTextPrimary },
+            color = backgroundColor.takeOrElse { BossThemeColors.SurfaceColor },
+            contentColor = contentColor.takeOrElse { BossThemeColors.TextPrimary },
         ) {
             Column(modifier = Modifier.padding(CARD_PADDING)) {
                 if (title != null) {
-                    CompositionLocalProvider(LocalContentColor provides BossColors.darkTextPrimary) {
+                    CompositionLocalProvider(LocalContentColor provides BossThemeColors.TextPrimary) {
                         ProvideTextStyle(TITLE_STYLE, title)
                     }
                 }
@@ -390,7 +406,7 @@ fun BossAlertDialog(
                     Spacer(Modifier.height(TITLE_TEXT_GAP))
                 }
                 if (text != null) {
-                    CompositionLocalProvider(LocalContentColor provides BossColors.darkTextSecondary) {
+                    CompositionLocalProvider(LocalContentColor provides BossThemeColors.TextSecondary) {
                         ProvideTextStyle(BODY_STYLE, text)
                     }
                 }
@@ -400,6 +416,7 @@ fun BossAlertDialog(
         }
     }
 }
+
 // ---------------------------------------------------------------------------
 // Anchored popup
 // ---------------------------------------------------------------------------

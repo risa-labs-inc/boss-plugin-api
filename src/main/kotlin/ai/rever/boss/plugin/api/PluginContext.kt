@@ -521,6 +521,23 @@ interface PluginContext {
     val llmProvider: LlmProvider?
         get() = null
 
+    /**
+     * Optional exchange of the signed-in BOSS session for a short-lived
+     * credential from a broker the host knows about.
+     *
+     * This is how a provider that has no API key to paste is reached: the user is
+     * already signed in, and an organisation-run gateway mints a scoped key for
+     * that identity. The plugin never sees the session token, only the credential
+     * it bought - see [BrokeredCredentialProvider], which also explains why a
+     * broker is named by id and not by URL.
+     *
+     * Null on a host with no brokers configured, which is the common case. Gate
+     * with manifest `minBossVersion` for the host release that implements it; the
+     * types themselves ship with the api jar.
+     */
+    val brokeredCredentialProvider: BrokeredCredentialProvider?
+        get() = null
+
     // ============================================================
     // SEARCH PROVIDER REGISTRATION
     // Enables plugins to contribute to global search results

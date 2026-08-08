@@ -116,6 +116,30 @@ group = "ai.rever.boss.plugin.bundled"
 // and behave no worse than before; ALSO gate on the minBossVersion of the release carrying
 // the host's copy if your feature depends on the dialog actually being in front. The host
 // logs one warning when the renderer is missing. Additive.
+// 1.0.74: adds AiGatewayAPI (ai/rever/boss/plugin/api/AiGateway.kt) - one AI interface for
+// plugins, so none of them speaks a provider's wire format. LlmProvider hands out a credential
+// and an LlmApiFormat tag, which left jupyter-notebook, llmrpa and flow-tab each carrying their
+// own HTTP client and their own `when` over that enum. Because LlmApiFormat is an open set, those
+// `when`s throw NoWhenBranchMatchedException the first time a newer constant reaches them - so
+// adding a provider silently broke consumers compiled before it, and jupyter does this today for
+// GOOGLE_GENERATIVE. AiRequest carries no provider and no format; the implementing plugin resolves
+// the active provider and owns the only dispatch. A consumer needs minApiVersion: 1.0.74 alone,
+// never minBossVersion, because it never names a constant. Additive (new types only).
+//
+// Also adds BrokeredCredentialProvider + PluginContext.brokeredCredentialProvider, for a provider
+// whose credential nobody types in: the user is signed in and an organisation gateway mints a
+// short-lived scoped key for that identity. The exchange stays host-side because nothing on
+// PluginContext exposes the Supabase access token, and a broker is named by ID rather than URL -
+// exchange(url) would hand every installed plugin a way to post the user's session to a host of
+// its choosing. The new PluginContext member needs the host relay, so gate on the minBossVersion
+// of the release that implements it. Additive (defaulted member).
+//
+// Also adds LlmApiFormat.OPENAI_RESPONSES, the format Codex and the gateways in front of it speak.
+// Not interchangeable with OPENAI_CHAT: a Chat Completions body posted to /v1/responses is
+// rejected. Same gate as GOOGLE_GENERATIVE and for the same reason - this enum is host-compiled
+// and served parent-first, so minApiVersion alone resolves the host's older copy and fails with
+// NoSuchFieldError. apiCheck reports it as cleanly additive and cannot see the shadowing.
+// Additive.
 version = "1.0.73"
 
 java {

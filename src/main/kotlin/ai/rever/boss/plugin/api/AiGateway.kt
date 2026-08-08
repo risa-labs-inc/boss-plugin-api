@@ -78,6 +78,25 @@ interface AiGatewayAPI {
     ): Result<AiAgentResult>
 
     /**
+     * One model turn, for a caller that owns its own loop.
+     *
+     * [runAgent] is the right entry point for "ask, run tools, repeat until answered".
+     * This is the primitive underneath it, for a caller whose loop is already part of
+     * something else - a node in a graph, a step in a workflow - and whose stopping rules
+     * are its own. Such a caller wants the model's tool calls handed back rather than run.
+     *
+     * Pass the transcript in [AiRequest.messages], including prior assistant turns and
+     * tool results, and get exactly one turn back.
+     *
+     * The default body exists so a plugin built against a later api keeps loading on an
+     * older gateway, and degrades to a tool-less reply rather than failing.
+     */
+    suspend fun step(
+        request: AiRequest,
+        tools: List<AiToolSpec> = emptyList(),
+    ): Result<AiTurn> = complete(request).map { AiTurn(text = it.text, usage = it.usage, modelId = it.modelId) }
+
+    /**
      * What this implementation can actually do right now, for a caller that wants
      * to adapt rather than fail.
      *
@@ -189,6 +208,20 @@ data class AiImage(
 
     override fun hashCode(): Int = 31 * mediaType.hashCode() + bytes.contentHashCode()
 }
+
+/**
+ * One assistant turn: what it said, what it wants to run, and what it cost.
+ *
+ * The unit [AiGatewayAPI.step] deals in. An empty [toolCalls] with [text] is a final
+ * answer; a non-empty [toolCalls] means "run these and step me again with the results".
+ */
+data class AiTurn(
+    val text: String = "",
+    val toolCalls: List<AiToolCall> = emptyList(),
+    val usage: AiUsage? = null,
+    /** The model that answered, when the provider reports it. */
+    val modelId: String = "",
+)
 
 /** What the model said, plus what it cost. */
 data class AiReply(

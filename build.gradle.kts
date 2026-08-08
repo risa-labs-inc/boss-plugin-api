@@ -134,6 +134,12 @@ group = "ai.rever.boss.plugin.bundled"
 // its choosing. The new PluginContext member needs the host relay, so gate on the minBossVersion
 // of the release that implements it. Additive (defaulted member).
 //
+// AiGatewayAPI.step is the primitive under runAgent, for a caller whose loop is already part of
+// something else (a node in a graph) and whose stopping rules are its own - it hands the model's
+// tool calls back rather than running them. flow-tab surfaced the need: it has its own DAG-shaped
+// loop and could not use runAgent without giving that up. Defaulted so a plugin built against a
+// later api keeps loading on an older gateway, degrading to a tool-less reply. Additive.
+//
 // Also adds LlmApiFormat.OPENAI_RESPONSES, the format Codex and the gateways in front of it speak.
 // Not interchangeable with OPENAI_CHAT: a Chat Completions body posted to /v1/responses is
 // rejected. Same gate as GOOGLE_GENERATIVE and for the same reason - this enum is host-compiled

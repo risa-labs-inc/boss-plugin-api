@@ -116,4 +116,24 @@ enum class LlmApiFormat {
      * this format, and the key is never in it.
      */
     GOOGLE_GENERATIVE,
+
+    /**
+     * OpenAI Responses API (`Authorization: Bearer`, `/v1/responses`, a single
+     * `input` list rather than `messages`, `instructions` for the system prompt).
+     *
+     * Not interchangeable with [OPENAI_CHAT] despite the shared credential style:
+     * the request and reply shapes differ, and a Chat Completions body posted to
+     * `/v1/responses` is rejected. This is the format Codex speaks, and what
+     * organisation-run gateways in front of Codex serve.
+     *
+     * Added in api 1.0.74. Same gate as [GOOGLE_GENERATIVE], for the same reason:
+     * this enum is host-compiled and served parent-first, so `minApiVersion`
+     * alone still resolves the host's older copy and fails with
+     * `NoSuchFieldError`. Gate on the `minBossVersion` of the host release that
+     * pins 1.0.74.
+     *
+     * Callers that go through `AiGatewayAPI` never touch this constant and need
+     * no such gate, which is the point of that interface.
+     */
+    OPENAI_RESPONSES,
 }

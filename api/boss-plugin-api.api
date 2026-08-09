@@ -64,6 +64,307 @@ public final class ai/rever/boss/plugin/api/ActiveTabsProvider$DefaultImpls {
 	public static fun createBrowserTabInRightSplit (Lai/rever/boss/plugin/api/ActiveTabsProvider;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
 }
 
+public final class ai/rever/boss/plugin/api/AiAgentResult {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;Lai/rever/boss/plugin/api/AiStopReason;IILai/rever/boss/plugin/api/AiUsage;)V
+	public synthetic fun <init> (Ljava/lang/String;Lai/rever/boss/plugin/api/AiStopReason;IILai/rever/boss/plugin/api/AiUsage;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lai/rever/boss/plugin/api/AiStopReason;
+	public final fun component3 ()I
+	public final fun component4 ()I
+	public final fun component5 ()Lai/rever/boss/plugin/api/AiUsage;
+	public final fun copy (Ljava/lang/String;Lai/rever/boss/plugin/api/AiStopReason;IILai/rever/boss/plugin/api/AiUsage;)Lai/rever/boss/plugin/api/AiAgentResult;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/AiAgentResult;Ljava/lang/String;Lai/rever/boss/plugin/api/AiStopReason;IILai/rever/boss/plugin/api/AiUsage;ILjava/lang/Object;)Lai/rever/boss/plugin/api/AiAgentResult;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getSteps ()I
+	public final fun getStopReason ()Lai/rever/boss/plugin/api/AiStopReason;
+	public final fun getText ()Ljava/lang/String;
+	public final fun getToolCalls ()I
+	public final fun getUsage ()Lai/rever/boss/plugin/api/AiUsage;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/AiBudget {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun <init> (IJI)V
+	public synthetic fun <init> (IJIILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()I
+	public final fun component2 ()J
+	public final fun component3 ()I
+	public final fun copy (IJI)Lai/rever/boss/plugin/api/AiBudget;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/AiBudget;IJIILjava/lang/Object;)Lai/rever/boss/plugin/api/AiBudget;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getMaxSteps ()I
+	public final fun getMaxTokens ()I
+	public final fun getTimeoutMs ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract class ai/rever/boss/plugin/api/AiChunk {
+	public static final field $stable I
+}
+
+public final class ai/rever/boss/plugin/api/AiChunk$Completed : ai/rever/boss/plugin/api/AiChunk {
+	public static final field $stable I
+	public fun <init> (Lai/rever/boss/plugin/api/AiReply;)V
+	public final fun getReply ()Lai/rever/boss/plugin/api/AiReply;
+}
+
+public final class ai/rever/boss/plugin/api/AiChunk$Failed : ai/rever/boss/plugin/api/AiChunk {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/Throwable;)V
+	public final fun getError ()Ljava/lang/Throwable;
+}
+
+public final class ai/rever/boss/plugin/api/AiChunk$Text : ai/rever/boss/plugin/api/AiChunk {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;)V
+	public final fun getText ()Ljava/lang/String;
+}
+
+public abstract interface class ai/rever/boss/plugin/api/AiGatewayAPI {
+	public static final field CAPABILITY_STREAMING Ljava/lang/String;
+	public static final field CAPABILITY_TOOLS Ljava/lang/String;
+	public static final field CAPABILITY_VISION Ljava/lang/String;
+	public static final field Companion Lai/rever/boss/plugin/api/AiGatewayAPI$Companion;
+	public fun activeModel ()Lai/rever/boss/plugin/api/AiModelInfo;
+	public fun capabilities ()Ljava/util/Set;
+	public abstract fun complete-gIAlu-s (Lai/rever/boss/plugin/api/AiRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun runAgent-yxL6bBk (Lai/rever/boss/plugin/api/AiRequest;Ljava/util/List;Lai/rever/boss/plugin/api/AiBudget;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun runAgent-yxL6bBk$default (Lai/rever/boss/plugin/api/AiGatewayAPI;Lai/rever/boss/plugin/api/AiRequest;Ljava/util/List;Lai/rever/boss/plugin/api/AiBudget;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public fun step-BWLJW6A (Lai/rever/boss/plugin/api/AiRequest;Ljava/util/List;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun step-BWLJW6A$default (Lai/rever/boss/plugin/api/AiGatewayAPI;Lai/rever/boss/plugin/api/AiRequest;Ljava/util/List;Ljava/util/List;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public abstract fun stream (Lai/rever/boss/plugin/api/AiRequest;)Lkotlinx/coroutines/flow/Flow;
+}
+
+public final class ai/rever/boss/plugin/api/AiGatewayAPI$Companion {
+	public static final field CAPABILITY_STREAMING Ljava/lang/String;
+	public static final field CAPABILITY_TOOLS Ljava/lang/String;
+	public static final field CAPABILITY_VISION Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/AiGatewayAPI$DefaultImpls {
+	public static fun activeModel (Lai/rever/boss/plugin/api/AiGatewayAPI;)Lai/rever/boss/plugin/api/AiModelInfo;
+	public static fun capabilities (Lai/rever/boss/plugin/api/AiGatewayAPI;)Ljava/util/Set;
+	public static synthetic fun runAgent-yxL6bBk$default (Lai/rever/boss/plugin/api/AiGatewayAPI;Lai/rever/boss/plugin/api/AiRequest;Ljava/util/List;Lai/rever/boss/plugin/api/AiBudget;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static fun step-BWLJW6A (Lai/rever/boss/plugin/api/AiGatewayAPI;Lai/rever/boss/plugin/api/AiRequest;Ljava/util/List;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun step-BWLJW6A$default (Lai/rever/boss/plugin/api/AiGatewayAPI;Lai/rever/boss/plugin/api/AiRequest;Ljava/util/List;Ljava/util/List;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class ai/rever/boss/plugin/api/AiImage {
+	public static final field $stable I
+	public fun <init> ([BLjava/lang/String;)V
+	public final fun component1 ()[B
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy ([BLjava/lang/String;)Lai/rever/boss/plugin/api/AiImage;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/AiImage;[BLjava/lang/String;ILjava/lang/Object;)Lai/rever/boss/plugin/api/AiImage;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBytes ()[B
+	public final fun getMediaType ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/AiMessage {
+	public static final field $stable I
+	public static final field Companion Lai/rever/boss/plugin/api/AiMessage$Companion;
+	public static final field ROLE_ASSISTANT Ljava/lang/String;
+	public static final field ROLE_USER Ljava/lang/String;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)Lai/rever/boss/plugin/api/AiMessage;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/AiMessage;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ILjava/lang/Object;)Lai/rever/boss/plugin/api/AiMessage;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getImages ()Ljava/util/List;
+	public final fun getRole ()Ljava/lang/String;
+	public final fun getText ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/AiMessage$Companion {
+	public final fun assistant (Ljava/lang/String;)Lai/rever/boss/plugin/api/AiMessage;
+	public final fun user (Ljava/lang/String;)Lai/rever/boss/plugin/api/AiMessage;
+}
+
+public final class ai/rever/boss/plugin/api/AiModelInfo {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lai/rever/boss/plugin/api/AiModelInfo;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/AiModelInfo;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lai/rever/boss/plugin/api/AiModelInfo;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getModelId ()Ljava/lang/String;
+	public final fun getProviderId ()Ljava/lang/String;
+	public final fun getProviderName ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/AiReply {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;Lai/rever/boss/plugin/api/AiUsage;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Lai/rever/boss/plugin/api/AiUsage;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lai/rever/boss/plugin/api/AiUsage;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Lai/rever/boss/plugin/api/AiUsage;Ljava/lang/String;)Lai/rever/boss/plugin/api/AiReply;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/AiReply;Ljava/lang/String;Lai/rever/boss/plugin/api/AiUsage;Ljava/lang/String;ILjava/lang/Object;)Lai/rever/boss/plugin/api/AiReply;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getModelId ()Ljava/lang/String;
+	public final fun getText ()Ljava/lang/String;
+	public final fun getUsage ()Lai/rever/boss/plugin/api/AiUsage;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/AiRequest {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/lang/Float;Ljava/lang/Integer;JLjava/util/Map;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/lang/Float;Ljava/lang/Integer;JLjava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Ljava/lang/Float;
+	public final fun component4 ()Ljava/lang/Integer;
+	public final fun component5 ()J
+	public final fun component6 ()Ljava/util/Map;
+	public final fun copy (Ljava/lang/String;Ljava/util/List;Ljava/lang/Float;Ljava/lang/Integer;JLjava/util/Map;)Lai/rever/boss/plugin/api/AiRequest;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/AiRequest;Ljava/lang/String;Ljava/util/List;Ljava/lang/Float;Ljava/lang/Integer;JLjava/util/Map;ILjava/lang/Object;)Lai/rever/boss/plugin/api/AiRequest;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getExtras ()Ljava/util/Map;
+	public final fun getMaxTokens ()Ljava/lang/Integer;
+	public final fun getMessages ()Ljava/util/List;
+	public final fun getSystem ()Ljava/lang/String;
+	public final fun getTemperature ()Ljava/lang/Float;
+	public final fun getTimeoutMs ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/AiRound {
+	public static final field $stable I
+	public fun <init> (Lai/rever/boss/plugin/api/AiTurn;Ljava/util/List;)V
+	public synthetic fun <init> (Lai/rever/boss/plugin/api/AiTurn;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lai/rever/boss/plugin/api/AiTurn;
+	public final fun component2 ()Ljava/util/List;
+	public final fun copy (Lai/rever/boss/plugin/api/AiTurn;Ljava/util/List;)Lai/rever/boss/plugin/api/AiRound;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/AiRound;Lai/rever/boss/plugin/api/AiTurn;Ljava/util/List;ILjava/lang/Object;)Lai/rever/boss/plugin/api/AiRound;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getOutcomes ()Ljava/util/List;
+	public final fun getTurn ()Lai/rever/boss/plugin/api/AiTurn;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/AiStopReason : java/lang/Enum {
+	public static final field COMPLETED Lai/rever/boss/plugin/api/AiStopReason;
+	public static final field MAX_STEPS Lai/rever/boss/plugin/api/AiStopReason;
+	public static final field PROVIDER_STOPPED Lai/rever/boss/plugin/api/AiStopReason;
+	public static final field TIMEOUT Lai/rever/boss/plugin/api/AiStopReason;
+	public static final field TOKEN_BUDGET Lai/rever/boss/plugin/api/AiStopReason;
+	public static final field UNKNOWN Lai/rever/boss/plugin/api/AiStopReason;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lai/rever/boss/plugin/api/AiStopReason;
+	public static fun values ()[Lai/rever/boss/plugin/api/AiStopReason;
+}
+
+public final class ai/rever/boss/plugin/api/AiToolCall {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lai/rever/boss/plugin/api/AiToolCall;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/AiToolCall;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lai/rever/boss/plugin/api/AiToolCall;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getArgumentsJson ()Ljava/lang/String;
+	public final fun getId ()Ljava/lang/String;
+	public final fun getName ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/AiToolOutcome {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Z)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Z
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Z)Lai/rever/boss/plugin/api/AiToolOutcome;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/AiToolOutcome;Ljava/lang/String;Ljava/lang/String;ZILjava/lang/Object;)Lai/rever/boss/plugin/api/AiToolOutcome;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getContent ()Ljava/lang/String;
+	public final fun getId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public final fun isError ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/AiToolSpec {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lai/rever/boss/plugin/api/AiToolSpec;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/AiToolSpec;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lai/rever/boss/plugin/api/AiToolSpec;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDescription ()Ljava/lang/String;
+	public final fun getInputSchema ()Ljava/lang/String;
+	public final fun getName ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/AiTurn {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Ljava/util/List;Lai/rever/boss/plugin/api/AiUsage;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;Lai/rever/boss/plugin/api/AiUsage;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Lai/rever/boss/plugin/api/AiUsage;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/util/List;Lai/rever/boss/plugin/api/AiUsage;Ljava/lang/String;)Lai/rever/boss/plugin/api/AiTurn;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/AiTurn;Ljava/lang/String;Ljava/util/List;Lai/rever/boss/plugin/api/AiUsage;Ljava/lang/String;ILjava/lang/Object;)Lai/rever/boss/plugin/api/AiTurn;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getModelId ()Ljava/lang/String;
+	public final fun getText ()Ljava/lang/String;
+	public final fun getToolCalls ()Ljava/util/List;
+	public final fun getUsage ()Lai/rever/boss/plugin/api/AiUsage;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/AiUsage {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun <init> (II)V
+	public synthetic fun <init> (IIILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()I
+	public final fun component2 ()I
+	public final fun copy (II)Lai/rever/boss/plugin/api/AiUsage;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/AiUsage;IIILjava/lang/Object;)Lai/rever/boss/plugin/api/AiUsage;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getInputTokens ()I
+	public final fun getOutputTokens ()I
+	public final fun getTotalTokens ()I
+	public fun hashCode ()I
+	public final fun plus (Lai/rever/boss/plugin/api/AiUsage;)Lai/rever/boss/plugin/api/AiUsage;
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class ai/rever/boss/plugin/api/AnalyticsEvent {
 	public static final field $stable I
 	public fun <init> (Ljava/lang/String;Ljava/util/Map;J)V
@@ -306,6 +607,51 @@ public final class ai/rever/boss/plugin/api/BreadcrumbType : java/lang/Enum {
 
 public final class ai/rever/boss/plugin/api/BreadcrumbType$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class ai/rever/boss/plugin/api/BrokerInfo {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;ZLjava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ZLjava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Z
+	public final fun component4 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;ZLjava/lang/String;)Lai/rever/boss/plugin/api/BrokerInfo;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/BrokerInfo;Ljava/lang/String;Ljava/lang/String;ZLjava/lang/String;ILjava/lang/Object;)Lai/rever/boss/plugin/api/BrokerInfo;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAvailable ()Z
+	public final fun getDisplayName ()Ljava/lang/String;
+	public final fun getId ()Ljava/lang/String;
+	public final fun getScopedTo ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/BrokeredCredential {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;JLjava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;JLjava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()J
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;JLjava/lang/String;)Lai/rever/boss/plugin/api/BrokeredCredential;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/BrokeredCredential;Ljava/lang/String;JLjava/lang/String;ILjava/lang/Object;)Lai/rever/boss/plugin/api/BrokeredCredential;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getExpiresAt ()Ljava/lang/String;
+	public final fun getRefreshAfterSeconds ()J
+	public final fun getToken ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class ai/rever/boss/plugin/api/BrokeredCredentialProvider {
+	public fun availableBrokers ()Ljava/util/List;
+	public abstract fun exchange-gIAlu-s (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class ai/rever/boss/plugin/api/BrokeredCredentialProvider$DefaultImpls {
+	public static fun availableBrokers (Lai/rever/boss/plugin/api/BrokeredCredentialProvider;)Ljava/util/List;
 }
 
 public abstract interface class ai/rever/boss/plugin/api/BrowserIntegration {
@@ -1572,6 +1918,7 @@ public final class ai/rever/boss/plugin/api/LlmApiFormat : java/lang/Enum {
 	public static final field ANTHROPIC_MESSAGES Lai/rever/boss/plugin/api/LlmApiFormat;
 	public static final field GOOGLE_GENERATIVE Lai/rever/boss/plugin/api/LlmApiFormat;
 	public static final field OPENAI_CHAT Lai/rever/boss/plugin/api/LlmApiFormat;
+	public static final field OPENAI_RESPONSES Lai/rever/boss/plugin/api/LlmApiFormat;
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lai/rever/boss/plugin/api/LlmApiFormat;
 	public static fun values ()[Lai/rever/boss/plugin/api/LlmApiFormat;
@@ -2813,6 +3160,7 @@ public abstract interface class ai/rever/boss/plugin/api/PluginContext {
 	public fun getAuthDataProvider ()Lai/rever/boss/plugin/api/AuthDataProvider;
 	public fun getBackgroundTaskProvider ()Lai/rever/boss/plugin/api/BackgroundTaskProvider;
 	public fun getBookmarkDataProvider ()Lai/rever/boss/plugin/api/BookmarkDataProvider;
+	public fun getBrokeredCredentialProvider ()Lai/rever/boss/plugin/api/BrokeredCredentialProvider;
 	public fun getBrowserService ()Lai/rever/boss/plugin/browser/BrowserService;
 	public fun getCacheProvider ()Lai/rever/boss/plugin/api/CacheProvider;
 	public fun getClipboardProvider ()Lai/rever/boss/plugin/api/ClipboardProvider;
@@ -2883,6 +3231,7 @@ public final class ai/rever/boss/plugin/api/PluginContext$DefaultImpls {
 	public static fun getAuthDataProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/AuthDataProvider;
 	public static fun getBackgroundTaskProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/BackgroundTaskProvider;
 	public static fun getBookmarkDataProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/BookmarkDataProvider;
+	public static fun getBrokeredCredentialProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/BrokeredCredentialProvider;
 	public static fun getBrowserService (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/browser/BrowserService;
 	public static fun getCacheProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/CacheProvider;
 	public static fun getClipboardProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/ClipboardProvider;

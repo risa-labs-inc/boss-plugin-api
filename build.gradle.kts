@@ -134,6 +134,17 @@ group = "ai.rever.boss.plugin.bundled"
 // its choosing. The new PluginContext member needs the host relay, so gate on the minBossVersion
 // of the release that implements it. Additive (defaulted member).
 //
+// Two constraints this jar's data classes impose, written down because apiCheck reports the
+// breaking version as additive. (1) Adding a constructor PARAMETER to any of the Ai* data classes
+// is a hard break: the synthetic constructor descriptor and copy$default both move, so a plugin
+// compiled earlier gets NoSuchMethodError on a call it never touched. Extend by adding a body-level
+// `val` (one new getter, additive, at the cost of being outside copy()/equals()), or by adding a
+// method. AiRequest.extras exists as the escape hatch for exactly this. (2) A suspend fun returning
+// Result has a MANGLED JVM name derived from its signature - complete-gIAlu-s, step-0E7RQCE - so
+// adding even a defaulted parameter renames the method and apiCheck shows it as one method
+// disappearing and an unrelated one appearing. Those signatures are frozen; extend by adding
+// methods.
+//
 // AiGatewayAPI.step is the primitive under runAgent, for a caller whose loop is already part of
 // something else (a node in a graph) and whose stopping rules are its own - it hands the model's
 // tool calls back rather than running them. flow-tab surfaced the need: it has its own DAG-shaped
@@ -187,6 +198,11 @@ dependencies {
 
     // Logging
     implementation("org.slf4j:slf4j-api:2.0.16")
+    // The api is mostly declarations, but this jar does carry hand-written logic now -
+    // AiImage.equals/hashCode, AiUsage.plus, BrokeredCredential.toString - and apiCheck
+    // only checks shape, not behaviour. These are the first tests in the repo.
+    testImplementation(kotlin("test"))
+
 }
 
 // Task to build plugin JAR with compiled classes only

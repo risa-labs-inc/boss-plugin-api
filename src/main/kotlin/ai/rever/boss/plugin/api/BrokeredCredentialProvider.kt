@@ -65,6 +65,17 @@ data class BrokerInfo(
      * would fail now, so the UI can explain instead of offering a dead action.
      */
     val available: Boolean = true,
+    /**
+     * The endpoint prefix this broker's credentials are scoped to, or null when the
+     * host does not state one.
+     *
+     * The counterpart to naming brokers by id rather than URL. That stops a plugin
+     * choosing where the *session* goes; this lets a careful plugin check where the
+     * *downstream credential* is about to go, since it now holds a bearer token with
+     * nothing else in the api saying where it belongs. Host-owned and read-only, so
+     * it adds no exfiltration primitive of its own.
+     */
+    val scopedTo: String? = null,
 )
 
 /**
@@ -82,12 +93,33 @@ data class BrokeredCredential(
      * How long this credential may be reused, in seconds, as the broker reported
      * it. A reused credential has less life left than a fresh one, so this is the
      * remaining window and not a constant.
+     *
+     * A duration with no anchor, so **stamp the time of receipt** when caching:
+     * a window measured from when the value was produced is already partly spent
+     * by the time a caller stores it, and a cache that survives a laptop sleep
+     * cannot otherwise tell whether it is stale.
      */
     val refreshAfterSeconds: Long,
     /**
-     * When the credential stops working, as the broker stated it, or null when it
-     * did not say. Informational: [refreshAfterSeconds] is what to act on, because
-     * a broker may want it renewed well before it expires.
+     * When the credential stops working, as an **RFC 3339** timestamp, or null when
+     * the broker did not say.
+     *
+     * Informational: [refreshAfterSeconds] is what to act on, because a broker may
+     * want the credential renewed well before it expires. The format is named here
+     * because otherwise every caller writes its own parser against a shape it
+     * discovered empirically and gets wrong for the next broker.
      */
     val expiresAt: String? = null,
-)
+) {
+    /**
+     * Renders the credential as `***`.
+     *
+     * A data class puts every component in its generated `toString`, so
+     * `logger.debug("$credential")`, an interpolated exception message, or a crash
+     * report would each write a working credential to disk. That is the accidental
+     * path; the class doc above covers the deliberate one. `component1()` and
+     * `copy()` still expose the value, which is a caller explicitly asking for it.
+     */
+    override fun toString(): String =
+        "BrokeredCredential(token=***, refreshAfterSeconds=$refreshAfterSeconds, expiresAt=$expiresAt)"
+}

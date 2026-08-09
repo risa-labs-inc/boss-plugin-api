@@ -54,6 +54,12 @@ interface AiGatewayAPI {
      * stream a given provider fall back to a single [AiChunk.Text] followed by
      * [AiChunk.Completed], so a caller never has to ask whether streaming is
      * supported.
+     *
+     * **The flow never throws**, except [kotlinx.coroutines.CancellationException].
+     * Every failure arrives as [AiChunk.Failed] and the flow then completes normally.
+     * Without that guarantee a caller collecting in a `LaunchedEffect` would need both
+     * a `Failed` branch and a `catch {}` to avoid taking its panel down, which is the
+     * outcome this interface exists to rule out.
      */
     fun stream(request: AiRequest): Flow<AiChunk>
 
@@ -69,6 +75,16 @@ interface AiGatewayAPI {
      * Returns why it stopped as well as what it said - a caller that cannot tell
      * "answered" from "ran out of steps" will present a truncated run as a
      * finished one.
+     *
+     * Two bounds are in scope and they do not overlap: [AiRequest.timeoutMs] bounds
+     * **one model turn**, [AiBudget.timeoutMs] bounds **the whole run**, and whichever
+     * trips first wins.
+     *
+     * If [invoke] throws it is caught and fed back to the model as an
+     * [AiToolOutcome] with `isError = true`, so one failing tool does not end the run -
+     * the model is told and can try something else. An [AiToolOutcome] whose id matches
+     * no outstanding call is passed through to the provider, which will reject it; the
+     * ids come from [AiToolCall.id] and should be echoed unchanged.
      */
     suspend fun runAgent(
         request: AiRequest,
@@ -85,8 +101,13 @@ interface AiGatewayAPI {
      * something else - a node in a graph, a step in a workflow - and whose stopping rules
      * are its own. Such a caller wants the model's tool calls handed back rather than run.
      *
-     * Pass the transcript in [AiRequest.messages], including prior assistant turns and
-     * tool results, and get exactly one turn back.
+     * Pass the conversation so far in [AiRequest.messages]. A tool round trip needs two
+     * more things, because a provider will not accept a tool result on its own:
+     * [priorTurn] is the assistant turn that asked for the tools, and [toolOutcomes] are
+     * the results. Both are separate parameters rather than message roles, because the
+     * correlation between a call and its result is structural - Anthropic rejects a
+     * `tool_result` whose `tool_use` was not replayed, and a flattened "tool" message
+     * cannot express that.
      *
      * The default body exists so a plugin built against a later api keeps loading on an
      * older gateway, and degrades to a tool-less reply rather than failing.
@@ -94,7 +115,23 @@ interface AiGatewayAPI {
     suspend fun step(
         request: AiRequest,
         tools: List<AiToolSpec> = emptyList(),
-    ): Result<AiTurn> = complete(request).map { AiTurn(text = it.text, usage = it.usage, modelId = it.modelId) }
+        priorTurn: AiTurn? = null,
+        toolOutcomes: List<AiToolOutcome> = emptyList(),
+    ): Result<AiTurn> =
+        if (tools.isNotEmpty()) {
+            // Never silently. Mapping complete() would return an AiTurn with empty
+            // toolCalls, which this api documents as "a final answer" - so a caller that
+            // advertised five tools would be told the model considered them and declined.
+            // For a node in a graph that is a wrong result, not a degradation.
+            Result.failure(
+                UnsupportedOperationException(
+                    "This AI gateway predates step() with tools. Check capabilities() for " +
+                        "${CAPABILITY_TOOLS} before advertising tools.",
+                ),
+            )
+        } else {
+            complete(request).map { AiTurn(text = it.text, usage = it.usage, modelId = it.modelId) }
+        }
 
     /**
      * What this implementation can actually do right now, for a caller that wants
@@ -123,7 +160,7 @@ interface AiGatewayAPI {
         /** [capabilities] entry: [runAgent] can advertise tools to the active provider. */
         const val CAPABILITY_TOOLS: String = "tools"
 
-        /** [capabilities] entry: [AiMessage.Image] parts are sent rather than dropped. */
+        /** [capabilities] entry: [AiImage] parts are sent rather than dropped. */
         const val CAPABILITY_VISION: String = "vision"
     }
 }
@@ -153,10 +190,28 @@ data class AiRequest(
     /** Output token ceiling, or null to use the user's configured value. */
     val maxTokens: Int? = null,
     /**
-     * Wall-clock bound on the whole request. A caller rendering into a panel
-     * wants a failure it can show, not an indefinite spinner.
+     * Wall-clock bound on **one** request, so within [AiGatewayAPI.runAgent] this
+     * bounds a single model turn rather than the run - [AiBudget.timeoutMs] bounds the
+     * run, and whichever trips first wins. A caller rendering into a panel wants a
+     * failure it can show, not an indefinite spinner.
      */
     val timeoutMs: Long = 120_000,
+    /**
+     * Provider-agnostic hints, for anything this type does not model yet.
+     *
+     * The escape hatch, and it exists because of a hard constraint rather than as a
+     * convenience: every type here is a data class, so **adding a constructor parameter
+     * later is a breaking change** - the synthetic constructor descriptor and
+     * `copy$default` both move, and a plugin compiled against an earlier api gets
+     * `NoSuchMethodError` on a call it never touched. `stopSequences`, `topP`,
+     * `toolChoice` and a per-request model tier are all things this will want; without
+     * somewhere to put them, each one costs an api release plus a host release plus a
+     * rebuild of every consumer.
+     *
+     * Unknown keys are **ignored**, never rejected, so a hint added later degrades on an
+     * older gateway instead of failing. Do not put credentials here.
+     */
+    val extras: Map<String, String> = emptyMap(),
 )
 
 /**
@@ -169,7 +224,10 @@ data class AiRequest(
  * text rather than rejected.
  */
 data class AiMessage(
-    /** `"user"`, `"assistant"`, or `"tool"`. Treat as an open set. */
+    /**
+     * `"user"` or `"assistant"`. Treat as an open set: an unrecognised role is sent as
+     * user text rather than rejected. There is no tool role - see the companion.
+     */
     val role: String,
     /** The text of this turn. Empty when the turn carries only [images]. */
     val text: String = "",
@@ -181,13 +239,18 @@ data class AiMessage(
     val images: List<AiImage> = emptyList(),
 ) {
     companion object {
+        const val ROLE_USER: String = "user"
+        const val ROLE_ASSISTANT: String = "assistant"
+
         fun user(text: String): AiMessage = AiMessage(ROLE_USER, text)
 
         fun assistant(text: String): AiMessage = AiMessage(ROLE_ASSISTANT, text)
 
-        const val ROLE_USER: String = "user"
-        const val ROLE_ASSISTANT: String = "assistant"
-        const val ROLE_TOOL: String = "tool"
+        // There is deliberately no ROLE_TOOL. A tool result is only meaningful next to
+        // the call it answers - Anthropic needs the tool_use replayed, OpenAI needs a
+        // tool_call_id, Responses needs the function_call item - and this type carries
+        // no id, so such a message would be unencodable. Tool results travel as
+        // AiGatewayAPI.step's toolOutcomes, or inside runAgent, where the ids survive.
     }
 }
 
@@ -304,7 +367,16 @@ data class AiBudget(
     val maxTokens: Int = Int.MAX_VALUE,
 )
 
-/** Why a [AiGatewayAPI.runAgent] run stopped. Treat as an open set. */
+/**
+ * Why a [AiGatewayAPI.runAgent] run stopped.
+ *
+ * **Always write an `else` branch when matching on this.** It is an enum, and a `when`
+ * that was exhaustive when it compiled throws `NoWhenBranchMatchedException` the first
+ * time a newer constant reaches it - the same trap [LlmApiFormat] documents, and the one
+ * this whole interface exists to remove. [UNKNOWN] is here so an `else` has something
+ * sensible to fall back to, and so a future reason can be introduced without every
+ * already-compiled caller having to be right about it.
+ */
 enum class AiStopReason {
     /** The model answered with no further tool calls. The only clean finish. */
     COMPLETED,
@@ -317,6 +389,19 @@ enum class AiStopReason {
 
     /** [AiBudget.maxTokens] reached. */
     TOKEN_BUDGET,
+
+    /**
+     * The provider ended the turn itself - a refusal, a content filter, or its own
+     * output-length cap. Distinct from [COMPLETED] because the answer may be partial
+     * or absent, and a caller should not present it as a finished result.
+     */
+    PROVIDER_STOPPED,
+
+    /**
+     * A reason this build does not know. Only produced by a gateway newer than the
+     * caller; treat as "the run ended and the result may be incomplete".
+     */
+    UNKNOWN,
 }
 
 /** The outcome of an agent run, including why it ended. */

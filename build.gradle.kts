@@ -172,7 +172,7 @@ group = "ai.rever.boss.plugin.bundled"
 // and served parent-first, so minApiVersion alone resolves the host's older copy and fails with
 // NoSuchFieldError. apiCheck reports it as cleanly additive and cannot see the shadowing.
 // Additive.
-version = "1.0.74"
+version = "1.0.75"
 
 java {
     toolchain {

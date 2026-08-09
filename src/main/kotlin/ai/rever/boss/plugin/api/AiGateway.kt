@@ -101,13 +101,21 @@ interface AiGatewayAPI {
      * something else - a node in a graph, a step in a workflow - and whose stopping rules
      * are its own. Such a caller wants the model's tool calls handed back rather than run.
      *
-     * Pass the conversation so far in [AiRequest.messages]. A tool round trip needs two
-     * more things, because a provider will not accept a tool result on its own:
-     * [priorTurn] is the assistant turn that asked for the tools, and [toolOutcomes] are
-     * the results. Both are separate parameters rather than message roles, because the
-     * correlation between a call and its result is structural - Anthropic rejects a
-     * `tool_result` whose `tool_use` was not replayed, and a flattened "tool" message
-     * cannot express that.
+     * Pass the plain conversation in [AiRequest.messages] and **every** completed tool
+     * round in [rounds], oldest first.
+     *
+     * Tool rounds are separate from messages, and complete rather than just the latest,
+     * for two reasons that are easy to get wrong:
+     *
+     * - a provider will not accept a tool result on its own. Anthropic rejects a
+     *   `tool_result` whose `tool_use` was not replayed; the Responses API needs the
+     *   `function_call` item beside its output. The correlation is structural, so a
+     *   flattened "tool" message with no id cannot express it - which is why [AiMessage]
+     *   has no tool role.
+     * - passing only the most recent round loses earlier observations. A caller whose loop
+     *   runs more than twice would silently show the model none of what its first tools
+     *   returned, and it would re-call them or answer without the evidence. Nothing errors;
+     *   the run just gets worse. Send the whole list every step.
      *
      * The default body exists so a plugin built against a later api keeps loading on an
      * older gateway, and degrades to a tool-less reply rather than failing.
@@ -115,8 +123,7 @@ interface AiGatewayAPI {
     suspend fun step(
         request: AiRequest,
         tools: List<AiToolSpec> = emptyList(),
-        priorTurn: AiTurn? = null,
-        toolOutcomes: List<AiToolOutcome> = emptyList(),
+        rounds: List<AiRound> = emptyList(),
     ): Result<AiTurn> =
         if (tools.isNotEmpty()) {
             // Never silently. Mapping complete() would return an AiTurn with empty
@@ -271,6 +278,18 @@ data class AiImage(
 
     override fun hashCode(): Int = 31 * mediaType.hashCode() + bytes.contentHashCode()
 }
+
+/**
+ * One completed tool round: the assistant turn that asked, and what the tools returned.
+ *
+ * The unit a multi-step transcript is made of. Kept as a pair rather than two parallel
+ * lists because the pairing is the whole point - an outcome without its originating call is
+ * something no provider will accept.
+ */
+data class AiRound(
+    val turn: AiTurn,
+    val outcomes: List<AiToolOutcome> = emptyList(),
+)
 
 /**
  * One assistant turn: what it said, what it wants to run, and what it cost.

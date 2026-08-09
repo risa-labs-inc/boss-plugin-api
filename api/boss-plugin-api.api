@@ -135,8 +135,8 @@ public abstract interface class ai/rever/boss/plugin/api/AiGatewayAPI {
 	public abstract fun complete-gIAlu-s (Lai/rever/boss/plugin/api/AiRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun runAgent-yxL6bBk (Lai/rever/boss/plugin/api/AiRequest;Ljava/util/List;Lai/rever/boss/plugin/api/AiBudget;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun runAgent-yxL6bBk$default (Lai/rever/boss/plugin/api/AiGatewayAPI;Lai/rever/boss/plugin/api/AiRequest;Ljava/util/List;Lai/rever/boss/plugin/api/AiBudget;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public fun step-yxL6bBk (Lai/rever/boss/plugin/api/AiRequest;Ljava/util/List;Lai/rever/boss/plugin/api/AiTurn;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun step-yxL6bBk$default (Lai/rever/boss/plugin/api/AiGatewayAPI;Lai/rever/boss/plugin/api/AiRequest;Ljava/util/List;Lai/rever/boss/plugin/api/AiTurn;Ljava/util/List;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public fun step-BWLJW6A (Lai/rever/boss/plugin/api/AiRequest;Ljava/util/List;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun step-BWLJW6A$default (Lai/rever/boss/plugin/api/AiGatewayAPI;Lai/rever/boss/plugin/api/AiRequest;Ljava/util/List;Ljava/util/List;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun stream (Lai/rever/boss/plugin/api/AiRequest;)Lkotlinx/coroutines/flow/Flow;
 }
 
@@ -150,8 +150,8 @@ public final class ai/rever/boss/plugin/api/AiGatewayAPI$DefaultImpls {
 	public static fun activeModel (Lai/rever/boss/plugin/api/AiGatewayAPI;)Lai/rever/boss/plugin/api/AiModelInfo;
 	public static fun capabilities (Lai/rever/boss/plugin/api/AiGatewayAPI;)Ljava/util/Set;
 	public static synthetic fun runAgent-yxL6bBk$default (Lai/rever/boss/plugin/api/AiGatewayAPI;Lai/rever/boss/plugin/api/AiRequest;Ljava/util/List;Lai/rever/boss/plugin/api/AiBudget;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public static fun step-yxL6bBk (Lai/rever/boss/plugin/api/AiGatewayAPI;Lai/rever/boss/plugin/api/AiRequest;Ljava/util/List;Lai/rever/boss/plugin/api/AiTurn;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun step-yxL6bBk$default (Lai/rever/boss/plugin/api/AiGatewayAPI;Lai/rever/boss/plugin/api/AiRequest;Ljava/util/List;Lai/rever/boss/plugin/api/AiTurn;Ljava/util/List;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static fun step-BWLJW6A (Lai/rever/boss/plugin/api/AiGatewayAPI;Lai/rever/boss/plugin/api/AiRequest;Ljava/util/List;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun step-BWLJW6A$default (Lai/rever/boss/plugin/api/AiGatewayAPI;Lai/rever/boss/plugin/api/AiRequest;Ljava/util/List;Ljava/util/List;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class ai/rever/boss/plugin/api/AiImage {
@@ -246,6 +246,21 @@ public final class ai/rever/boss/plugin/api/AiRequest {
 	public final fun getSystem ()Ljava/lang/String;
 	public final fun getTemperature ()Ljava/lang/Float;
 	public final fun getTimeoutMs ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/AiRound {
+	public static final field $stable I
+	public fun <init> (Lai/rever/boss/plugin/api/AiTurn;Ljava/util/List;)V
+	public synthetic fun <init> (Lai/rever/boss/plugin/api/AiTurn;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lai/rever/boss/plugin/api/AiTurn;
+	public final fun component2 ()Ljava/util/List;
+	public final fun copy (Lai/rever/boss/plugin/api/AiTurn;Ljava/util/List;)Lai/rever/boss/plugin/api/AiRound;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/AiRound;Lai/rever/boss/plugin/api/AiTurn;Ljava/util/List;ILjava/lang/Object;)Lai/rever/boss/plugin/api/AiRound;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getOutcomes ()Ljava/util/List;
+	public final fun getTurn ()Lai/rever/boss/plugin/api/AiTurn;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }

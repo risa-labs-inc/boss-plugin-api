@@ -188,7 +188,7 @@ group = "ai.rever.boss.plugin.bundled"
 // host and ADDING A CONSTANT to any of these enums becomes a minBossVersion change,
 // same trap as 1.0.70's LlmApiFormat.GOOGLE_GENERATIVE. Each enum documents that
 // callers must treat it as open. Additive.
-version = "1.0.75"
+version = "1.0.76"
 
 java {
     toolchain {

@@ -145,6 +145,21 @@ group = "ai.rever.boss.plugin.bundled"
 // disappearing and an unrelated one appearing. Those signatures are frozen; extend by adding
 // methods.
 //
+// 1.0.75: adds AiAvailability + AiReadiness - the dialog a plugin shows when an AI action does
+// nothing. Before it, each consumer ended at a dead-end toast naming BOTH possible causes ("install
+// the gateway and configure a provider"), which is accurate and useless: two different problems,
+// a route to neither. check() tells them apart (getPluginAPI null => GATEWAY_MISSING; present but
+// activeModel() null => NO_PROVIDER) and promptToFix() opens the Toolbox or Settings, AI Providers
+// accordingly.
+//
+// It lives HERE rather than in the AI Gateway plugin for a structural reason: the case it handles is
+// the gateway being absent, so a helper shipped inside the gateway could never run then. The api jar
+// is served by ApiClassLoader and is always present.
+//
+// Nothing in it throws - it runs on the path where a user just pressed a button, so failing to
+// explain a failure must not become a second failure. A broken or absent dialog host degrades to
+// "the caller shows its own message", and a broken one is never read as consent. Additive.
+//
 // AiGatewayAPI.step is the primitive under runAgent, for a caller whose loop is already part of
 // something else (a node in a graph) and whose stopping rules are its own - it hands the model's
 // tool calls back rather than running them. flow-tab surfaced the need: it has its own DAG-shaped

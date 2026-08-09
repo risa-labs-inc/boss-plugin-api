@@ -85,6 +85,13 @@ public final class ai/rever/boss/plugin/api/AiAgentResult {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class ai/rever/boss/plugin/api/AiAvailability {
+	public static final field $stable I
+	public static final field INSTANCE Lai/rever/boss/plugin/api/AiAvailability;
+	public final fun check (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/AiReadiness;
+	public final fun promptToFix (Lai/rever/boss/plugin/api/PluginContext;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
 public final class ai/rever/boss/plugin/api/AiBudget {
 	public static final field $stable I
 	public fun <init> ()V
@@ -207,6 +214,15 @@ public final class ai/rever/boss/plugin/api/AiModelInfo {
 	public final fun getProviderName ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/AiReadiness : java/lang/Enum {
+	public static final field GATEWAY_MISSING Lai/rever/boss/plugin/api/AiReadiness;
+	public static final field NO_PROVIDER Lai/rever/boss/plugin/api/AiReadiness;
+	public static final field READY Lai/rever/boss/plugin/api/AiReadiness;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lai/rever/boss/plugin/api/AiReadiness;
+	public static fun values ()[Lai/rever/boss/plugin/api/AiReadiness;
 }
 
 public final class ai/rever/boss/plugin/api/AiReply {

@@ -340,8 +340,11 @@ interface SplitViewOperations {
      *
      * The [tabInfo]'s [TabInfo.typeId] is used to look up the registered tab
      * factory (see [TabRegistry]), so a plugin can open a tab of a type it
-     * registered without the host needing to know about it. The default
-     * implementation is a no-op so existing implementors are unaffected.
+     * registered without the host needing to know about it. The default body
+     * exists so an implementor built before this member stays binary compatible;
+     * it is NOT what a caller on an older host gets - see the gating note on
+     * [openPanelAsTab], which applies to every defaulted member of this
+     * `@HostImplemented` interface.
      *
      * Scope of that indirection: it holds for tab types **the caller registered**.
      * A type registered by the HOST may build its component from a concrete config
@@ -364,8 +367,12 @@ interface SplitViewOperations {
      * Like [openTab], the [tabInfo]'s [TabInfo.typeId] selects the registered
      * factory, so a plugin can place e.g. a terminal beside the current content.
      *
-     * Default no-op so older hosts are unaffected — gate on minBossVersion when
-     * you depend on it (pair with a fallback to [openTab] if it silently no-ops).
+     * Gate on the minBossVersion of the release that pins the api adding it. The
+     * defaulted body does not make an older host safe to call - this interface is
+     * served parent-first, so that host's copy has no such method and the call is a
+     * `NoSuchMethodError`. A fallback to [openTab] is therefore reached only if you
+     * probe first (same pattern as [supportsOpenPanelAsTab]), never by the call
+     * quietly doing nothing.
      *
      * @param tabInfo The configuration describing the tab to open.
      * @param mode Where to place it (see [TabSplitMode]).
@@ -375,7 +382,8 @@ interface SplitViewOperations {
     /**
      * Open a URL into a SPLIT of the active panel (browser tab) — the URL
      * analogue of [openTabInSplit]; [openUrlInActivePanel] covers the new-tab
-     * case. Default no-op so older hosts are unaffected.
+     * case. Same gating as [openTabInSplit]: minBossVersion, and an older host
+     * throws rather than no-opping.
      */
     fun openUrlInSplit(url: String, title: String, mode: TabSplitMode) {}
 
@@ -386,6 +394,9 @@ interface SplitViewOperations {
      * which a defaulted no-op cannot — same shape as
      * `FileSystemDataProvider.supportsHiddenEntries` and
      * `BookmarkDataProvider.supportsBulkAdd`.
+     *
+     * Host-wide, not per-panel: `true` says the call is wired up, never that any
+     * particular [PanelId] will resolve to something.
      */
     val supportsOpenPanelAsTab: Boolean get() = false
 
@@ -399,15 +410,39 @@ interface SplitViewOperations {
      * panel is already open as a tab this focuses that tab instead of opening a
      * second copy, matching what its sidebar icon does.
      *
-     * Default no-op. In-process plugins only, like [openTab] — the IPC/out-of-process
-     * proxy doesn't forward it.
+     * **Which panel.** [panelId] is matched on [PanelId.panelId] + [PanelId.pluginId]
+     * against the registered panels, and the registry's own id is what gets promoted.
+     * [PanelId.defaultOrder] is deliberately NOT part of the match: it is a
+     * sidebar-ordering detail a cross-plugin caller has no way to look up, so
+     * `PanelId("git-log", 0)` reaches the panel registered as `PanelId("git-log", 15)`.
+     * `pluginId` IS matched, since the few panels that set it are distinguishing
+     * themselves on purpose. Same rule as `PanelEventProvider.openPanel`.
      *
-     * Gating: [SplitViewOperations] is `@HostImplemented`, so an older host's copy of
-     * this interface has no such method at all and calling it there is a
-     * `NoSuchMethodError`, not a silent no-op. Declare the `minBossVersion` of the
-     * release that pins this api — `minApiVersion` alone is not enough. To keep
-     * running on hosts below that floor, probe [supportsOpenPanelAsTab] reflectively
-     * (its getter is missing on those hosts too) and fall back.
+     * **Which window.** The one this [SplitViewOperations] belongs to — the same
+     * window whose tabs [openTab] and [openUrlInActivePanel] act on. There is no
+     * `windowId` parameter for that reason, and adding one later would not be
+     * additive on a parent-first-served interface: it would replace this signature.
+     * A plugin needing another window should use `PanelEventProvider`, which is
+     * window-addressed.
+     *
+     * **What it does not tell you.** Fire and forget: it returns `Unit`, and the
+     * promote is performed asynchronously on the UI thread, so nothing here could
+     * honestly report the outcome. A [panelId] that matches no registered panel is
+     * logged host-side and does nothing — indistinguishable from success on this
+     * side, and [supportsOpenPanelAsTab] will not tell you either, since it answers
+     * "does this host implement the call", not "did that panel exist". Resolve the
+     * panel through `PluginContext.panelRegistry` first if you need to know.
+     *
+     * In-process plugins only, like [openTab] — the IPC/out-of-process proxy doesn't
+     * forward it.
+     *
+     * **Gating.** No-op only on a host that ships this api version without
+     * implementing the call. On a host pinned BELOW it there is no no-op at all:
+     * [SplitViewOperations] is `@HostImplemented` and served parent-first, so that
+     * host's copy has no such method and calling it is a `NoSuchMethodError`. Declare
+     * the `minBossVersion` of the release that pins this api — `minApiVersion` alone
+     * is not enough. To keep running under that floor, probe [supportsOpenPanelAsTab]
+     * reflectively (its getter is missing on those hosts too) and fall back.
      *
      * @param panelId The sidebar panel to open in the main area.
      */

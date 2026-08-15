@@ -188,6 +188,36 @@ group = "ai.rever.boss.plugin.bundled"
 // host and ADDING A CONSTANT to any of these enums becomes a minBossVersion change,
 // same trap as 1.0.70's LlmApiFormat.GOOGLE_GENERATIVE. Each enum documents that
 // callers must treat it as open. Additive.
+// 1.0.77: adds SplitViewOperations.openPanelAsTab(panelId) + supportsOpenPanelAsTab —
+// the programmatic "Open as Tab" for a sidebar panel. The host already did this for
+// itself (panel header action, header drag-out onto the centre) but the whole path was
+// internal: PanelHostTabType/PanelHostTabInfo live in the host's components package and
+// the trigger is BossDraggableComponent.requestPromoteToTab. openTab was not a way in —
+// PanelHostTabComponent builds from the concrete PanelHostTabInfo, so a plugin-side
+// TabInfo carrying TabTypeId("panel-host") lands in a cast, and createTabInfo is not
+// overridden there either. The Toolbox reached it reflectively to give each tool an Open
+// button (boss-plugin-plugin-manager#35) and had to accept losing the panel's state,
+// because the only close a plugin can reach (PanelEventProvider.closePanel) drops the
+// cached component while the host's own promote path merely hides the sidebar copy.
+// Routing to requestPromoteToTab inherits all three of the things that made the internal
+// path right: the cached component (so state moves with the panel), the hosted-as-tab
+// bookkeeping (so the sidebar icon afterwards FOCUSES the tab rather than opening a
+// second copy) and the non-destructive collapse.
+//
+// NOT jar-only. SplitViewOperations is inside the api package that plugin-api-core filters
+// into the host and serves parent-first, so the host's pinned copy is what every plugin
+// resolves — an older host's copy has neither member and a call is a NoSuchMethodError,
+// not the defaulted no-op. Gate on the minBossVersion of the release that pins 1.0.77, the
+// same shape as 1.0.65 supportsHiddenEntries and 1.0.69 addBookmarks; apiCheck reports it
+// as cleanly additive and cannot see the shadowing. SplitViewOperations is now marked
+// @HostImplemented to say so at the declaration site. A plugin that must also run below
+// that floor probes supportsOpenPanelAsTab reflectively and keeps its old fallback.
+//
+// Also narrows the openTab KDoc, which promised more indirection than it has: the typeId
+// lookup reaches any registered factory, but a HOST-registered type may build from a
+// concrete config class of its own and reject a foreign TabInfo. That applied to every
+// such type, not only panel-host, and was the doc the Toolbox read before finding the
+// cast. Doc-only. Additive.
 version = "1.0.76"
 
 java {

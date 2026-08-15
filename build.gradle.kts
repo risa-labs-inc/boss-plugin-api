@@ -218,7 +218,7 @@ group = "ai.rever.boss.plugin.bundled"
 // concrete config class of its own and reject a foreign TabInfo. That applied to every
 // such type, not only panel-host, and was the doc the Toolbox read before finding the
 // cast. Doc-only. Additive.
-version = "1.0.76"
+version = "1.0.77"
 
 java {
     toolchain {

@@ -261,6 +261,13 @@ interface WorkspaceDataProvider {
  */
 enum class TabSplitMode { EXISTING_SPLIT, VERTICAL_SPLIT, HORIZONTAL_SPLIT }
 
+/**
+ * Implemented by the host, and marked [HostImplemented] because the host compiles
+ * this type in and serves it parent-first: the host's pinned copy is what every
+ * plugin resolves, so a member added here ships with a BossConsole release and
+ * must be gated on `minBossVersion`, never on `minApiVersion` alone.
+ */
+@HostImplemented
 interface SplitViewOperations {
     /**
      * Open a URL in the active panel.
@@ -336,6 +343,14 @@ interface SplitViewOperations {
      * registered without the host needing to know about it. The default
      * implementation is a no-op so existing implementors are unaffected.
      *
+     * Scope of that indirection: it holds for tab types **the caller registered**.
+     * A type registered by the HOST may build its component from a concrete config
+     * class of its own, in which case a look-alike [TabInfo] carrying the same
+     * `typeId` is rejected — the factory does not adapt to a foreign config, and
+     * `TabTypeInfo.createTabInfo` returns null unless that type opted into it. The
+     * host's sidebar-panel tab type ("panel-host") is one such: use
+     * [openPanelAsTab] for it rather than constructing a [TabInfo] by hand.
+     *
      * In-process plugins only: the IPC/out-of-process proxy doesn't forward this,
      * so for sandboxed/out-of-process plugins it is a no-op.
      *
@@ -363,6 +378,40 @@ interface SplitViewOperations {
      * case. Default no-op so older hosts are unaffected.
      */
     fun openUrlInSplit(url: String, title: String, mode: TabSplitMode) {}
+
+    /**
+     * Whether this host implements [openPanelAsTab].
+     *
+     * Tells "this host has no implementation" apart from "it ran and did nothing",
+     * which a defaulted no-op cannot — same shape as
+     * `FileSystemDataProvider.supportsHiddenEntries` and
+     * `BookmarkDataProvider.supportsBulkAdd`.
+     */
+    val supportsOpenPanelAsTab: Boolean get() = false
+
+    /**
+     * Open a plugin's sidebar panel as a tab in the main area — the programmatic
+     * equivalent of the panel header's "Open as Tab" (and of dragging that header
+     * onto the centre).
+     *
+     * Move, not copy: the panel's cached component is REUSED, so its state carries
+     * over, and the sidebar copy is collapsed without being destroyed. When the
+     * panel is already open as a tab this focuses that tab instead of opening a
+     * second copy, matching what its sidebar icon does.
+     *
+     * Default no-op. In-process plugins only, like [openTab] — the IPC/out-of-process
+     * proxy doesn't forward it.
+     *
+     * Gating: [SplitViewOperations] is `@HostImplemented`, so an older host's copy of
+     * this interface has no such method at all and calling it there is a
+     * `NoSuchMethodError`, not a silent no-op. Declare the `minBossVersion` of the
+     * release that pins this api — `minApiVersion` alone is not enough. To keep
+     * running on hosts below that floor, probe [supportsOpenPanelAsTab] reflectively
+     * (its getter is missing on those hosts too) and fall back.
+     *
+     * @param panelId The sidebar panel to open in the main area.
+     */
+    fun openPanelAsTab(panelId: PanelId) {}
 }
 
 /**

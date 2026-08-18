@@ -208,7 +208,20 @@ data class AiRequest(
      * unusable with a 400 naming a parameter the caller never set.
      */
     val temperature: Float? = null,
-    /** Output token ceiling, or null to use the user's configured value. */
+    /**
+     * Output token ceiling, or null to let the implementation choose one.
+     *
+     * **Not "the user's configured value"**, which is what this said and which was false in
+     * the same way [temperature]'s claim was: [LlmConfig.maxTokens] is a non-null `Int`
+     * defaulting to **2000** that no settings surface writes. An implementation that trusted
+     * the old wording capped every null-`maxTokens` request at 2000 output tokens - the same
+     * provenance as the `temperature` 400s and a quieter symptom, since an answer that stops
+     * mid-sentence reports no error anywhere.
+     *
+     * Unlike `temperature` this cannot simply be omitted: some providers require the field.
+     * So an implementation has to pick, and a caller that cares about long output should say
+     * so here rather than assume anything about the default.
+     */
     val maxTokens: Int? = null,
     /**
      * Wall-clock bound on **one** request, so within [AiGatewayAPI.runAgent] this

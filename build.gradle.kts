@@ -240,12 +240,25 @@ group = "ai.rever.boss.plugin.bundled"
 // session has neither. Adding an LlmApiFormat constant for them would have forced a host
 // release for the same reason 1.0.70 and 1.0.74 did.
 //
+// Review rounds also settled several contracts while the shapes were still free: hosted tools
+// (AiCliHostedTool) so a caller serves its own tools on the implementation's bridge rather
+// than standing up a second server; AiCliUsage on Completed, because the implementation
+// cannot price a turn without the numbers and discarding them blanks every token display;
+// qualifiedToolName(engineId, tool), since mcp__server__tool is Claude Code's convention
+// rather than a cross-CLI standard; selectEngine(null) answering true, which its own KDoc
+// promised and a flat false contradicted; and idleTimeoutMs defaulting to ten minutes, since
+// a working tool call emits nothing while it runs and three minutes cannot fit a build.
+//
 // Also corrects the AiRequest.temperature KDoc, which promised "the value the user chose
 // for the active provider". Nothing ever chose one: there is no temperature control in AI
 // Providers and LlmConfig.temperature is a non-null field defaulting to 0.7 that no
 // settings surface writes. Reading that doc is what led the gateway to send a temperature
 // on every request, which 400s on models that reject the parameter
-// (boss-plugin-ai-gateway#3). Doc-only. Additive.
+// (boss-plugin-ai-gateway#3). And AiRequest.maxTokens, which made the identical claim about
+// a field that is also a non-null default nobody writes - 2000 - so an implementation
+// trusting it capped every null-maxTokens request at 2000 output tokens. Same provenance,
+// quieter symptom: an answer that stops mid-sentence reports no error anywhere. Doc-only.
+// Additive.
 version = "1.0.77"
 
 java {

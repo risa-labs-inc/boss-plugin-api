@@ -23,11 +23,12 @@ class AiCliSessionTypesTest {
     ) : AiCliSessionAPI {
         var lastSpec: AiCliSessionSpec? = null
         var lastTools: List<AiCliHostedTool> = emptyList()
+        var lastApprove: (suspend (AiCliApprovalAsk) -> AiCliApprovalAnswer)? = null
 
-        override fun engines(): List<AiCliEngine> = listOf(AiCliEngine("claude", "Claude Code CLI"))
+        override fun engines(): List<AiCliEngine> = listOf(AiCliEngine(AiCliSessionAPI.ENGINE_CLAUDE, "Claude Code CLI"))
 
         override suspend fun health(engineId: String): AiCliHealth =
-            if (engineId == "claude") AiCliHealth.Ready("2.1.0") else AiCliHealth.NotInstalled()
+            if (engineId == AiCliSessionAPI.ENGINE_CLAUDE) AiCliHealth.Ready("2.1.0") else AiCliHealth.NotInstalled()
 
         override fun run(
             spec: AiCliSessionSpec,
@@ -36,6 +37,7 @@ class AiCliSessionTypesTest {
         ): Flow<AiCliEvent> {
             lastSpec = spec
             lastTools = tools
+            lastApprove = approve
             return events.asFlow()
         }
     }
@@ -169,8 +171,11 @@ class AiCliSessionTypesTest {
         // deliberate rather than incidental.
         val spec = AiCliSessionSpec(engineId = "claude", prompt = "x")
 
-        assertEquals(180_000L, spec.idleTimeoutMs)
-        assertEquals("", spec.permissionMode, "blank means the engine's own read-only default")
+        // Ten minutes, not three: a working tool call emits nothing while it runs, so a
+        // default that cannot fit a build kills real turns. Raising it is what this
+        // assertion is for - it made the change deliberate rather than incidental.
+        assertEquals(600_000L, spec.idleTimeoutMs)
+        assertEquals("", spec.permissionMode, "blank means the engine's own default, whatever that is")
         assertTrue(spec.disallowedTools.isEmpty())
         assertTrue(spec.allowedTools.isEmpty())
         assertNull(spec.pricing)
@@ -178,7 +183,77 @@ class AiCliSessionTypesTest {
         // An engine that does not say otherwise cannot ask the user about a tool call.
         // Defaulting the other way would have a caller advertise approvals it never gets.
         assertFalse(AiCliEngine("x", "X").supportsApprovals)
+        assertFalse(
+            AiCliEngine("x", "X").supportsHostedTools,
+            "defaulting this true would have a caller serve tools to an engine that ignores them",
+        )
         assertEquals("", AiCliEngine("x", "X").installHint)
+        // false is the SAFE direction here and the dangerous one to flip: a final report
+        // must flag a cap rather than cancel, because the money is already spent.
+        assertFalse(AiCliEvent.CostUpdate(1.0).isFinal)
+        assertTrue(spec.attachments.isEmpty())
+        assertTrue(spec.extras.isEmpty())
+        // A blank unroutableAnswer is documented to fall back to a generic refusal, so the
+        // blank itself is the contract rather than an oversight.
+        assertEquals("", AiCliHostedTool("ask", "d") { "x" }.unroutableAnswer)
+    }
+
+    @Test
+    fun `the selection defaults answer honestly, including for a deselect`() {
+        // Three reviews caught this: the doc says deselecting always succeeds, so a flat
+        // false would have a settings surface report "not supported" for the one operation
+        // that cannot fail. A no-op implementation still refuses an engine id.
+        val minimal = MinimalCliSessions()
+
+        assertTrue(minimal.selectEngine(null), "deselecting cannot fail, so it must not report failure")
+        assertFalse(minimal.selectEngine(AiCliSessionAPI.ENGINE_CLAUDE))
+    }
+
+    @Test
+    fun `an unnamespacing implementation answers the bare tool name`() {
+        // The default, and the one whose failure is silent: a caller pre-allowing the wrong
+        // string gets an agent that says it lacks permission to use a tool nobody can find.
+        val minimal = MinimalCliSessions()
+
+        assertEquals("Bash", minimal.qualifiedToolName(AiCliSessionAPI.ENGINE_CLAUDE, "Bash"))
+    }
+
+    @Test
+    fun `a spec with a blank mcp config says none rather than redacted`() {
+        // Blank and null are the same fact here - nothing attached - and rendering
+        // "<redacted>" for a spec that attached nothing is a false claim in a log. Also the
+        // case a mutation of isNullOrBlank to == null would otherwise survive.
+        val rendered = "${AiCliSessionSpec(engineId = "claude", prompt = "x", mcpConfigJson = "")}"
+
+        assertContains(rendered, "mcpConfig=none")
+    }
+
+    @Test
+    fun `pricing renders as a fact, not as its rates`() {
+        // The rates are the user's commercial terms, and the flag is what a log needs.
+        val rendered =
+            "${AiCliSessionSpec(
+                engineId = "claude",
+                prompt = "x",
+                pricing = AiCliPricing(12.34, 56.78),
+            )}"
+
+        assertContains(rendered, "priced=true")
+        assertFalse(rendered.contains("12.34"), rendered)
+        assertFalse(rendered.contains("56.78"), rendered)
+    }
+
+    @Test
+    fun `usage is reported apart from cost`() {
+        // An engine on a subscription login reports tokens and no price, which is exactly
+        // when a consumer still wants to show a count. Cached input is part of the input
+        // total rather than additional to it, so a re-pricing downstream is possible.
+        val completed = AiCliEvent.Completed("s", usage = AiCliUsage(inputTokens = 100, outputTokens = 20, cachedInputTokens = 60))
+
+        assertEquals(120, completed.usage?.totalTokens)
+        assertEquals(60, completed.usage?.cachedInputTokens)
+        assertNull(completed.costUsd, "tokens without a price is the subscription case")
+        assertNull(AiCliEvent.Completed("s").usage, "null means the engine reported none")
     }
 
     // ==================== default bodies ====================
@@ -235,7 +310,9 @@ class AiCliSessionTypesTest {
 
         runBlocking { minimal.run(AiCliSessionSpec(engineId = "claude", prompt = "hi")).toList() }
 
-        assertEquals("hi", minimal.lastSpec?.prompt)
+        // The thing this test is named for. Asserting on the prompt instead passed
+        // identically whether the default was null or a non-null stub.
+        assertNull(minimal.lastApprove)
     }
 
     // ==================== open-set contracts ====================
@@ -324,7 +401,7 @@ class AiCliSessionTypesTest {
         assertTrue(healths[1] is AiCliHealth.NotInstalled)
         // The third state is the one that is easy to forget and the most confusing to hit:
         // the binary is there and will not run. "Install it" would be wrong advice.
-        assertEquals("broken install", (AiCliHealth.Failed("broken install") as AiCliHealth.Failed).message)
+        assertEquals("broken install", AiCliHealth.Failed("broken install").message)
         assertEquals("brew install codex", AiCliHealth.NotInstalled("brew install codex").hint)
     }
 

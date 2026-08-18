@@ -129,9 +129,17 @@ interface AiCliSessionAPI {
      * that exact string - and getting it wrong does not fail loudly: the agent is told it
      * lacks permission to use the tool, and says so to a user who never saw why.
      *
+     * Per engine, because MCP's `mcp__server__tool` shape is Claude Code's convention and
+     * not a cross-CLI standard: an engine that serves hosted tools some other way would need
+     * a different answer, and adding the parameter afterwards is the binary-breaking change
+     * this file warns about everywhere else.
+     *
      * The default returns the bare name, for an implementation that does not namespace.
      */
-    fun qualifiedToolName(tool: String): String = tool
+    fun qualifiedToolName(
+        engineId: String,
+        tool: String,
+    ): String = tool
 
     /**
      * The engine the user chose to serve ordinary [AiGatewayAPI] requests, or null when
@@ -164,9 +172,14 @@ interface AiCliSessionAPI {
      * that silently springs back is worse than one that says "not supported". False means
      * the choice did not take - an implementation that does not serve gateway requests, or
      * an [engineId] it does not have - and the caller should show that rather than assume
-     * it worked. Passing null is always applied, since deselecting cannot fail.
+     * it worked.
+     *
+     * Passing null is always applied, since deselecting cannot fail - which is why the
+     * default body answers `engineId == null` rather than a flat false. A no-op
+     * implementation still has nothing to deselect, so reporting a failure there would have
+     * a settings surface show "not supported" for the one operation that cannot fail.
      */
-    fun selectEngine(engineId: String?): Boolean = false
+    fun selectEngine(engineId: String?): Boolean = engineId == null
 
     companion object {
         /** [AiCliEngine.id] of the Claude Code CLI. */
@@ -237,13 +250,35 @@ data class AiCliEngine(
  * the three below and treat anything else as not ready.
  */
 abstract class AiCliHealth private constructor() {
-    /** Found and runnable; [version] as the CLI reported it. */
+    /**
+     * Found and runnable; [version] as the CLI reported it.
+     *
+     * **Runnable is not authenticated.** A probe runs the CLI's `--version`, which succeeds
+     * for an install that has never been logged in - so a user who ran the installer and
+     * stopped there gets `Ready`, a settings row saying the engine is good to go, and a turn
+     * that then dies in [AiCliEvent.Failed]. Keep a "try it and see" path rather than
+     * treating this as a promise the next turn will work, and expect a future case here for
+     * "installed, not signed in" once it can be detected: this hierarchy is open precisely
+     * so one can be added without breaking a compiled `when`.
+     */
     class Ready(val version: String) : AiCliHealth()
 
-    /** No binary found. [hint] is [AiCliEngine.installHint], for a message with a fix in it. */
+    /**
+     * No binary found. [hint] is [AiCliEngine.installHint], for a message with a fix in it.
+     *
+     * The defaulted parameter is the hazard [AiCliEvent] documents - a later addition moves
+     * the constructor descriptor - and it is tolerable only because construction sites are
+     * implementation-side. A caller matching on this reads through the getter and is safe.
+     */
     class NotInstalled(val hint: String = "") : AiCliHealth()
 
-    /** Found but it would not run - a broken install, a timeout, a non-zero exit. */
+    /**
+     * Found but it would not run - a broken install, a timeout, a non-zero exit.
+     *
+     * [message] carries the same obligation as [AiCliEvent.Failed.message]: it is built from
+     * a failed process invocation, so it must not reproduce the environment that invocation
+     * was given.
+     */
     class Failed(val message: String) : AiCliHealth()
 }
 
@@ -282,11 +317,12 @@ data class AiCliSessionSpec(
      * Directory the turn runs in, so it inherits that project's agent config, memory and
      * MCP servers. Null runs wherever the CLI defaults to.
      *
-     * A path that is not a directory is **ignored rather than failing the turn**, and the
-     * consequence is worth stating plainly: the turn then runs in the CLI's default
-     * directory, which with a writable [permissionMode] means the agent edits files
-     * somewhere the caller did not choose. A caller that passes a path it has not checked
-     * should check it, or pass null deliberately.
+     * A non-null path that is **not a directory fails the turn** with [AiCliEvent.Failed],
+     * rather than being ignored. Ignoring it was the first shape and it is the wrong default:
+     * the turn would run in the CLI's own directory, which with a writable [permissionMode]
+     * means the agent edits files somewhere nobody chose - and that is not recoverable, while
+     * "that directory does not exist" is a message a user can act on. Pass null deliberately
+     * to mean "wherever the CLI defaults to".
      */
     val workingDir: String? = null,
     /**
@@ -304,9 +340,17 @@ data class AiCliSessionSpec(
      * Tools to pre-allow. A headless turn cannot answer a permission prompt, so anything
      * not pre-allowed either routes to `approve` or fails. Project deny rules still
      * apply on top.
+     *
+     * **Ignored entirely by an engine whose [AiCliEngine.supportsApprovals] is false.**
      */
     val allowedTools: List<String> = emptyList(),
-    /** Tools to refuse outright. Wins over [allowedTools] and over `approve`. */
+    /**
+     * Tools to refuse outright. Wins over [allowedTools] and over `approve`.
+     *
+     * **Ignored entirely by an engine whose [AiCliEngine.supportsApprovals] is false**, which
+     * is the direction of this mistake that matters: a caller writing a deny list for such an
+     * engine believes it is enforced and it is not. Check the flag before relying on it.
+     */
     val disallowedTools: List<String> = emptyList(),
     /**
      * Files the user attached.
@@ -320,6 +364,9 @@ data class AiCliSessionSpec(
     val attachments: List<String> = emptyList(),
     /**
      * Extra MCP servers for this turn, as the CLI's `--mcp-config` JSON, or null.
+     *
+     * **Ignored entirely by an engine whose [AiCliEngine.supportsHostedTools] is false**, so
+     * a caller attaching a tool server to such an engine attaches it to nobody.
      *
      * **Secret-bearing.** Resolved connector credentials live in here, so the
      * implementation stages it as an owner-only temp file rather than passing it in
@@ -351,14 +398,20 @@ data class AiCliSessionSpec(
      * Kill the turn if it emits nothing for this long. A stalled tool or MCP call would
      * otherwise hang the caller's "sending" state forever.
      *
-     * Zero or negative **disables** the idle watchdog, for a caller that owns its own
-     * bound. Note this is an *idle* timeout, not a wall clock: a turn that emits a token
-     * every few seconds forever never trips it. There is deliberately no total-duration
-     * field, because the caller already has a better one - cancelling the collection ends
-     * the turn and kills the process - and two competing deadlines is how the shorter one
-     * ends up killing turns the caller thought it had allowed.
+     * **Ten minutes, not three, because a working tool call looks exactly like a stalled
+     * one.** Nothing is emitted between a tool call and its result, so a `Bash` step running
+     * a test suite or a cold build is indistinguishable from a hang - and a caller never
+     * spells this value out, so a default that cannot fit a build kills real turns with a
+     * timeout message and no way to tell which it was.
+     *
+     * Zero or negative **disables** the watchdog, for a caller that owns its own bound. Note
+     * this is an *idle* timeout, not a wall clock: a turn that emits a token every few
+     * seconds forever never trips it. There is deliberately no total-duration field, because
+     * the caller already has a better one - cancelling the collection ends the turn and kills
+     * the process - and two competing deadlines is how the shorter one ends up killing turns
+     * the caller thought it had allowed.
      */
-    val idleTimeoutMs: Long = 180_000,
+    val idleTimeoutMs: Long = 600_000,
     /**
      * Engine-agnostic hints for anything this type does not model yet.
      *
@@ -399,6 +452,27 @@ data class AiCliSessionSpec(
             // question is "was the hint set", and every future field arrives through here,
             // so omitting it would make each one invisible in diagnostics from day one.
             "extras=${extras.keys.sorted()})"
+}
+
+/**
+ * Tokens a turn spent, as the engine reported them.
+ *
+ * Separate from [AiUsage] rather than reusing it: that type is released and has no cached
+ * count, and adding a parameter to it now would break every compiled caller. Cached input is
+ * worth carrying because it is priced differently - an order of magnitude cheaper - so a
+ * total that folds it in cannot be re-priced by anyone downstream.
+ *
+ * The implementation has these numbers whether or not a caller asked for pricing: it cannot
+ * apply [AiCliPricing] without them. Reporting them is the difference between a consumer
+ * showing "1,203 tokens" and showing nothing the moment a user selects a CLI engine.
+ */
+data class AiCliUsage(
+    val inputTokens: Int = 0,
+    val outputTokens: Int = 0,
+    /** Part of [inputTokens], not additional to it. Billed far cheaper where a provider says. */
+    val cachedInputTokens: Int = 0,
+) {
+    val totalTokens: Int get() = inputTokens + outputTokens
 }
 
 /**
@@ -543,14 +617,34 @@ abstract class AiCliEvent private constructor() {
     /** A fragment of the agent's reasoning, when the engine streams it separately. */
     class ThinkingDelta(val text: String) : AiCliEvent()
 
-    /** The agent started a tool call. [id] pairs it with its [ToolResult]. */
+    /**
+     * The agent started a tool call. [id] pairs it with its [ToolResult].
+     *
+     * **[input] is as sensitive as [AiCliApprovalAsk.inputJson]** and for the same reason: it
+     * is the same model-authored arguments, which routinely carry a credential. Being a plain
+     * class only stops an interpolation of the *event* from leaking; it does nothing for
+     * `logger.debug("tool input: " + event.input)`, which is the more likely line in a
+     * consumer that renders a transcript.
+     */
     class ToolUse(val id: String, val name: String, val input: String) : AiCliEvent()
 
-    /** A tool call returned. */
+    /**
+     * A tool call returned.
+     *
+     * **[content] is sensitive**, same standard as [ToolUse.input]: it is whatever the tool
+     * read or produced, which for a secrets tool or a file read is the secret itself.
+     */
     class ToolResult(val id: String, val content: String, val isError: Boolean) : AiCliEvent()
 
     /**
      * Running cost for the turn so far, when [AiCliSessionSpec.pricing] was supplied.
+     *
+     * Cumulative, not a delta: each one is the cost of the turn so far, so a consumer
+     * displays the latest rather than summing them. [Completed.costUsd] then supersedes the
+     * last of these as the authoritative total.
+     *
+     * Emitted only when [AiCliSessionSpec.pricing] was supplied. An engine that reports its
+     * own cost reports it once, on the terminal event.
      *
      * @param isFinal true when this prices an already-finished, already-billed turn - some
      *   engines cost once, at the end. Crossing a cap on a final report must flag rather
@@ -566,6 +660,14 @@ abstract class AiCliEvent private constructor() {
      *   fact from an empty list, meaning it was asked and refused nothing. A caller that
      *   explains refusals to the user has to keep the two apart or it will invent a
      *   refusal that never happened.
+     * @param costUsd the **authoritative total** for the turn, or null when neither the
+     *   engine nor [AiCliSessionSpec.pricing] could produce one. It **supersedes** every
+     *   prior [CostUpdate] rather than adding to it: a spend tracker that accumulates the
+     *   updates and then adds this double-bills the turn, which is the same class of
+     *   ambiguity the null-versus-zero rule on `pricing` exists to remove.
+     * @param usage tokens the engine reported for the turn, or null when it reported none.
+     *   Independent of [costUsd]: an engine on a subscription login reports tokens and no
+     *   price, which is exactly the case where a consumer still wants to show a count.
      * @param deniedWithoutAsking tool calls **this implementation** refused without ever
      *   consulting `approve`: a request from a process that outlived its turn, one carrying
      *   no turn identity at all, a callback that threw, a turn abandoned while a prompt was
@@ -587,6 +689,7 @@ abstract class AiCliEvent private constructor() {
         val costUsd: Double? = null,
         val permissionDenials: List<AiCliDeniedCall>? = null,
         val deniedWithoutAsking: List<AiCliDeniedCall> = emptyList(),
+        val usage: AiCliUsage? = null,
     ) : AiCliEvent()
 
     /**
@@ -596,6 +699,11 @@ abstract class AiCliEvent private constructor() {
      * wants to resume after a failure retains [Started.sessionId], which arrives first
      * whenever there is one to have.
      *
+     * @param message what failed, written for a person. **An implementation must not
+     *   reproduce [AiCliSessionSpec.envOverrides] values or [AiCliSessionSpec.mcpConfigJson]
+     *   content in it.** This is the direction the data actually leaves by, and a spawn
+     *   failure rendered as the argv plus the environment it applied walks straight past
+     *   every redaction on the way in - into a panel, and into whatever the caller logs.
      * @param permissionDenials as [Completed.permissionDenials]. Carried here too because
      *   a turn that ended in an error still reports what it refused, and dropping it
      *   silently regresses exactly those turns.

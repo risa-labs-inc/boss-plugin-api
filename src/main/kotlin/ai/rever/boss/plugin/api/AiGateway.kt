@@ -157,6 +157,13 @@ interface AiGatewayAPI {
      * AI affordance at all. A caller that wants to *make* a request should just
      * make it and handle the failure, because the active provider can change
      * between the two calls.
+     *
+     * **"Configured" is not the same as "has an API key."** An implementation that also
+     * serves local CLI engines (see [AiCliSessionAPI]) must report the selected engine here
+     * when there is one, even though no credential exists for it. [AiAvailability.check]
+     * derives readiness from this being non-null, so returning null for a working
+     * subscription login makes every consumer hide its AI affordance and send the user off
+     * to paste a key on a machine where [complete] would have worked.
      */
     fun activeModel(): AiModelInfo? = null
 
@@ -189,12 +196,32 @@ data class AiRequest(
     /** The conversation so far, oldest first. */
     val messages: List<AiMessage> = emptyList(),
     /**
-     * Sampling temperature, or null to use the value the user chose for the
-     * active provider. Prefer null: the user's setting is usually the right one,
-     * and some models reject an explicit value.
+     * Sampling temperature, or null to **send none at all** and let the model apply
+     * its own default.
+     *
+     * Prefer null. Not because a setting elsewhere fills it in - nothing does; there is
+     * no temperature control in AI Providers, and [LlmConfig.temperature] is a
+     * non-null field defaulting to 0.7 that no settings surface ever writes - but
+     * because an unset sampling parameter is the right request far more often than any
+     * fixed value is. Newer reasoning models reject `temperature` outright, and a
+     * gateway that supplied a default on the caller's behalf made those models
+     * unusable with a 400 naming a parameter the caller never set.
      */
     val temperature: Float? = null,
-    /** Output token ceiling, or null to use the user's configured value. */
+    /**
+     * Output token ceiling, or null to let the implementation choose one.
+     *
+     * **Not "the user's configured value"**, which is what this said and which was false in
+     * the same way [temperature]'s claim was: [LlmConfig.maxTokens] is a non-null `Int`
+     * defaulting to **2000** that no settings surface writes. An implementation that trusted
+     * the old wording capped every null-`maxTokens` request at 2000 output tokens - the same
+     * provenance as the `temperature` 400s and a quieter symptom, since an answer that stops
+     * mid-sentence reports no error anywhere.
+     *
+     * Unlike `temperature` this cannot simply be omitted: some providers require the field.
+     * So an implementation has to pick, and a caller that cares about long output should say
+     * so here rather than assume anything about the default.
+     */
     val maxTokens: Int? = null,
     /**
      * Wall-clock bound on **one** request, so within [AiGatewayAPI.runAgent] this

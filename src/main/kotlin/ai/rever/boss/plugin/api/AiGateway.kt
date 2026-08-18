@@ -189,9 +189,16 @@ data class AiRequest(
     /** The conversation so far, oldest first. */
     val messages: List<AiMessage> = emptyList(),
     /**
-     * Sampling temperature, or null to use the value the user chose for the
-     * active provider. Prefer null: the user's setting is usually the right one,
-     * and some models reject an explicit value.
+     * Sampling temperature, or null to **send none at all** and let the model apply
+     * its own default.
+     *
+     * Prefer null. Not because a setting elsewhere fills it in - nothing does; there is
+     * no temperature control in AI Providers, and [LlmConfig.temperature] is a
+     * non-null field defaulting to 0.7 that no settings surface ever writes - but
+     * because an unset sampling parameter is the right request far more often than any
+     * fixed value is. Newer reasoning models reject `temperature` outright, and a
+     * gateway that supplied a default on the caller's behalf made those models
+     * unusable with a 400 naming a parameter the caller never set.
      */
     val temperature: Float? = null,
     /** Output token ceiling, or null to use the user's configured value. */

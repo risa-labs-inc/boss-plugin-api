@@ -218,6 +218,34 @@ group = "ai.rever.boss.plugin.bundled"
 // concrete config class of its own and reject a foreign TabInfo. That applied to every
 // such type, not only panel-host, and was the doc the Toolbox read before finding the
 // cast. Doc-only. Additive.
+// 1.0.78: adds AiCliSessionAPI and its types (AiCliEngine, AiCliHealth, AiCliSessionSpec,
+// AiCliPricing, AiCliApprovalAsk/Answer, AiCliDeniedCall, AiCliEvent) — driving a locally
+// installed coding-agent CLI, Claude Code or Codex, headlessly, authenticated by THAT
+// CLI's own terminal login rather than by a key any plugin holds. That auth path is the
+// most valuable one in the product (no API key, no organisation spend, nothing stored)
+// and until now it existed only inside Atlas, which spawns `claude -p` and `codex exec`
+// itself. Moving it behind an interface lets the AI Gateway own the subprocess and serve
+// it to every plugin, and lets Atlas stop being a process supervisor.
+//
+// NOT an extension of AiGatewayAPI, deliberately. That is a stateless completion
+// interface: AiRequest has no working directory, no session to resume, no subagent and no
+// permission mode, and AiChunk has no element for a tool call. A CLI agent session has all
+// five. Stretching the completion types would make every consumer of the simple case pay
+// for the complicated one, so this is a second interface and the gateway registers both.
+//
+// JAR-ONLY. Every type here is brand new, so the ApiClassLoader serves it with a single
+// shared Class identity and cross-plugin getPluginAPI works with NO BossConsole release —
+// gate on minApiVersion alone. This is why CLI engines are not modelled as an LlmConfig:
+// that type is host-compiled, requires a non-blank apiKey and an endpoint URL, and a CLI
+// session has neither. Adding an LlmApiFormat constant for them would have forced a host
+// release for the same reason 1.0.70 and 1.0.74 did.
+//
+// Also corrects the AiRequest.temperature KDoc, which promised "the value the user chose
+// for the active provider". Nothing ever chose one: there is no temperature control in AI
+// Providers and LlmConfig.temperature is a non-null field defaulting to 0.7 that no
+// settings surface writes. Reading that doc is what led the gateway to send a temperature
+// on every request, which 400s on models that reject the parameter
+// (boss-plugin-ai-gateway#3). Doc-only. Additive.
 version = "1.0.77"
 
 java {

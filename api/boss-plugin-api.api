@@ -389,7 +389,6 @@ public final class ai/rever/boss/plugin/api/AiCliSessionSpec {
 
 public final class ai/rever/boss/plugin/api/AiCliUsage {
 	public static final field $stable I
-	public fun <init> ()V
 	public fun <init> (III)V
 	public synthetic fun <init> (IIIILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()I

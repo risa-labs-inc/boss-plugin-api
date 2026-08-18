@@ -37,8 +37,9 @@ interface AiCliSessionAPI {
     /**
      * The CLI engines this implementation knows how to drive, in display order.
      *
-     * Cheap and synchronous: this is the static list, not a probe. An engine appearing
-     * here says nothing about whether its binary is installed - ask [health] for that.
+     * Cheap, synchronous and non-throwing: this is the static list, not a probe. An engine
+     * appearing here says nothing about whether its binary is installed - ask [health] for
+     * that.
      * Treat the list as open; ids other than the [ENGINE_CLAUDE]/[ENGINE_CODEX]
      * constants are expected and should be rendered from [AiCliEngine.displayName]
      * rather than matched against.
@@ -48,9 +49,14 @@ interface AiCliSessionAPI {
     /**
      * Whether [engineId]'s binary is present and runnable right now.
      *
-     * Spawns the CLI's `--version`, so it is not free - call it when showing readiness,
-     * not per keystroke. An unknown [engineId] answers [AiCliHealth.NotInstalled] rather
-     * than throwing, because to a user the two are the same thing.
+     * Spawns the CLI's `--version`, so it is not free - call it when showing readiness, not
+     * per keystroke. Who caches is the implementation's business, so a caller rendering a
+     * settings row should not assume it is memoised.
+     *
+     * **Never throws**, matching [run]'s promise: an unknown [engineId], a probe that times
+     * out, a binary that blows up - all answer [AiCliHealth]. To a user an engine this build
+     * does not have and one they never installed are the same thing, and a readiness check
+     * that needs its own `runCatching` is an api failing to do its job.
      */
     suspend fun health(engineId: String): AiCliHealth
 
@@ -74,8 +80,8 @@ interface AiCliSessionAPI {
      * hands the CLI a permission-prompt tool, and calls back here. Passing null means
      * "decide from the allow and deny lists alone".
      *
-     * **It is consulted whenever [AiCliEngine.supportsApprovals] is true for this engine,
-     * and never otherwise.** In particular it does *not* require the caller to supply
+     * **It is consulted when supplied and [AiCliEngine.supportsApprovals] is true for this
+     * engine, and never otherwise.** In particular it does *not* require the caller to supply
      * [AiCliSessionSpec.mcpConfigJson]: the implementation adds its own bridge entry to
      * whatever config the caller passed, or synthesises one when the caller passed none.
      * An engine with its own sandbox and no per-call prompt ignores the callback entirely,
@@ -103,16 +109,30 @@ interface AiCliSessionAPI {
      * MCP config, which [AiCliEngine.supportsHostedTools] states rather than leaves to be
      * inferred.
      *
-     * It must not throw: an exception is treated as a denial, because a question the CLI
-     * never gets an answer to stalls the whole turn.
+     * **[approve]** must not throw: an exception is treated as a denial, because a question
+     * the CLI never gets an answer to stalls the whole turn. (A hosted tool's `handle` has a
+     * different policy - see [AiCliHostedTool.unroutableAnswer] - which is why this names the
+     * callback rather than saying "it".)
      *
      * [kotlinx.coroutines.CancellationException] is handled separately, and not by
      * propagating - the CLI is holding a connection open, so *something* has to answer it or
      * the turn hangs until the idle timeout. Cancellation means the turn is being abandoned
      * (a panel closing, the user switching away), so the call is refused with a reason that
-     * says exactly that. The distinction is not cosmetic: telling the model "the user denied
+     * says exactly that. The refusal is what the CLI receives; the turn still ends, because
+     * the collection was cancelled and the process killed. The distinction is not cosmetic: telling the model "the user denied
      * this" would have it apologise for a request nobody ever saw, and a caller that turns
      * denials into guidance would advise raising a permission level over it.
+     */
+    /*
+     * This parameter list is FROZEN at 1.0.78, and it is the least evolvable declaration in
+     * the file: an abstract method with defaulted parameters, so a fourth input would move
+     * the abstract descriptor (breaking every implementation) as well as `run$default`
+     * (breaking every caller). `tools` arriving late in review is evidence the pressure is
+     * real, so the escape route is worth naming rather than discovering.
+     *
+     * Data-shaped additions go in [AiCliSessionSpec.extras]. Anything that cannot - another
+     * callback, say - arrives as a NEW overload carrying a default body that delegates here,
+     * which leaves both descriptors untouched. Never by adding a parameter to this one.
      */
     fun run(
         spec: AiCliSessionSpec,
@@ -134,7 +154,9 @@ interface AiCliSessionAPI {
      * a different answer, and adding the parameter afterwards is the binary-breaking change
      * this file warns about everywhere else.
      *
-     * The default returns the bare name, for an implementation that does not namespace.
+     * The default returns the bare name, for an implementation that does not namespace. An
+     * implementation that DOES serve hosted tools **must** override it, or it hands callers
+     * the one answer guaranteed to produce the silent failure above.
      */
     fun qualifiedToolName(
         engineId: String,
@@ -216,8 +238,13 @@ data class AiCliEngine(
      * and nothing anywhere says why. To the user that reads as the agent refusing at random.
      *
      * False for an engine with its own sandbox and no per-call prompt - Codex is the case
-     * that exists today. Such an engine also ignores [AiCliSessionSpec.allowedTools],
-     * `disallowedTools` and `mcpConfigJson`.
+     * that exists today. Such an engine also ignores [AiCliSessionSpec.allowedTools] and
+     * `disallowedTools`, which is the security-relevant half: a caller writing a deny list
+     * reasonably believes it is enforced, and those fields say so too.
+     *
+     * `mcpConfigJson` belongs to [supportsHostedTools] rather than here, because the two can
+     * vary: an engine could serve a caller's MCP config without offering a permission-prompt
+     * tool, which is the case that flag was added for.
      */
     val supportsApprovals: Boolean = false,
     /**
@@ -404,7 +431,9 @@ data class AiCliSessionSpec(
      * spells this value out, so a default that cannot fit a build kills real turns with a
      * timeout message and no way to tell which it was.
      *
-     * Zero or negative **disables** the watchdog, for a caller that owns its own bound. Note
+     * Zero or negative **disables** the watchdog, which makes bounding the turn the caller's
+     * obligation rather than an aside: this is the one setting that can leave a panel waiting
+     * forever, and the only other bound is cancelling the collection. Note
      * this is an *idle* timeout, not a wall clock: a turn that emits a token every few
      * seconds forever never trips it. There is deliberately no total-duration field, because
      * the caller already has a better one - cancelling the collection ends the turn and kills
@@ -465,11 +494,22 @@ data class AiCliSessionSpec(
  * The implementation has these numbers whether or not a caller asked for pricing: it cannot
  * apply [AiCliPricing] without them. Reporting them is the difference between a consumer
  * showing "1,203 tokens" and showing nothing the moment a user selects a CLI engine.
+ *
+ * The two totals have no defaults on purpose. `AiCliUsage()` would mean "the engine reported
+ * zero tokens", which is indistinguishable from "the engine reported nothing" - and that case
+ * already belongs to a null [AiCliEvent.Completed.usage]. Collapsing them is the same
+ * fabricate-a-fact mistake the null-versus-empty rule on denials exists to prevent.
  */
 data class AiCliUsage(
-    val inputTokens: Int = 0,
-    val outputTokens: Int = 0,
-    /** Part of [inputTokens], not additional to it. Billed far cheaper where a provider says. */
+    val inputTokens: Int,
+    val outputTokens: Int,
+    /**
+     * Part of [inputTokens], not additional to it. Billed far cheaper where a provider says.
+     *
+     * The one count that keeps a default, because zero is a real answer here: a provider that
+     * does not break out caching reports none, which is a different fact from the turn having
+     * no tokens at all.
+     */
     val cachedInputTokens: Int = 0,
 ) {
     val totalTokens: Int get() = inputTokens + outputTokens
@@ -498,7 +538,19 @@ data class AiCliPricing(
  * generated `toString` would render a lambda where a reader wants a name.
  */
 class AiCliHostedTool(
-    /** Name the agent calls it by. The agent sees it namespaced by the serving implementation. */
+    /**
+     * Name the agent calls it by. The agent sees it namespaced by the serving implementation,
+     * which is what [AiCliSessionAPI.qualifiedToolName] answers.
+     *
+     * **Letters, digits and underscores.** MCP names are constrained in practice, so a name
+     * with a space or a dot in it lands in the silent failure `qualifiedToolName` describes:
+     * the agent is told it lacks permission to use a tool nobody can find.
+     *
+     * Two entries in one `tools` list sharing a name is **undefined** - do not do it; compose
+     * from one source or de-duplicate first. A name colliding with the implementation's own
+     * permission-prompt tool loses: that channel is what makes gated calls answerable at all,
+     * and letting a caller shadow it would turn every approval into an unexplained failure.
+     */
     val name: String,
     /** What it does, which is what the agent chooses on. Worth writing carefully. */
     val description: String,
@@ -591,6 +643,10 @@ data class AiCliDeniedCall(
  *
  * Not a sealed interface, for the reason [AiChunk] documents: a new case would break every
  * already-compiled `when`. Handle the cases below and ignore anything else.
+ *
+ * No subclass here has `equals`, so a consumer testing an event stream matches structurally.
+ * That is the trade against the sealed-and-data hazards below; [AiCliDeniedCall],
+ * [AiCliUsage] and [AiCliPricing] are data classes and do compare by value.
  *
  * **From 1.0.78 on, additions arrive as new sibling classes, never as new constructor
  * parameters.** [AiCliSessionSpec] has an `extras` hatch and these deliberately do not,

@@ -104,6 +104,21 @@ class AiCliSessionTypesTest {
     }
 
     @Test
+    fun `the tool events do not leak their payloads into an interpolation`() {
+        // These carry the same model-authored arguments and tool output that justified the
+        // AiCliApprovalAsk override, and the KDoc admits they are "safe by accident" - plain
+        // classes render identity hashes. This converts the accident into a decision: adding
+        // `data` to either declaration is a plausible, well-intentioned change (every
+        // neighbouring type is one, and value equality is convenient in tests) and it would
+        // leak both the moment anyone interpolates an event.
+        val use = AiCliEvent.ToolUse("t-1", "Bash", """{"command":"curl -H 'Authorization: Bearer sk-live-x'"}""")
+        val result = AiCliEvent.ToolResult("t-1", "ANTHROPIC_API_KEY=sk-live-y", isError = false)
+
+        assertFalse("$use".contains("sk-live-x"), "$use")
+        assertFalse("$result".contains("sk-live-y"), "$result")
+    }
+
+    @Test
     fun `a spec does not render the prompt or the page context it carries`() {
         // Neither is a credential, but both are user content: a page the user was reading,
         // a selection they made. Sizes answer "was context attached" without putting the

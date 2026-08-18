@@ -219,7 +219,8 @@ group = "ai.rever.boss.plugin.bundled"
 // such type, not only panel-host, and was the doc the Toolbox read before finding the
 // cast. Doc-only. Additive.
 // 1.0.78: adds AiCliSessionAPI and its types (AiCliEngine, AiCliHealth, AiCliSessionSpec,
-// AiCliPricing, AiCliApprovalAsk/Answer, AiCliDeniedCall, AiCliEvent) — driving a locally
+// AiCliPricing, AiCliUsage, AiCliHostedTool, AiCliApprovalAsk/Answer, AiCliDeniedCall,
+// AiCliEvent) — driving a locally
 // installed coding-agent CLI, Claude Code or Codex, headlessly, authenticated by THAT
 // CLI's own terminal login rather than by a key any plugin holds. That auth path is the
 // most valuable one in the product (no API key, no organisation spend, nothing stored)

@@ -78,9 +78,12 @@ interface AiCliSessionAPI {
      * never raise a question against whatever the user is looking at now. Passing null
      * means "decide from the allow/deny lists alone".
      *
-     * [approve] runs on the collecting coroutine's context and may suspend for as long
-     * as it needs - it is expected to be a user prompt. It must not throw; an exception
-     * is treated as a denial.
+     * [approve] is invoked on a thread the implementation owns, **not** on the collecting
+     * coroutine's context, because the CLI is holding a connection open waiting for the
+     * answer. It may suspend for as long as it needs - it is expected to be a user prompt -
+     * but it must be safe to call off the collector's thread, and it must not assume it can
+     * touch UI state directly. It must not throw; an exception is treated as a denial,
+     * because a question the CLI never gets an answer to stalls the whole turn.
      */
     fun run(
         spec: AiCliSessionSpec,

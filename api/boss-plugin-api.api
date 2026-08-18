@@ -208,9 +208,10 @@ public abstract class ai/rever/boss/plugin/api/AiCliEvent {
 
 public final class ai/rever/boss/plugin/api/AiCliEvent$Completed : ai/rever/boss/plugin/api/AiCliEvent {
 	public static final field $stable I
-	public fun <init> (Ljava/lang/String;Ljava/lang/Double;Ljava/util/List;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Double;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/Double;Ljava/util/List;Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Double;Ljava/util/List;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getCostUsd ()Ljava/lang/Double;
+	public final fun getDeniedWithoutAsking ()Ljava/util/List;
 	public final fun getPermissionDenials ()Ljava/util/List;
 	public final fun getSessionId ()Ljava/lang/String;
 }
@@ -225,8 +226,9 @@ public final class ai/rever/boss/plugin/api/AiCliEvent$CostUpdate : ai/rever/bos
 
 public final class ai/rever/boss/plugin/api/AiCliEvent$Failed : ai/rever/boss/plugin/api/AiCliEvent {
 	public static final field $stable I
-	public fun <init> (Ljava/lang/String;Ljava/util/List;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getDeniedWithoutAsking ()Ljava/util/List;
 	public final fun getMessage ()Ljava/lang/String;
 	public final fun getPermissionDenials ()Ljava/util/List;
 }

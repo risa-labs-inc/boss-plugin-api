@@ -439,13 +439,16 @@ data class AiCliDeniedCall(
  * Not a sealed interface, for the reason [AiChunk] documents: a new case would break every
  * already-compiled `when`. Handle the cases below and ignore anything else.
  *
- * **Additions arrive as new sibling classes, never as new constructor parameters.**
- * [AiCliSessionSpec] has an `extras` hatch and these deliberately do not, which could be
- * read as "the events are already safe". They are not: adding a defaulted parameter to
- * [Completed] moves its constructor descriptor exactly as `copy$default` moves for a data
- * class. The blast radius is smaller - consumers read through getters, so only code that
- * *constructs* an event breaks - but "smaller" is not "none", and the constructing code is
- * every test double anyone has written against this.
+ * **From 1.0.78 on, additions arrive as new sibling classes, never as new constructor
+ * parameters.** [AiCliSessionSpec] has an `extras` hatch and these deliberately do not,
+ * which could be read as "the events are already safe". They are not: adding a defaulted
+ * parameter to [Completed] moves its constructor descriptor exactly as `copy$default` moves
+ * for a data class. The blast radius is smaller - consumers read through getters, so only
+ * code that *constructs* an event breaks - but "smaller" is not "none", and the constructing
+ * code is every test double anyone has written against this.
+ *
+ * The parameter lists below were still being settled while 1.0.78 was unreleased, which is
+ * the only window in which changing them was free. That window closes when it ships.
  */
 abstract class AiCliEvent private constructor() {
 
@@ -484,11 +487,27 @@ abstract class AiCliEvent private constructor() {
      *   fact from an empty list, meaning it was asked and refused nothing. A caller that
      *   explains refusals to the user has to keep the two apart or it will invent a
      *   refusal that never happened.
+     * @param deniedWithoutAsking tool calls **this implementation** refused without ever
+     *   consulting `approve`: a request from a process that outlived its turn, one carrying
+     *   no turn identity at all, a callback that threw, a turn abandoned while a prompt was
+     *   on screen. They still reach the engine as refusals and so still appear in
+     *   [permissionDenials].
+     *
+     *   This exists because a caller that explains refusals to the user has to subtract its
+     *   own. It can do that for the ones it decided - those came through `approve` - but not
+     *   for these, and without them it sees a refusal it cannot attribute, concludes the
+     *   engine refused on its own, and tells the user to raise a permission level over
+     *   something done on their behalf. Wrong advice is worse than none, so subtract these
+     *   as well as your own.
+     *
+     *   Empty rather than null: the implementation always knows what it refused, so unlike
+     *   [permissionDenials] there is no "did not say" case to keep apart.
      */
     class Completed(
         val sessionId: String,
         val costUsd: Double? = null,
         val permissionDenials: List<AiCliDeniedCall>? = null,
+        val deniedWithoutAsking: List<AiCliDeniedCall> = emptyList(),
     ) : AiCliEvent()
 
     /**
@@ -501,9 +520,11 @@ abstract class AiCliEvent private constructor() {
      * @param permissionDenials as [Completed.permissionDenials]. Carried here too because
      *   a turn that ended in an error still reports what it refused, and dropping it
      *   silently regresses exactly those turns.
+     * @param deniedWithoutAsking as [Completed.deniedWithoutAsking].
      */
     class Failed(
         val message: String,
         val permissionDenials: List<AiCliDeniedCall>? = null,
+        val deniedWithoutAsking: List<AiCliDeniedCall> = emptyList(),
     ) : AiCliEvent()
 }

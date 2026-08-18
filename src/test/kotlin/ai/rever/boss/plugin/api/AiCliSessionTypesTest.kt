@@ -251,6 +251,33 @@ class AiCliSessionTypesTest {
     }
 
     @Test
+    fun `what the implementation refused is reported apart from what the engine refused`() {
+        // A caller subtracts its own refusals before advising the user to raise a permission
+        // level. It can attribute the ones it decided - those came through approve - but not
+        // the ones the implementation refused without asking, and those land in
+        // permissionDenials all the same. Unsubtracted, they become advice to escalate over
+        // something done on the caller's behalf.
+        val bridgeRefused = listOf(AiCliDeniedCall("Bash", "tu-9"))
+        val completed =
+            AiCliEvent.Completed(
+                "s",
+                permissionDenials = listOf(AiCliDeniedCall("Bash", "tu-9"), AiCliDeniedCall("Write", "tu-10")),
+                deniedWithoutAsking = bridgeRefused,
+            )
+
+        assertEquals(bridgeRefused, completed.deniedWithoutAsking)
+        // Empty, not null: unlike permissionDenials there is no "did not say" case, because
+        // an implementation always knows what it itself refused.
+        assertEquals(emptyList(), AiCliEvent.Completed("s").deniedWithoutAsking)
+        assertEquals(emptyList(), AiCliEvent.Failed("boom").deniedWithoutAsking)
+        // A failed turn carries them too: it can refuse things on the way to failing.
+        assertEquals(
+            bridgeRefused,
+            AiCliEvent.Failed("boom", deniedWithoutAsking = bridgeRefused).deniedWithoutAsking,
+        )
+    }
+
+    @Test
     fun `health distinguishes not installed from broken`() {
         // Two different fixes: one is "install it", the other is "your install is broken".
         // Collapsing them sends half of users somewhere that cannot help.

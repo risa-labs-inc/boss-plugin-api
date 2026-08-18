@@ -91,6 +91,18 @@ interface AiCliSessionAPI {
      * but it must be safe to call off the collector's thread, and it must not assume it can
      * touch UI state directly.
      *
+     * [tools] are the caller's own tools, served to the agent on the same bridge and routed
+     * the same way. The implementation owns the transport - a loopback MCP server, one token
+     * per run, denial of anything it cannot place - and the caller owns what the tools are,
+     * what they do and what they say. [approve] is not one of them only because its name has
+     * to go into the engine's permission-prompt flag; everything else about it is the same
+     * mechanism.
+     *
+     * That split is what lets a caller add a tool without the implementation changing. It
+     * also means a hosted tool reaches the agent **only** where the engine takes a caller's
+     * MCP config, which [AiCliEngine.supportsHostedTools] states rather than leaves to be
+     * inferred.
+     *
      * It must not throw: an exception is treated as a denial, because a question the CLI
      * never gets an answer to stalls the whole turn.
      *
@@ -105,6 +117,7 @@ interface AiCliSessionAPI {
     fun run(
         spec: AiCliSessionSpec,
         approve: (suspend (AiCliApprovalAsk) -> AiCliApprovalAnswer)? = null,
+        tools: List<AiCliHostedTool> = emptyList(),
     ): Flow<AiCliEvent>
 
     /**
@@ -181,6 +194,17 @@ data class AiCliEngine(
      * `disallowedTools` and `mcpConfigJson`.
      */
     val supportsApprovals: Boolean = false,
+    /**
+     * Whether this engine accepts a caller's own MCP tools, i.e. whether
+     * [AiCliSessionAPI.run]'s `tools` reach the agent.
+     *
+     * Separate from [supportsApprovals] because they are separate capabilities, even though
+     * today's two engines happen to have both or neither: approvals additionally need the
+     * engine to take a permission-prompt tool by name, and an engine could plausibly serve
+     * MCP without that. Collapsing them would make the first such engine a silent
+     * mis-advertisement rather than a new flag.
+     */
+    val supportsHostedTools: Boolean = false,
     /**
      * Facts this type does not model yet, for the same reason [AiCliSessionSpec.extras]
      * exists: this is a data class, so a new constructor parameter later moves
@@ -374,6 +398,48 @@ data class AiCliSessionSpec(
 data class AiCliPricing(
     val inputPer1M: Double,
     val outputPer1M: Double,
+)
+
+/**
+ * One of the caller's own tools, served to the agent for the length of a turn.
+ *
+ * The implementation stands up the loopback MCP server, advertises this in its `tools/list`,
+ * and routes a call back to [handle] with the same per-turn identity that guards approvals.
+ * What the tool is called, what it does, and what it says are entirely the caller's.
+ *
+ * Not a data class: it holds a function, so `copy` and `equals` would be meaningless and the
+ * generated `toString` would render a lambda where a reader wants a name.
+ */
+class AiCliHostedTool(
+    /** Name the agent calls it by. The agent sees it namespaced by the serving implementation. */
+    val name: String,
+    /** What it does, which is what the agent chooses on. Worth writing carefully. */
+    val description: String,
+    /** JSON Schema for the arguments, as a JSON string. `{}` for no arguments. */
+    val inputSchema: String = "{}",
+    /**
+     * What to answer when the call cannot be routed to the turn that made it - a process
+     * that outlived its turn, a caller with no identity, a handler that failed.
+     *
+     * The caller supplies it because only the caller knows how its tool's answers read. A
+     * refused *approval* is a denial; a refused *question* is not - it is "nobody is waiting
+     * for this any more", and returning an error there would have the agent apologise about
+     * tooling to a user who never saw a question. Every outcome of a tool has to read as
+     * something the agent can act on, and that sentence differs per tool.
+     *
+     * Blank falls back to a generic refusal.
+     */
+    val unroutableAnswer: String = "",
+    /**
+     * Run the call and return what the agent should see, as text.
+     *
+     * Invoked on a thread the implementation owns while the agent holds a connection open,
+     * exactly as the approval callback is - so it may suspend for as long as it needs, must
+     * be safe off the collector's thread, and must not touch UI state directly. A throw is
+     * answered with [unroutableAnswer] rather than left as a connection the agent never gets
+     * a reply on.
+     */
+    val handle: suspend (argumentsJson: String) -> String,
 )
 
 /**

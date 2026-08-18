@@ -22,6 +22,7 @@ class AiCliSessionTypesTest {
         private val events: List<AiCliEvent> = emptyList(),
     ) : AiCliSessionAPI {
         var lastSpec: AiCliSessionSpec? = null
+        var lastTools: List<AiCliHostedTool> = emptyList()
 
         override fun engines(): List<AiCliEngine> = listOf(AiCliEngine("claude", "Claude Code CLI"))
 
@@ -31,8 +32,10 @@ class AiCliSessionTypesTest {
         override fun run(
             spec: AiCliSessionSpec,
             approve: (suspend (AiCliApprovalAsk) -> AiCliApprovalAnswer)?,
+            tools: List<AiCliHostedTool>,
         ): Flow<AiCliEvent> {
             lastSpec = spec
+            lastTools = tools
             return events.asFlow()
         }
     }
@@ -193,6 +196,35 @@ class AiCliSessionTypesTest {
         // explanation is worse than one that reports "not supported".
         assertFalse(minimal.selectEngine("claude"), "the no-op default must not claim success")
         assertNull(minimal.selectedEngineId(), "the no-op default must not appear to have stored anything")
+    }
+
+    @Test
+    fun `run defaults to no hosted tools`() {
+        // The common call serves none, so it must not require an empty list at every site.
+        val minimal = MinimalCliSessions()
+
+        runBlocking { minimal.run(AiCliSessionSpec(engineId = "claude", prompt = "hi")).toList() }
+
+        assertTrue(minimal.lastTools.isEmpty())
+    }
+
+    @Test
+    fun `a hosted tool carries what it answers when nobody is left to ask`() {
+        // The caller supplies this because only the caller knows how its tool's answers
+        // read. A refused approval is a denial; a refused question is not, and returning an
+        // error there would have the agent apologise about tooling to a user who never saw
+        // a question.
+        val tool =
+            AiCliHostedTool(
+                name = "ask",
+                description = "Ask the user to choose",
+                unroutableAnswer = "No answer - the conversation moved on.",
+            ) { "chose: b" }
+
+        assertEquals("ask", tool.name)
+        assertEquals("No answer - the conversation moved on.", tool.unroutableAnswer)
+        assertEquals("{}", tool.inputSchema, "a tool with no arguments still advertises a schema")
+        assertEquals("chose: b", runBlocking { tool.handle("{}") })
     }
 
     @Test

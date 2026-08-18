@@ -74,6 +74,12 @@ interface AiCliSessionAPI {
      * descendants** - MCP servers it spawned inherit the pipe and would otherwise linger
      * holding it open.
      *
+     * **Cold, and collect it once.** Nothing is spawned until collection starts, and each
+     * collection starts a *new* turn with a new process - so a flow hoisted into a variable
+     * and collected from two places, or later wrapped in a `shareIn` for a second view, runs
+     * the turn twice and spends twice. Events are emitted on the implementation's own IO
+     * context, not the collector's.
+     *
      * [approve] answers a tool call the CLI cannot decide on its own. A headless CLI cannot
      * show a permission prompt, so without one every tool that is neither pre-allowed nor
      * pre-denied simply fails; with one, the implementation stands up a loopback bridge,
@@ -724,11 +730,16 @@ abstract class AiCliEvent private constructor() {
      * @param usage tokens the engine reported for the turn, or null when it reported none.
      *   Independent of [costUsd]: an engine on a subscription login reports tokens and no
      *   price, which is exactly the case where a consumer still wants to show a count.
-     * @param deniedWithoutAsking tool calls **this implementation** refused without ever
-     *   consulting `approve`: a request from a process that outlived its turn, one carrying
-     *   no turn identity at all, a callback that threw, a turn abandoned while a prompt was
-     *   on screen. They still reach the engine as refusals and so still appear in
-     *   [permissionDenials].
+     * @param deniedWithoutAsking tool calls **this implementation** refused rather than the
+     *   caller: a request from a process that outlived its turn, one carrying no turn
+     *   identity at all, a turn abandoned while a prompt was on screen, and a callback that
+     *   threw or was cancelled instead of answering. They still reach the engine as refusals
+     *   and so still appear in [permissionDenials].
+     *
+     *   Note the last case carefully: the callback *was* invoked, so a caller may have seen
+     *   it start. What it did not do is produce a verdict, which is why the refusal is the
+     *   implementation's and belongs here. Everything the caller actually decided is absent
+     *   from this list, so subtracting it cannot double-count.
      *
      *   This exists because a caller that explains refusals to the user has to subtract its
      *   own. It can do that for the ones it decided - those came through `approve` - but not
@@ -760,6 +771,11 @@ abstract class AiCliEvent private constructor() {
      *   content in it.** This is the direction the data actually leaves by, and a spawn
      *   failure rendered as the argv plus the environment it applied walks straight past
      *   every redaction on the way in - into a panel, and into whatever the caller logs.
+     * @param usage as [Completed.usage], and carried here for a stronger reason than
+     *   symmetry: the failures this api is built to expect are an idle-timeout kill and a
+     *   process that dies mid-turn, and both can spend a great many tokens against the
+     *   user's quota before they happen. A turn that failed is the one most likely to have
+     *   cost something and the one least likely to be able to say so.
      * @param permissionDenials as [Completed.permissionDenials]. Carried here too because
      *   a turn that ended in an error still reports what it refused, and dropping it
      *   silently regresses exactly those turns.
@@ -769,5 +785,6 @@ abstract class AiCliEvent private constructor() {
         val message: String,
         val permissionDenials: List<AiCliDeniedCall>? = null,
         val deniedWithoutAsking: List<AiCliDeniedCall> = emptyList(),
+        val usage: AiCliUsage? = null,
     ) : AiCliEvent()
 }

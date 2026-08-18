@@ -63,9 +63,14 @@ interface AiCliSessionAPI {
     /**
      * Run one turn and stream what the agent does, as it does it.
      *
-     * **The flow never throws**, except [kotlinx.coroutines.CancellationException]. Every
-     * failure - a missing binary, a crashed process, a turn that stalls - arrives as
-     * [AiCliEvent.Failed] and the flow then completes normally. Without that guarantee a
+     * **Neither `run` nor the flow it returns ever throws**, except
+     * [kotlinx.coroutines.CancellationException] on collection. Every failure - a missing
+     * binary, an unknown [AiCliSessionSpec.engineId], a working directory that does not
+     * exist, a crashed process, a turn that stalls - arrives as [AiCliEvent.Failed] and the
+     * flow then completes normally. `run` itself is included deliberately: it is not
+     * suspending, so an implementation that validated the spec eagerly would throw at the
+     * *call site*, outside the flow, where the `Failed` branch a caller wrote cannot catch
+     * it - defeating the guarantee for the failure most likely to be checked early. Without that guarantee a
      * caller collecting into a panel would need both a `Failed` branch and a `catch {}`
      * to avoid taking the panel down.
      *
@@ -299,9 +304,15 @@ abstract class AiCliHealth private constructor() {
     /**
      * No binary found. [hint] is [AiCliEngine.installHint], for a message with a fix in it.
      *
-     * The defaulted parameter is the hazard [AiCliEvent] documents - a later addition moves
-     * the constructor descriptor - and it is tolerable only because construction sites are
-     * implementation-side. A caller matching on this reads through the getter and is safe.
+     * The defaulted parameter is the hazard [AiCliEvent] documents: a later addition moves the
+     * constructor descriptor. Reading it through the getter is safe, which is what a caller
+     * does - but do not take "construction is implementation-side" as making the addition
+     * free, because it is not. The implementation is a *different jar*, compiled against a
+     * pinned api version, while `ApiClassLoader` serves the newest installed one and swaps it
+     * without a restart. So implementation-side IS the cross-version boundary: a gateway built
+     * against 1.0.78 calling `NotInstalled(hint)` breaks against a 1.0.79 that added a
+     * parameter, with no rebuild in between. Additions here follow the same rule as
+     * [AiCliEvent] - a new sibling class, not a new parameter.
      */
     class NotInstalled(val hint: String = "") : AiCliHealth()
 
@@ -527,6 +538,15 @@ data class AiCliUsage(
      */
     val reasoningTokens: Int = 0,
     /**
+     * Counts this type does not model yet, keyed by name.
+     *
+     * Token accounting grows - the two-tier cache write on [AiCliPricing.extras] is the case
+     * already in the wild - and this is a data class under a rule that forbids new parameters
+     * after 1.0.78. Values are strings for the same reason [AiCliSessionSpec.extras] uses
+     * them: the hatch has to outlive whatever type the next count wants to be.
+     */
+    val extras: Map<String, String> = emptyMap(),
+    /**
      * Part of [inputTokens], not additional to it. Billed far cheaper where a provider says.
      *
      * The one count that keeps a default, because zero is a real answer here: a provider that
@@ -535,7 +555,19 @@ data class AiCliUsage(
      */
     val cachedInputTokens: Int = 0,
 ) {
-    val totalTokens: Int get() = inputTokens + outputTokens
+    /**
+     * Every token the turn consumed.
+     *
+     * [cachedInputTokens] is deliberately absent because it is part of [inputTokens] already;
+     * the other two are not, and dropping them was silently wrong by orders of magnitude - a
+     * resumed session reporting 2,000 input, 800 output and 500,000 cache writes rendered
+     * "2,800 tokens" for a turn that consumed about 502,000.
+     *
+     * Note this differs from [AiUsage.totalTokens], which sums two fields over a two-field
+     * type where that IS the total. A reader who knows the released type would assume the same
+     * formula here, which is how the bug got in.
+     */
+    val totalTokens: Int get() = inputTokens + outputTokens + cacheWriteTokens + reasoningTokens
 }
 
 /**
@@ -561,6 +593,17 @@ data class AiCliPricing(
     val cachedInputPer1M: Double? = null,
     /** Rate for [AiCliUsage.cacheWriteTokens], or null to price them at [inputPer1M]. */
     val cacheWritePer1M: Double? = null,
+    /**
+     * Rates this type does not model yet, keyed by name.
+     *
+     * Unlike [AiCliDeniedCall], a rate card demonstrably grows, and there is already a case in
+     * the wild: Anthropic prices **two** cache-write tiers, five-minute and one-hour, at
+     * different rates. Expressing that needs a rate here and a count on [AiCliUsage], which is
+     * exactly the paired breaking change everything else in this file is organised to avoid.
+     *
+     * Unknown keys are ignored, never rejected.
+     */
+    val extras: Map<String, String> = emptyMap(),
 )
 
 /**
@@ -809,6 +852,12 @@ abstract class AiCliEvent private constructor() {
      *   content in it.** This is the direction the data actually leaves by, and a spawn
      *   failure rendered as the argv plus the environment it applied walks straight past
      *   every redaction on the way in - into a panel, and into whatever the caller logs.
+     * @param costUsd as [Completed.costUsd], and authoritative in the same way: it supersedes
+     *   every prior [CostUpdate] rather than adding to it. Without it a spend tracker could
+     *   not tell whether the last update stood or should be discarded on a failure - and an
+     *   idle-timeout kill is precisely a turn that spent money and then failed, so discarding
+     *   under-bills it. Null means neither the engine nor [AiCliSessionSpec.pricing] could
+     *   produce a figure, and the last [CostUpdate] is then the best available estimate.
      * @param usage as [Completed.usage], and carried here for a stronger reason than
      *   symmetry: the failures this api is built to expect are an idle-timeout kill and a
      *   process that dies mid-turn, and both can spend a great many tokens against the
@@ -824,5 +873,6 @@ abstract class AiCliEvent private constructor() {
         val permissionDenials: List<AiCliDeniedCall>? = null,
         val deniedWithoutAsking: List<AiCliDeniedCall> = emptyList(),
         val usage: AiCliUsage? = null,
+        val costUsd: Double? = null,
     ) : AiCliEvent()
 }

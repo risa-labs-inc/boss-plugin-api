@@ -266,9 +266,23 @@ class AiCliSessionTypesTest {
         val completed = AiCliEvent.Completed("s", usage = AiCliUsage(inputTokens = 100, outputTokens = 20, cachedInputTokens = 60))
 
         assertEquals(120, completed.usage?.totalTokens)
+        // The counts that are NOT already inside input or output have to be in the total, or
+        // the one field a consumer binds to a label under-reports by orders of magnitude.
+        val withCaches = AiCliUsage(inputTokens = 2_000, outputTokens = 800, cacheWriteTokens = 500_000, reasoningTokens = 40)
+        assertEquals(502_840, withCaches.totalTokens, "a cache write is not inside inputTokens")
+        // And the one that IS inside input stays out of it.
+        assertEquals(
+            30,
+            AiCliUsage(inputTokens = 20, outputTokens = 10, cachedInputTokens = 15).totalTokens,
+            "cachedInputTokens is part of inputTokens, so counting it again double-counts",
+        )
         assertEquals(60, completed.usage?.cachedInputTokens)
         assertNull(completed.costUsd, "tokens without a price is the subscription case")
         assertNull(AiCliEvent.Completed("s").usage, "null means the engine reported none")
+        // A failed turn is the one most likely to have spent money, so it carries both.
+        val failed = AiCliEvent.Failed("timed out", usage = AiCliUsage(9_000, 300), costUsd = 0.42)
+        assertEquals(0.42, failed.costUsd)
+        assertEquals(9_300, failed.usage?.totalTokens)
     }
 
     // ==================== default bodies ====================

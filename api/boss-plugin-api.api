@@ -324,6 +324,7 @@ public abstract interface class ai/rever/boss/plugin/api/AiCliSessionAPI {
 	public static final field ENGINE_CODEX Ljava/lang/String;
 	public abstract fun engines ()Ljava/util/List;
 	public abstract fun health (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun qualifiedToolName (Ljava/lang/String;)Ljava/lang/String;
 	public abstract fun run (Lai/rever/boss/plugin/api/AiCliSessionSpec;Lkotlin/jvm/functions/Function2;Ljava/util/List;)Lkotlinx/coroutines/flow/Flow;
 	public static synthetic fun run$default (Lai/rever/boss/plugin/api/AiCliSessionAPI;Lai/rever/boss/plugin/api/AiCliSessionSpec;Lkotlin/jvm/functions/Function2;Ljava/util/List;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
 	public fun selectEngine (Ljava/lang/String;)Z
@@ -336,6 +337,7 @@ public final class ai/rever/boss/plugin/api/AiCliSessionAPI$Companion {
 }
 
 public final class ai/rever/boss/plugin/api/AiCliSessionAPI$DefaultImpls {
+	public static fun qualifiedToolName (Lai/rever/boss/plugin/api/AiCliSessionAPI;Ljava/lang/String;)Ljava/lang/String;
 	public static synthetic fun run$default (Lai/rever/boss/plugin/api/AiCliSessionAPI;Lai/rever/boss/plugin/api/AiCliSessionSpec;Lkotlin/jvm/functions/Function2;Ljava/util/List;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
 	public static fun selectEngine (Lai/rever/boss/plugin/api/AiCliSessionAPI;Ljava/lang/String;)Z
 	public static fun selectedEngineId (Lai/rever/boss/plugin/api/AiCliSessionAPI;)Ljava/lang/String;

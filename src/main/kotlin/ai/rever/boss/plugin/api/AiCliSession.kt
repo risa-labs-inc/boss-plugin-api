@@ -121,6 +121,19 @@ interface AiCliSessionAPI {
     ): Flow<AiCliEvent>
 
     /**
+     * The name the agent will see for one of the caller's [AiCliHostedTool]s.
+     *
+     * The implementation namespaces hosted tools under its own MCP server, so the caller
+     * cannot construct this itself without hardcoding a name that is not its to choose. It
+     * needs the answer because a tool the agent may call usually has to be pre-allowed by
+     * that exact string - and getting it wrong does not fail loudly: the agent is told it
+     * lacks permission to use the tool, and says so to a user who never saw why.
+     *
+     * The default returns the bare name, for an implementation that does not namespace.
+     */
+    fun qualifiedToolName(tool: String): String = tool
+
+    /**
      * The engine the user chose to serve ordinary [AiGatewayAPI] requests, or null when
      * they chose an HTTP provider instead.
      *

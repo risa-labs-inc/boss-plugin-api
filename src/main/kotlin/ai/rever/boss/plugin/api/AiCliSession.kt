@@ -510,6 +510,23 @@ data class AiCliUsage(
     val inputTokens: Int,
     val outputTokens: Int,
     /**
+     * Input tokens written to a provider's cache, which bill **above** the input rate rather
+     * than below it. Zero when the provider does not report it.
+     *
+     * Here now rather than later because the implementation already reads it: Claude Code
+     * reports `cache_creation_input_tokens` in the same block the cost comes from, so this was
+     * a number being discarded rather than one being predicted.
+     */
+    val cacheWriteTokens: Int = 0,
+    /**
+     * Tokens spent on reasoning, where a provider reports them apart from output.
+     *
+     * Predicted rather than currently read, and included because [AiCliEvent.ThinkingDelta]
+     * already exists on this interface - so an api that streams reasoning and then cannot
+     * account for it is an obvious next gap, and this type is frozen from 1.0.78.
+     */
+    val reasoningTokens: Int = 0,
+    /**
      * Part of [inputTokens], not additional to it. Billed far cheaper where a provider says.
      *
      * The one count that keeps a default, because zero is a real answer here: a provider that
@@ -531,6 +548,19 @@ data class AiCliUsage(
 data class AiCliPricing(
     val inputPer1M: Double,
     val outputPer1M: Double,
+    /**
+     * Rate for [AiCliUsage.cachedInputTokens], or null to price them at [inputPer1M].
+     *
+     * Without this the breakdown [AiCliUsage] carries is unusable: an implementation that
+     * knows 500k of a resumed session's input was cached still has to bill it at the full
+     * rate, which on Anthropic's roughly tenfold discount quotes about `$1.56` for a turn that
+     * cost about `$0.21`. A consumer with a spend cap then trips on a turn that cost a seventh
+     * of the number it was given - the same fabricated-figure-in-front-of-a-cap failure the
+     * null-versus-zero rule on `pricing` exists to prevent.
+     */
+    val cachedInputPer1M: Double? = null,
+    /** Rate for [AiCliUsage.cacheWriteTokens], or null to price them at [inputPer1M]. */
+    val cacheWritePer1M: Double? = null,
 )
 
 /**
@@ -638,7 +668,15 @@ data class AiCliApprovalAnswer(
     val message: String = "",
 )
 
-/** One tool call the engine refused, as it reported it. */
+/**
+ * One tool call the engine refused, as it reported it.
+ *
+ * Deliberately frozen with no `extras`, unlike [AiCliSessionSpec] and [AiCliEngine]. Its shape
+ * is not ours to grow: it mirrors what an engine reports about a refusal, which is a tool name
+ * and at most a call id. The same decision applies to [AiCliApprovalAsk] and
+ * [AiCliApprovalAnswer] - a question and a verdict - where a third field would mean the
+ * concept had changed rather than grown.
+ */
 data class AiCliDeniedCall(
     val toolName: String,
     val toolUseId: String? = null,

@@ -181,19 +181,23 @@ public final class ai/rever/boss/plugin/api/AiCliDeniedCall {
 
 public final class ai/rever/boss/plugin/api/AiCliEngine {
 	public static final field $stable I
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLjava/util/Map;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLjava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()Ljava/lang/String;
 	public final fun component4 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lai/rever/boss/plugin/api/AiCliEngine;
-	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/AiCliEngine;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lai/rever/boss/plugin/api/AiCliEngine;
+	public final fun component5 ()Z
+	public final fun component6 ()Ljava/util/Map;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLjava/util/Map;)Lai/rever/boss/plugin/api/AiCliEngine;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/AiCliEngine;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLjava/util/Map;ILjava/lang/Object;)Lai/rever/boss/plugin/api/AiCliEngine;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getDescription ()Ljava/lang/String;
 	public final fun getDisplayName ()Ljava/lang/String;
+	public final fun getExtras ()Ljava/util/Map;
 	public final fun getId ()Ljava/lang/String;
 	public final fun getInstallHint ()Ljava/lang/String;
+	public final fun getSupportsApprovals ()Z
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -216,7 +220,7 @@ public final class ai/rever/boss/plugin/api/AiCliEvent$CostUpdate : ai/rever/bos
 	public fun <init> (DZ)V
 	public synthetic fun <init> (DZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getEstUsd ()D
-	public final fun getFinal ()Z
+	public final fun isFinal ()Z
 }
 
 public final class ai/rever/boss/plugin/api/AiCliEvent$Failed : ai/rever/boss/plugin/api/AiCliEvent {
@@ -307,7 +311,7 @@ public abstract interface class ai/rever/boss/plugin/api/AiCliSessionAPI {
 	public abstract fun health (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun run (Lai/rever/boss/plugin/api/AiCliSessionSpec;Lkotlin/jvm/functions/Function2;)Lkotlinx/coroutines/flow/Flow;
 	public static synthetic fun run$default (Lai/rever/boss/plugin/api/AiCliSessionAPI;Lai/rever/boss/plugin/api/AiCliSessionSpec;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
-	public fun selectEngine (Ljava/lang/String;)V
+	public fun selectEngine (Ljava/lang/String;)Z
 	public fun selectedEngineId ()Ljava/lang/String;
 }
 
@@ -318,7 +322,7 @@ public final class ai/rever/boss/plugin/api/AiCliSessionAPI$Companion {
 
 public final class ai/rever/boss/plugin/api/AiCliSessionAPI$DefaultImpls {
 	public static synthetic fun run$default (Lai/rever/boss/plugin/api/AiCliSessionAPI;Lai/rever/boss/plugin/api/AiCliSessionSpec;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
-	public static fun selectEngine (Lai/rever/boss/plugin/api/AiCliSessionAPI;Ljava/lang/String;)V
+	public static fun selectEngine (Lai/rever/boss/plugin/api/AiCliSessionAPI;Ljava/lang/String;)Z
 	public static fun selectedEngineId (Lai/rever/boss/plugin/api/AiCliSessionAPI;)Ljava/lang/String;
 }
 

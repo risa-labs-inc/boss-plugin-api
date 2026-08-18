@@ -1,8 +1,7 @@
 package ai.rever.boss.plugin.api
 
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
@@ -34,7 +33,7 @@ class AiCliSessionTypesTest {
             approve: (suspend (AiCliApprovalAsk) -> AiCliApprovalAnswer)?,
         ): Flow<AiCliEvent> {
             lastSpec = spec
-            return if (events.isEmpty()) emptyFlow() else flowOf(*events.toTypedArray())
+            return events.asFlow()
         }
     }
 
@@ -61,7 +60,9 @@ class AiCliSessionTypesTest {
         // Still has to be useful for debugging, or it gets replaced by an interpolation
         // of the fields - which is the failure mode this exists to prevent.
         assertContains(rendered, AiCliSessionAPI.ENGINE_CLAUDE)
-        assertContains(rendered, "1 redacted")
+        // The variable NAME survives while its value does not: that is what answers "which
+        // endpoint did this turn reach" without printing the credential.
+        assertContains(rendered, "ANTHROPIC_AUTH_TOKEN")
     }
 
     @Test
@@ -72,6 +73,29 @@ class AiCliSessionTypesTest {
 
         assertContains(rendered, "mcpConfig=none")
         assertContains(rendered, "env=none")
+    }
+
+    @Test
+    fun `an approval ask does not render the arguments it carries`() {
+        // The type most likely to be logged: an approval prompt is the moment something
+        // unusual happened and someone reaches for a diagnostic line. Tool arguments are
+        // model-authored and routinely carry a credential, so the generated toString would
+        // bypass every other redaction in the file.
+        val ask =
+            AiCliApprovalAsk(
+                toolName = "mcp__drive__query",
+                inputJson = """{"token":"ya29-live-secret","q":"salary review"}""",
+                toolUseId = "tu-7",
+            )
+
+        val rendered = "$ask"
+
+        assertFalse(rendered.contains("ya29-live-secret"), rendered)
+        assertFalse(rendered.contains("salary review"), rendered)
+        // Still enough to identify which call it was, which is the whole point of logging it.
+        assertContains(rendered, "mcp__drive__query")
+        assertContains(rendered, "tu-7")
+        assertContains(rendered, "chars")
     }
 
     @Test
@@ -93,6 +117,67 @@ class AiCliSessionTypesTest {
         assertContains(rendered, "chars")
     }
 
+    @Test
+    fun `a spec does not render the file paths it carries`() {
+        // Not credentials, but a home directory and a project layout are still the user's.
+        // The override reports a count and "<set>"; without this, a later "make this more
+        // useful" edit could put either into a log without failing anything.
+        val rendered =
+            "${AiCliSessionSpec(
+                engineId = "claude",
+                prompt = "x",
+                workingDir = "/Users/someone/Development/secret-project",
+                attachments = listOf("/Users/someone/Documents/offer-letter.pdf"),
+            )}"
+
+        assertFalse(rendered.contains("secret-project"), rendered)
+        assertFalse(rendered.contains("offer-letter"), rendered)
+        assertContains(rendered, "workingDir=<set>")
+        assertContains(rendered, "attachments=1")
+    }
+
+    @Test
+    fun `a spec renders the non-secret fields that explain a strange turn`() {
+        // env names but not values: a variable name is not a credential, and "which endpoint
+        // did this turn actually reach" is the first question when a turn goes to the wrong
+        // provider. extras keys for the same reason - every future field arrives through it.
+        val rendered =
+            "${AiCliSessionSpec(
+                engineId = "claude",
+                prompt = "x",
+                envOverrides = mapOf("ANTHROPIC_BASE_URL" to "https://gw.internal", "ANTHROPIC_AUTH_TOKEN" to "sk-live"),
+                extras = mapOf("topP" to "0.9"),
+                idleTimeoutMs = 5_000,
+            )}"
+
+        assertContains(rendered, "ANTHROPIC_BASE_URL")
+        assertFalse(rendered.contains("sk-live"), rendered)
+        assertFalse(rendered.contains("gw.internal"), rendered)
+        assertContains(rendered, "topP")
+        assertContains(rendered, "idleTimeoutMs=5000")
+    }
+
+    // ==================== defaults callers inherit silently ====================
+
+    @Test
+    fun `the defaults a caller never writes are pinned`() {
+        // A caller never spells these out, so changing one is a behaviour change for every
+        // consumer with no compile error anywhere. Pinning them makes such a change
+        // deliberate rather than incidental.
+        val spec = AiCliSessionSpec(engineId = "claude", prompt = "x")
+
+        assertEquals(180_000L, spec.idleTimeoutMs)
+        assertEquals("", spec.permissionMode, "blank means the engine's own read-only default")
+        assertTrue(spec.disallowedTools.isEmpty())
+        assertTrue(spec.allowedTools.isEmpty())
+        assertNull(spec.pricing)
+        assertEquals("", AiCliApprovalAnswer(allow = false).message)
+        // An engine that does not say otherwise cannot ask the user about a tool call.
+        // Defaulting the other way would have a caller advertise approvals it never gets.
+        assertFalse(AiCliEngine("x", "X").supportsApprovals)
+        assertEquals("", AiCliEngine("x", "X").installHint)
+    }
+
     // ==================== default bodies ====================
 
     @Test
@@ -104,7 +189,9 @@ class AiCliSessionTypesTest {
         val minimal = MinimalCliSessions()
 
         assertNull(minimal.selectedEngineId())
-        minimal.selectEngine("claude")
+        // And it says so rather than pretending: a settings toggle that springs back with no
+        // explanation is worse than one that reports "not supported".
+        assertFalse(minimal.selectEngine("claude"), "the no-op default must not claim success")
         assertNull(minimal.selectedEngineId(), "the no-op default must not appear to have stored anything")
     }
 
@@ -176,6 +263,10 @@ class AiCliSessionTypesTest {
         assertTrue(healths[0] is AiCliHealth.Ready)
         assertEquals("2.1.0", (healths[0] as AiCliHealth.Ready).version)
         assertTrue(healths[1] is AiCliHealth.NotInstalled)
+        // The third state is the one that is easy to forget and the most confusing to hit:
+        // the binary is there and will not run. "Install it" would be wrong advice.
+        assertEquals("broken install", (AiCliHealth.Failed("broken install") as AiCliHealth.Failed).message)
+        assertEquals("brew install codex", AiCliHealth.NotInstalled("brew install codex").hint)
     }
 
     @Test

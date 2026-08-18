@@ -157,6 +157,13 @@ interface AiGatewayAPI {
      * AI affordance at all. A caller that wants to *make* a request should just
      * make it and handle the failure, because the active provider can change
      * between the two calls.
+     *
+     * **"Configured" is not the same as "has an API key."** An implementation that also
+     * serves local CLI engines (see [AiCliSessionAPI]) must report the selected engine here
+     * when there is one, even though no credential exists for it. [AiAvailability.check]
+     * derives readiness from this being non-null, so returning null for a working
+     * subscription login makes every consumer hide its AI affordance and send the user off
+     * to paste a key on a machine where [complete] would have worked.
      */
     fun activeModel(): AiModelInfo? = null
 

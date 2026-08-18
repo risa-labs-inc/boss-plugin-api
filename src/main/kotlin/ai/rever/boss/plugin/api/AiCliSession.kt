@@ -68,22 +68,39 @@ interface AiCliSessionAPI {
      * descendants** - MCP servers it spawned inherit the pipe and would otherwise linger
      * holding it open.
      *
-     * [approve] answers a tool call the CLI cannot decide on its own, and is only
-     * consulted when [AiCliSessionSpec.mcpConfigJson] and the engine support it. A
-     * headless CLI cannot show a permission prompt, so without this every tool that is
-     * neither pre-allowed nor pre-denied simply fails; with it, the implementation
-     * stands up a loopback bridge, hands the CLI a permission-prompt tool, and calls
-     * back here. **It is scoped to this call**: a request arriving from a process that
-     * outlived its turn is denied without ever reaching [approve], so a stale agent can
-     * never raise a question against whatever the user is looking at now. Passing null
-     * means "decide from the allow/deny lists alone".
+     * [approve] answers a tool call the CLI cannot decide on its own. A headless CLI cannot
+     * show a permission prompt, so without one every tool that is neither pre-allowed nor
+     * pre-denied simply fails; with one, the implementation stands up a loopback bridge,
+     * hands the CLI a permission-prompt tool, and calls back here. Passing null means
+     * "decide from the allow and deny lists alone".
+     *
+     * **It is consulted whenever [AiCliEngine.supportsApprovals] is true for this engine,
+     * and never otherwise.** In particular it does *not* require the caller to supply
+     * [AiCliSessionSpec.mcpConfigJson]: the implementation adds its own bridge entry to
+     * whatever config the caller passed, or synthesises one when the caller passed none.
+     * An engine with its own sandbox and no per-call prompt ignores the callback entirely,
+     * which is why that flag is a fact on the engine rather than something to infer.
+     *
+     * **It is scoped to this call.** A request arriving from a process that outlived its
+     * turn is denied without ever reaching [approve], so a stale agent cannot raise a
+     * question against whatever the user is looking at now.
      *
      * [approve] is invoked on a thread the implementation owns, **not** on the collecting
      * coroutine's context, because the CLI is holding a connection open waiting for the
      * answer. It may suspend for as long as it needs - it is expected to be a user prompt -
      * but it must be safe to call off the collector's thread, and it must not assume it can
-     * touch UI state directly. It must not throw; an exception is treated as a denial,
-     * because a question the CLI never gets an answer to stalls the whole turn.
+     * touch UI state directly.
+     *
+     * It must not throw: an exception is treated as a denial, because a question the CLI
+     * never gets an answer to stalls the whole turn.
+     *
+     * [kotlinx.coroutines.CancellationException] is handled separately, and not by
+     * propagating - the CLI is holding a connection open, so *something* has to answer it or
+     * the turn hangs until the idle timeout. Cancellation means the turn is being abandoned
+     * (a panel closing, the user switching away), so the call is refused with a reason that
+     * says exactly that. The distinction is not cosmetic: telling the model "the user denied
+     * this" would have it apologise for a request nobody ever saw, and a caller that turns
+     * denials into guidance would advise raising a permission level over it.
      */
     fun run(
         spec: AiCliSessionSpec,
@@ -99,18 +116,31 @@ interface AiCliSessionAPI {
      * configured API key. That is deliberately an explicit choice and never a fallback:
      * a plugin quietly spending someone's Claude subscription because no key happened to
      * be configured is not a degradation, it is a surprise bill.
+     *
+     * **A non-null value here must be reflected as a non-null [AiGatewayAPI.activeModel].**
+     * That is a requirement on whoever implements both, and the whole feature turns on it:
+     * [AiAvailability.check] decides readiness purely from `activeModel()`, so a gateway
+     * that reported null for a selected CLI engine would have every consumer hide its AI
+     * affordance and send the user to Settings to paste a key - on a machine where
+     * `complete` would have worked through their own subscription.
      */
     fun selectedEngineId(): String? = null
 
     /**
      * Choose the engine for ordinary [AiGatewayAPI] requests, or null to go back to the
-     * configured HTTP provider.
+     * configured HTTP provider. Returns whether the choice was applied.
      *
      * Intended for the settings surface that owns provider selection, which is also
      * responsible for clearing the *other* selection when this one is set. Two stores
      * holding "which provider is active" can disagree; one writer keeps them from it.
+     *
+     * The return value exists because the default body is a no-op, and a settings toggle
+     * that silently springs back is worse than one that says "not supported". False means
+     * the choice did not take - an implementation that does not serve gateway requests, or
+     * an [engineId] it does not have - and the caller should show that rather than assume
+     * it worked. Passing null is always applied, since deselecting cannot fail.
      */
-    fun selectEngine(engineId: String?) {}
+    fun selectEngine(engineId: String?): Boolean = false
 
     companion object {
         /** [AiCliEngine.id] of the Claude Code CLI. */
@@ -137,6 +167,29 @@ data class AiCliEngine(
     val description: String = "",
     /** What to tell a user who does not have it, e.g. the install command. */
     val installHint: String = "",
+    /**
+     * Whether this engine can ask the user about a tool call, i.e. whether passing
+     * `approve` to [AiCliSessionAPI.run] does anything.
+     *
+     * A fact rather than something to infer, because inferring it wrongly is silent: a
+     * caller that passes an approval callback to an engine which cannot use one gets a turn
+     * where every tool outside `allowedTools` simply fails, the callback is never invoked,
+     * and nothing anywhere says why. To the user that reads as the agent refusing at random.
+     *
+     * False for an engine with its own sandbox and no per-call prompt - Codex is the case
+     * that exists today. Such an engine also ignores [AiCliSessionSpec.allowedTools],
+     * `disallowedTools` and `mcpConfigJson`.
+     */
+    val supportsApprovals: Boolean = false,
+    /**
+     * Facts this type does not model yet, for the same reason [AiCliSessionSpec.extras]
+     * exists: this is a data class, so a new constructor parameter later moves
+     * `copy$default` and hands compiled callers a `NoSuchMethodError`.
+     *
+     * The one most likely to be wanted next is which models an engine accepts. Unknown keys
+     * are ignored, never rejected.
+     */
+    val extras: Map<String, String> = emptyMap(),
 )
 
 /**
@@ -190,8 +243,13 @@ data class AiCliSessionSpec(
     val sessionId: String? = null,
     /**
      * Directory the turn runs in, so it inherits that project's agent config, memory and
-     * MCP servers. Null runs wherever the CLI defaults to. A path that is not a
-     * directory is ignored rather than failing the turn.
+     * MCP servers. Null runs wherever the CLI defaults to.
+     *
+     * A path that is not a directory is **ignored rather than failing the turn**, and the
+     * consequence is worth stating plainly: the turn then runs in the CLI's default
+     * directory, which with a writable [permissionMode] means the agent edits files
+     * somewhere the caller did not choose. A caller that passes a path it has not checked
+     * should check it, or pass null deliberately.
      */
     val workingDir: String? = null,
     /**
@@ -213,7 +271,15 @@ data class AiCliSessionSpec(
     val allowedTools: List<String> = emptyList(),
     /** Tools to refuse outright. Wins over [allowedTools] and over `approve`. */
     val disallowedTools: List<String> = emptyList(),
-    /** Files the user attached; their parent directories are granted read access. */
+    /**
+     * Files the user attached.
+     *
+     * **Their parent directories are granted read access**, which is a real widening and
+     * not obvious from the word "attachments": attaching one PDF exposes the whole folder
+     * it sits in for the turn. It is what makes an attachment readable at all where the
+     * engine grants by directory, but a caller staging a file from a large shared folder is
+     * granting more than the file.
+     */
     val attachments: List<String> = emptyList(),
     /**
      * Extra MCP servers for this turn, as the CLI's `--mcp-config` JSON, or null.
@@ -247,6 +313,13 @@ data class AiCliSessionSpec(
     /**
      * Kill the turn if it emits nothing for this long. A stalled tool or MCP call would
      * otherwise hang the caller's "sending" state forever.
+     *
+     * Zero or negative **disables** the idle watchdog, for a caller that owns its own
+     * bound. Note this is an *idle* timeout, not a wall clock: a turn that emits a token
+     * every few seconds forever never trips it. There is deliberately no total-duration
+     * field, because the caller already has a better one - cancelling the collection ends
+     * the turn and kills the process - and two competing deadlines is how the shorter one
+     * ends up killing turns the caller thought it had allowed.
      */
     val idleTimeoutMs: Long = 180_000,
     /**
@@ -280,21 +353,46 @@ data class AiCliSessionSpec(
             "allowed=${allowedTools.size}, disallowed=${disallowedTools.size}, " +
             "attachments=${attachments.size}, " +
             "mcpConfig=${if (mcpConfigJson.isNullOrBlank()) "none" else "<redacted>"}, " +
-            "env=${if (envOverrides.isEmpty()) "none" else "<${envOverrides.size} redacted>"}, " +
-            "priced=${pricing != null})"
+            // Names, values redacted. A variable name is not a credential, and "which
+            // endpoint did this turn actually reach" is the first question when a turn goes
+            // to the wrong provider - answerable from ANTHROPIC_BASE_URL being present.
+            "env=${if (envOverrides.isEmpty()) "none" else envOverrides.keys.sorted()}, " +
+            "priced=${pricing != null}, idleTimeoutMs=$idleTimeoutMs, " +
+            // Keys only, though extras is documented as not secret-bearing: the debugging
+            // question is "was the hint set", and every future field arrives through here,
+            // so omitting it would make each one invisible in diagnostics from day one.
+            "extras=${extras.keys.sorted()})"
 }
 
-/** Per-million-token prices used to cost a turn. Negative values are treated as zero. */
+/**
+ * Per-million-token prices used to cost a turn.
+ *
+ * An implementation is expected to clamp a negative rate to zero rather than subtracting
+ * from a running total. That is an obligation on the implementation, not a promise this
+ * type can keep: it holds two `Double`s and has no behaviour of its own.
+ */
 data class AiCliPricing(
     val inputPer1M: Double,
     val outputPer1M: Double,
 )
 
-/** A tool call the agent wants to make that nothing has pre-decided. */
+/**
+ * A tool call the agent wants to make that nothing has pre-decided.
+ *
+ * Handed to caller-supplied code at exactly the moment someone reaches for a diagnostic
+ * line, which is why [toString] is overridden - see the note there.
+ */
 data class AiCliApprovalAsk(
     /** Tool the agent is asking to run, e.g. `Bash` or `mcp__boss__browser_navigate`. */
     val toolName: String,
-    /** Arguments as a JSON object string, exactly as the agent produced them. */
+    /**
+     * Arguments as a JSON object string, exactly as the agent produced them.
+     *
+     * **Treat as sensitive.** These are whatever the model chose to send: an
+     * `mcp__drive__query` payload can carry a resolved connector token, a `Bash` command an
+     * inline credential or a `Authorization: Bearer` header. Never render it into a log; put
+     * it in front of the user, which is what it is for.
+     */
     val inputJson: String,
     /**
      * The agent's own id for this call, when it sends one.
@@ -303,7 +401,24 @@ data class AiCliApprovalAsk(
      * and matching on the name alone lets one verdict blank the other.
      */
     val toolUseId: String? = null,
-)
+) {
+    /**
+     * Redacted, for the same reason [AiCliSessionSpec.toString] is, and with a stronger
+     * case.
+     *
+     * An approval prompt is the single most likely place for an implementation to write a
+     * diagnostic line - it is the moment something unusual happened and a person is about to
+     * be asked about it - and [inputJson] is model-authored arguments that routinely carry a
+     * credential. One `logger.debug("asking about $ask")` would bypass every redaction in
+     * this file.
+     *
+     * The asymmetry was only ever in the data classes: [AiCliEvent.ToolUse] and
+     * [AiCliEvent.ToolResult] carry the same kind of content but are plain classes, so they
+     * render as identity hashes and were safe by accident rather than by decision.
+     */
+    override fun toString(): String =
+        "AiCliApprovalAsk(tool=$toolName, toolUseId=$toolUseId, input=${inputJson.length} chars)"
+}
 
 /** The answer to an [AiCliApprovalAsk]. */
 data class AiCliApprovalAnswer(
@@ -321,8 +436,16 @@ data class AiCliDeniedCall(
 /**
  * What the agent did, streamed as it does it.
  *
- * Not a sealed interface, for the reason [AiChunk] documents: a new case would break
- * every already-compiled `when`. Handle the cases below and ignore anything else.
+ * Not a sealed interface, for the reason [AiChunk] documents: a new case would break every
+ * already-compiled `when`. Handle the cases below and ignore anything else.
+ *
+ * **Additions arrive as new sibling classes, never as new constructor parameters.**
+ * [AiCliSessionSpec] has an `extras` hatch and these deliberately do not, which could be
+ * read as "the events are already safe". They are not: adding a defaulted parameter to
+ * [Completed] moves its constructor descriptor exactly as `copy$default` moves for a data
+ * class. The blast radius is smaller - consumers read through getters, so only code that
+ * *constructs* an event breaks - but "smaller" is not "none", and the constructing code is
+ * every test double anyone has written against this.
  */
 abstract class AiCliEvent private constructor() {
 
@@ -347,11 +470,11 @@ abstract class AiCliEvent private constructor() {
     /**
      * Running cost for the turn so far, when [AiCliSessionSpec.pricing] was supplied.
      *
-     * @param final true when this prices an already-finished, already-billed turn - some
+     * @param isFinal true when this prices an already-finished, already-billed turn - some
      *   engines cost once, at the end. Crossing a cap on a final report must flag rather
      *   than cancel: there is nothing left to stop, and re-running would spend it again.
      */
-    class CostUpdate(val estUsd: Double, val final: Boolean = false) : AiCliEvent()
+    class CostUpdate(val estUsd: Double, val isFinal: Boolean = false) : AiCliEvent()
 
     /**
      * The turn finished. Terminal.
@@ -370,6 +493,10 @@ abstract class AiCliEvent private constructor() {
 
     /**
      * The turn failed. Terminal.
+     *
+     * Carries no session id on purpose - a turn can fail before one exists. A caller that
+     * wants to resume after a failure retains [Started.sessionId], which arrives first
+     * whenever there is one to have.
      *
      * @param permissionDenials as [Completed.permissionDenials]. Carried here too because
      *   a turn that ended in an error still reports what it refused, and dropping it

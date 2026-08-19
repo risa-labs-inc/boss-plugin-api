@@ -260,7 +260,7 @@ group = "ai.rever.boss.plugin.bundled"
 // trusting it capped every null-maxTokens request at 2000 output tokens. Same provenance,
 // quieter symptom: an answer that stops mid-sentence reports no error anywhere. Doc-only.
 // Additive.
-version = "1.0.79"
+version = "1.0.80"
 
 java {
     toolchain {

@@ -1,6 +1,7 @@
 package ai.rever.boss.plugin.browser
 
 import androidx.compose.runtime.Composable
+import ai.rever.boss.plugin.api.HostImplemented
 
 /**
  * Types of form fields that can be detected.
@@ -102,6 +103,7 @@ data class PopupNavigation(
     }
 }
 
+@HostImplemented
 interface BrowserHandle {
     /**
      * Unique identifier for this browser handle.
@@ -324,16 +326,58 @@ interface BrowserHandle {
     /**
      * Fill credentials into form fields on the current page.
      *
-     * This finds username and password fields and fills them with the provided values.
-     * Used for secret manager auto-fill integration.
+     * **Deprecated and now a no-op that always returns false. Fill through [executeJavaScript]
+     * instead, targeting the element you already identified.** Scheduled for removal.
      *
-     * @param username Username to fill
-     * @param password Password to fill
-     * @param fillBoth If true, fills both username and password. If false, only fills
-     *                 the currently focused field based on its type.
-     * @return true if credentials were filled successfully, false otherwise
+     * The signature is the problem: it cannot say WHICH field, so the host had to guess, and the
+     * guess was wrong in the ways real login pages are actually built. Measured on
+     * `accounts.google.com`:
+     *
+     * - That page carries a `display: none` password input. The guess took the first
+     *   `input[type="password"]` in the DOM - that one - so the password went into a hidden field
+     *   and the screen did not change.
+     * - The visible identifier box was missed entirely. The selector was
+     *   `[autocomplete="username"]`, an exact attribute match, and the field declares
+     *   `autocomplete="username webauthn"`; `autocomplete` is a space-separated token list per the
+     *   HTML spec.
+     * - The last-resort strategy was "first text input in a `<form>` containing a password". That
+     *   page has no `<form>` element at all.
+     *
+     * Fixing the guess was tried first. It is not worth keeping, because every caller already knows
+     * what the guess was reconstructing: a right-click menu was raised on a specific field, and an
+     * autofill suggestion is anchored to a specific box. Filling that element is strictly better
+     * information than a heuristic can recover, which puts credential filling on the caller's side
+     * of the boundary along with the rules for deciding a field is real - notably that a candidate
+     * must be tested for a layout box rather than trusted for being in the DOM. See fluck-browser's
+     * `CredentialFill` for a worked implementation.
+     *
+     * **Why a no-op body rather than deletion.** Removing it outright would have made every caller
+     * compiled against an older api throw `NoSuchMethodError` at the call site. That is survivable
+     * where the call is guarded, and fluck-browser 1.2.19 does guard it - but 1.2.18 and earlier
+     * call it bare inside a `launch`, where an `Error` reaches the coroutine uncaught and the host
+     * tears the whole plugin down, closing every open browser tab. Since `minBossVersion` gates
+     * plugin updates and the api plugin has no such gate, a user on an older host can receive this
+     * api while pinned to a fluck-browser that would crash on it. Returning false gives every one
+     * of those builds a silent no-op instead, which is also strictly better than what they do
+     * today - writing a password into a hidden input.
+     *
+     * **Where the no-op actually takes effect.** [BrowserHandle] is `@HostImplemented`: the host
+     * compiles in its own copy and serves it parent-first, so this jar's body is shadowed at
+     * runtime. Changing it here is a compile-time signal to plugin authors - the behaviour change
+     * arrives with the BossConsole release that carries the matching copy. Gate on
+     * `minBossVersion`, not `minApiVersion`.
+     *
+     * @return always false
      */
-    suspend fun fillCredentials(username: String, password: String, fillBoth: Boolean = true): Boolean
+    @Deprecated(
+        message =
+            "Cannot express which field to fill, so the host had to guess and guessed wrong on " +
+                "real login pages. Now a no-op returning false; fill via executeJavaScript, " +
+                "targeting the element you already identified. Scheduled for removal.",
+        // Deliberately no ReplaceWith: executeJavaScript is not a drop-in for this, and an
+        // auto-applied quick fix would produce code that compiles and fills nothing.
+    )
+    suspend fun fillCredentials(username: String, password: String, fillBoth: Boolean = true): Boolean = false
 
     // ============================================================
     // CLIPBOARD OPERATIONS

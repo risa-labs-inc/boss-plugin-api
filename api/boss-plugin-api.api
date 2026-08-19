@@ -1716,11 +1716,15 @@ public final class ai/rever/boss/plugin/api/EditorTabData$Companion {
 public abstract interface class ai/rever/boss/plugin/api/EditorTabPluginAPI {
 	public fun EditorSettingsPanel (Landroidx/compose/ui/Modifier;Landroidx/compose/runtime/Composer;I)V
 	public fun LspSettingsPanel (Landroidx/compose/ui/Modifier;Landroidx/compose/runtime/Composer;I)V
+	public fun autoSaveEnabled ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun setAutoSaveEnabled (Z)V
 }
 
 public final class ai/rever/boss/plugin/api/EditorTabPluginAPI$DefaultImpls {
 	public static fun EditorSettingsPanel (Lai/rever/boss/plugin/api/EditorTabPluginAPI;Landroidx/compose/ui/Modifier;Landroidx/compose/runtime/Composer;I)V
 	public static fun LspSettingsPanel (Lai/rever/boss/plugin/api/EditorTabPluginAPI;Landroidx/compose/ui/Modifier;Landroidx/compose/runtime/Composer;I)V
+	public static fun autoSaveEnabled (Lai/rever/boss/plugin/api/EditorTabPluginAPI;)Lkotlinx/coroutines/flow/StateFlow;
+	public static fun setAutoSaveEnabled (Lai/rever/boss/plugin/api/EditorTabPluginAPI;Z)V
 }
 
 public final class ai/rever/boss/plugin/api/FileChangeEvent : ai/rever/boss/plugin/api/ApplicationEvent {

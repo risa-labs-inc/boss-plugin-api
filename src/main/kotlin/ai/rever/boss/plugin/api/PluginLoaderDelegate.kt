@@ -41,6 +41,75 @@ data class InaccessiblePluginInfo(
 )
 
 /**
+ * Why a plugin is being unloaded, so the host can word its prompt and decide what to do with
+ * the plugins that depend on it.
+ *
+ * The distinction matters because an update ends with the plugin present again at a newer
+ * version and a removal does not. The host refuses neither outright any more - it asks - but
+ * "your Flow tabs will reopen on the new version" and "Flow will stop working" are not the same
+ * sentence, and the dependents are restarted at different moments.
+ */
+enum class PluginUnloadIntent {
+    /** The plugin will be reinstalled immediately afterwards, at a different version. */
+    UPDATE,
+
+    /** The plugin is going away. */
+    REMOVE,
+
+    /**
+     * The caller did not say. This is what [PluginLoaderDelegate.unloadPlugin] reports: it
+     * predates this enum and cannot tell which button was pressed, so the host words its prompt
+     * neutrally and treats the timing as [UPDATE] - by far the more common reason a plugin asks
+     * the host to unload something.
+     */
+    UNSPECIFIED
+}
+
+/**
+ * A loaded plugin that declares a dependency on some other plugin.
+ *
+ * [optional] mirrors the manifest flag and is not cosmetic here: an optional dependent does not
+ * veto an unload, but it is still restarted, because "works without it" describes a cold start,
+ * not a handle already resolved against a classloader that has since closed.
+ */
+@Serializable
+data class DependentPluginInfo(
+    val pluginId: String,
+    val displayName: String,
+    val optional: Boolean,
+    /** Open tabs/panels this dependent currently has, which a restart would close. */
+    val runningInstances: Int = 0
+)
+
+/**
+ * The outcome of an unload the user may have been asked about.
+ *
+ * [PluginLoaderDelegate.unloadPlugin] returns a bare `Boolean`, which conflates three answers a
+ * caller needs to word differently: it worked, the user declined, and the host refused. The
+ * refusal reasons name the plugins standing in the way and previously never left the host, so a
+ * plugin could only guess at them in prose.
+ */
+@Serializable
+data class PluginUnloadResult(
+    val unloaded: Boolean,
+    /**
+     * The user answered Cancel in the host's dependent-restart prompt.
+     *
+     * Not a failure, and must not be reported as one: nothing was downloaded, nothing was
+     * unloaded, and the plugin is still running the version it was.
+     */
+    val cancelledByUser: Boolean = false,
+    /**
+     * Why the host refused, e.g. `Plugin 'Flow' depends on this plugin`.
+     *
+     * Empty when [unloaded] is true and when [cancelledByUser] is - a refusal and a decline are
+     * different answers. Also empty on a host predating this type, whose default implementation
+     * has no reasons to hand back.
+     */
+    val reasons: List<String> = emptyList()
+)
+
+/**
  * Delegate interface for plugin loading/unloading operations.
  *
  * BossConsole implements this interface and registers it via:
@@ -71,10 +140,47 @@ interface PluginLoaderDelegate {
     /**
      * Unload a currently loaded plugin.
      *
+     * Equivalent to [unloadPluginForIntent] with [PluginUnloadIntent.UNSPECIFIED], reduced to a
+     * `Boolean`. Prefer that overload: it says whether the user declined and, when the host
+     * refused, which plugins were in the way.
+     *
      * @param pluginId The plugin ID to unload
      * @return true if successfully unloaded, false otherwise
      */
     suspend fun unloadPlugin(pluginId: String): Boolean
+
+    /**
+     * Unload a plugin, telling the host why.
+     *
+     * When other loaded plugins depend on [pluginId], the host asks the user before proceeding
+     * and restarts those dependents afterwards; see [getDependentPlugins]. A declined prompt
+     * comes back as [PluginUnloadResult.cancelledByUser], which is not an error.
+     *
+     * The default delegates to [unloadPlugin] so a host predating this method still behaves,
+     * losing only the intent and the reasons. **Call it defensively.** This interface is
+     * implemented by the host, so on a host built against an older api pin the call site
+     * resolves against the host's own older copy of the interface and throws a
+     * [LinkageError]; keep the call in its own function and fall back to [unloadPlugin].
+     *
+     * @param pluginId The plugin ID to unload
+     * @param intent why, so the host can word its prompt and time the dependents' restart
+     */
+    suspend fun unloadPluginForIntent(
+        pluginId: String,
+        intent: PluginUnloadIntent
+    ): PluginUnloadResult = PluginUnloadResult(unloaded = unloadPlugin(pluginId))
+
+    /**
+     * Loaded, enabled plugins whose manifest declares a dependency on [pluginId].
+     *
+     * Includes optional declarations, which [unloadPluginForIntent] also prompts about: those
+     * are the ones the AI Gateway's consumers use, and an optional dependent left running
+     * across its dependency's update holds a handle into a closed classloader.
+     *
+     * Empty on a host predating this method - which is indistinguishable from "nothing depends
+     * on it", so do not treat an empty list as proof that unloading is safe.
+     */
+    fun getDependentPlugins(pluginId: String): List<DependentPluginInfo> = emptyList()
 
     /**
      * Reload a plugin (unload then load).

@@ -1335,6 +1335,42 @@ public final class ai/rever/boss/plugin/api/DefinitionInfoData {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class ai/rever/boss/plugin/api/DependentPluginInfo {
+	public static final field $stable I
+	public static final field Companion Lai/rever/boss/plugin/api/DependentPluginInfo$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;ZI)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ZIILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Z
+	public final fun component4 ()I
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;ZI)Lai/rever/boss/plugin/api/DependentPluginInfo;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/DependentPluginInfo;Ljava/lang/String;Ljava/lang/String;ZIILjava/lang/Object;)Lai/rever/boss/plugin/api/DependentPluginInfo;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDisplayName ()Ljava/lang/String;
+	public final fun getOptional ()Z
+	public final fun getPluginId ()Ljava/lang/String;
+	public final fun getRunningInstances ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class ai/rever/boss/plugin/api/DependentPluginInfo$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field $stable I
+	public static final field INSTANCE Lai/rever/boss/plugin/api/DependentPluginInfo$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lai/rever/boss/plugin/api/DependentPluginInfo;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lai/rever/boss/plugin/api/DependentPluginInfo;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ai/rever/boss/plugin/api/DependentPluginInfo$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
 public final class ai/rever/boss/plugin/api/DiagnosticEntry {
 	public static final field $stable I
 	public fun <init> (JLjava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
@@ -3796,6 +3832,7 @@ public abstract interface class ai/rever/boss/plugin/api/PluginLoaderDelegate {
 	public abstract fun enablePlugin (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getAccessToken ()Ljava/lang/String;
 	public abstract fun getBundledPluginsDirectory ()Ljava/lang/String;
+	public fun getDependentPlugins (Ljava/lang/String;)Ljava/util/List;
 	public fun getInaccessiblePlugins ()Ljava/util/List;
 	public abstract fun getLoadedPlugins ()Ljava/util/List;
 	public abstract fun getPluginsDirectory ()Ljava/lang/String;
@@ -3807,13 +3844,16 @@ public abstract interface class ai/rever/boss/plugin/api/PluginLoaderDelegate {
 	public fun resetPluginInstances (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun restartApplication ()V
 	public abstract fun unloadPlugin (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun unloadPluginForIntent (Ljava/lang/String;Lai/rever/boss/plugin/api/PluginUnloadIntent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class ai/rever/boss/plugin/api/PluginLoaderDelegate$DefaultImpls {
+	public static fun getDependentPlugins (Lai/rever/boss/plugin/api/PluginLoaderDelegate;Ljava/lang/String;)Ljava/util/List;
 	public static fun getInaccessiblePlugins (Lai/rever/boss/plugin/api/PluginLoaderDelegate;)Ljava/util/List;
 	public static fun getRunningInstanceCount (Lai/rever/boss/plugin/api/PluginLoaderDelegate;Ljava/lang/String;)I
 	public static fun resetPluginInstances (Lai/rever/boss/plugin/api/PluginLoaderDelegate;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static fun restartApplication (Lai/rever/boss/plugin/api/PluginLoaderDelegate;)V
+	public static fun unloadPluginForIntent (Lai/rever/boss/plugin/api/PluginLoaderDelegate;Ljava/lang/String;Lai/rever/boss/plugin/api/PluginUnloadIntent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class ai/rever/boss/plugin/api/PluginLogMatcher {
@@ -4282,6 +4322,49 @@ public final class ai/rever/boss/plugin/api/PluginUnloadActions$Companion {
 public abstract interface class ai/rever/boss/plugin/api/PluginUnloadAware {
 	public abstract fun checkCanUnload (Ljava/lang/String;)Lai/rever/boss/plugin/api/CanUnloadResult;
 	public abstract fun prepareForUnload (Ljava/lang/String;)V
+}
+
+public final class ai/rever/boss/plugin/api/PluginUnloadIntent : java/lang/Enum {
+	public static final field REMOVE Lai/rever/boss/plugin/api/PluginUnloadIntent;
+	public static final field UNSPECIFIED Lai/rever/boss/plugin/api/PluginUnloadIntent;
+	public static final field UPDATE Lai/rever/boss/plugin/api/PluginUnloadIntent;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lai/rever/boss/plugin/api/PluginUnloadIntent;
+	public static fun values ()[Lai/rever/boss/plugin/api/PluginUnloadIntent;
+}
+
+public final class ai/rever/boss/plugin/api/PluginUnloadResult {
+	public static final field $stable I
+	public static final field Companion Lai/rever/boss/plugin/api/PluginUnloadResult$Companion;
+	public fun <init> (ZZLjava/util/List;)V
+	public synthetic fun <init> (ZZLjava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Z
+	public final fun component2 ()Z
+	public final fun component3 ()Ljava/util/List;
+	public final fun copy (ZZLjava/util/List;)Lai/rever/boss/plugin/api/PluginUnloadResult;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/PluginUnloadResult;ZZLjava/util/List;ILjava/lang/Object;)Lai/rever/boss/plugin/api/PluginUnloadResult;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCancelledByUser ()Z
+	public final fun getReasons ()Ljava/util/List;
+	public final fun getUnloaded ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class ai/rever/boss/plugin/api/PluginUnloadResult$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field $stable I
+	public static final field INSTANCE Lai/rever/boss/plugin/api/PluginUnloadResult$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lai/rever/boss/plugin/api/PluginUnloadResult;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lai/rever/boss/plugin/api/PluginUnloadResult;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ai/rever/boss/plugin/api/PluginUnloadResult$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
 public abstract interface class ai/rever/boss/plugin/api/ProgressDialogHandle {

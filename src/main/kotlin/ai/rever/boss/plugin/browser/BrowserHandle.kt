@@ -351,21 +351,44 @@ interface BrowserHandle {
      * must be tested for a layout box rather than trusted for being in the DOM. See fluck-browser's
      * `CredentialFill` for a worked implementation.
      *
-     * **Why a no-op body rather than deletion.** Removing it outright would have made every caller
-     * compiled against an older api throw `NoSuchMethodError` at the call site. That is survivable
-     * where the call is guarded, and fluck-browser 1.2.19 does guard it - but 1.2.18 and earlier
-     * call it bare inside a `launch`, where an `Error` reaches the coroutine uncaught and the host
-     * tears the whole plugin down, closing every open browser tab. Since `minBossVersion` gates
-     * plugin updates and the api plugin has no such gate, a user on an older host can receive this
-     * api while pinned to a fluck-browser that would crash on it. Returning false gives every one
-     * of those builds a silent no-op instead, which is also strictly better than what they do
-     * today - writing a password into a hidden input.
+     * **How to fill instead, including the part that is easy to get wrong.** [executeJavaScript]
+     * takes *source*, so the credential has to be interpolated into a script. It must be
+     * **JSON-encoded, never concatenated**: a password containing a quote, a backslash, a newline
+     * or U+2028 either breaks the script or closes the string literal and runs the remainder as
+     * code - an injection whose payload is the user's own secret. Encode it, then select the
+     * element you already identified rather than searching for one:
      *
-     * **Where the no-op actually takes effect.** [BrowserHandle] is `@HostImplemented`: the host
-     * compiles in its own copy and serves it parent-first, so this jar's body is shadowed at
-     * runtime. Changing it here is a compile-time signal to plugin authors - the behaviour change
-     * arrives with the BossConsole release that carries the matching copy. Gate on
-     * `minBossVersion`, not `minApiVersion`.
+     * ```
+     * val js = """(function(){var e=document.activeElement;
+     *   if(!e||e.tagName!=='INPUT')return 'nofield';
+     *   e.value=${'$'}{jsonEncode(password)}; e.dispatchEvent(new Event('input',{bubbles:true}));
+     *   return 'filled';})()"""
+     * val outcome = handle.executeJavaScript(js)?.toString()
+     * ```
+     *
+     * Return a sentinel like this rather than relying on the result being non-null:
+     * [executeJavaScript] answers `null` for an unsupported handle, a missing frame, a thrown
+     * script *and* a script that evaluated to null alike, so without one a failed fill is
+     * indistinguishable from success. It is also main-frame only, exactly as the removed
+     * implementation was, so nothing regressed there - but a field inside an iframe was never
+     * fillable through this API and still is not.
+     *
+     * **Why a no-op body rather than deletion.** Deleting the declaration is a host-contract
+     * change: it takes effect when BossConsole ships a copy without it, and from that point every
+     * caller compiled against an older api throws `NoSuchMethodError` at the call site. That is
+     * survivable where the call is guarded, and fluck-browser 1.2.19 does guard it - but 1.2.18 and
+     * earlier call it bare inside a `launch`, where an `Error` reaches the coroutine uncaught and
+     * the host tears the whole plugin down, closing every open browser tab. A user who takes the
+     * host update before the plugin one is in exactly that position. Returning false gives every
+     * such build a silent no-op instead, which is also strictly better than what they did before -
+     * writing a password into a hidden input.
+     *
+     * **Which copy of this you are reading matters.** [BrowserHandle] is `@HostImplemented`: the
+     * host compiles in its own copy and serves it parent-first, so *this jar's* body is shadowed at
+     * runtime and changing it here is a compile-time signal only. Every runtime statement above -
+     * that the call returns false, and that deleting the declaration would throw - is about the
+     * host's copy, and lands with the BossConsole release carrying it. Gate on `minBossVersion`,
+     * not `minApiVersion`.
      *
      * @return always false
      */

@@ -277,7 +277,7 @@ group = "ai.rever.boss.plugin.bundled"
 // payload is the user's own password. The KDoc now requires JSON encoding, shows the targeted
 // fill, and says to return a sentinel because executeJavaScript answers null for unsupported,
 // no-frame, threw and evaluated-to-null alike. Doc-only. Additive.
-version = "1.0.81"
+version = "1.0.82"
 
 java {
     toolchain {

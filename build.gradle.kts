@@ -260,6 +260,23 @@ group = "ai.rever.boss.plugin.bundled"
 // trusting it capped every null-maxTokens request at 2000 output tokens. Same provenance,
 // quieter symptom: an answer that stops mid-sentence reports no error anywhere. Doc-only.
 // Additive.
+//
+// 1.0.82 - documents the fillCredentials tombstone properly. 1.0.81 turned that method into a
+// deprecated no-op and its KDoc then contradicted itself: it said this jar's body is shadowed at
+// runtime AND that removing the method would throw NoSuchMethodError at the call site. Both are
+// true of DIFFERENT copies - the host compiles in its own BrowserHandle and serves it parent-first
+// - and side by side they read as nonsense. The runtime statements are now scoped to the host's
+// copy, and the crash window is attributed correctly: it is a user on a NEW host with a
+// not-yet-updated fluck-browser (1.2.18 and earlier call it bare in a launch), not the older host
+// the previous text blamed.
+//
+// The migration advice also said only "fill via executeJavaScript", which is public guidance that
+// leads somewhere bad if followed literally: executeJavaScript takes SOURCE, so a caller
+// interpolates the credential into a script, and concatenating one containing a quote, backslash,
+// newline or U+2028 closes the string literal and executes the remainder - an injection whose
+// payload is the user's own password. The KDoc now requires JSON encoding, shows the targeted
+// fill, and says to return a sentinel because executeJavaScript answers null for unsupported,
+// no-frame, threw and evaluated-to-null alike. Doc-only. Additive.
 version = "1.0.81"
 
 java {

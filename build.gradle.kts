@@ -277,6 +277,25 @@ group = "ai.rever.boss.plugin.bundled"
 // payload is the user's own password. The KDoc now requires JSON encoding, shows the targeted
 // fill, and says to return a sentinel because executeJavaScript answers null for unsupported,
 // no-frame, threw and evaluated-to-null alike. Doc-only. Additive.
+//
+// NEXT - BrowserHandle.setPageEventScript(script, onEvent) + the PAGE_EVENT_BRIDGE constant. A
+// document-start injection point with a push back to the plugin, for fluck-browser's "save this
+// password?" prompt. The prompt needs the credential the user typed, and the only moment it exists
+// is the submit that is immediately followed by a navigation destroying the JS context - so a
+// latch-and-poll design races its own teardown and loses on fast logins. A push cannot.
+//
+// Deliberately carries NO field rules, no event vocabulary and no credential type. The host
+// injects the script it is given and forwards whatever that script hands the bridge; the plugin
+// owns every heuristic. That is 1.0.81's lesson (fillCredentials could not say WHICH field, so the
+// host guessed, and guessed wrong on accounts.google.com) applied to reading rather than writing.
+// A typed CredentialSubmission parameter would have re-made exactly that mistake.
+//
+// Grants no new access: executeJavaScript already returns arbitrary page content to a plugin. What
+// is new is timing - before the page's own scripts, and delivered while the document still exists.
+//
+// HOST-IMPLEMENTED, so the default body is a no-op that silently delivers nothing and consumers
+// gate on the minBossVersion of the BossConsole release carrying the implementation, not on
+// minApiVersion. Additive.
 version = "1.0.82"
 
 java {

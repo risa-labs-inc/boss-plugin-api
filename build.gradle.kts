@@ -297,6 +297,26 @@ group = "ai.rever.boss.plugin.bundled"
 // gate on the minBossVersion of the BossConsole release carrying the implementation, not on
 // minApiVersion. Additive.
 //
+// Review settled four things while the shape was still free, all of which would have been
+// unfixable once a consumer shipped:
+//
+// - onEvent takes (url, json), not (json). The bridge is a public property on window, so any page
+//   script can post and a URL inside the JSON is whatever the poster chose to write. The host reads
+//   the posting document's URL at the moment of the call, which is the only trustworthy attribution
+//   a consumer has - and it also beats reading the handle's URL afterwards, which a navigation the
+//   event itself started can overtake. The first consumer uses it to decide which site a password
+//   is stored against, so guessing was not an option.
+// - The bridge is an OBJECT with an `emit(string)` method, not a callable. The KDoc showed
+//   `window.__bossPageEvent(json)` while the natural JxBrowser injection produces an object, and an
+//   implementer reading "installs a bridge object" would have built one shape against the other.
+// - A script must capture the reference at document start and post through the captured one, then
+//   delete the property. Reading `window.__bossPageEvent` at post time lets a page swap it first
+//   and receive the payload - which, for the first consumer, is the user's password. Documented
+//   with a worked example, because it is the difference between safe and not.
+// - Either argument being null uninstalls, the host DOES re-inject into the already-loaded
+//   document, and callers must clear the registration in dispose() or pin their own classloader
+//   across a hot swap. All three were previously unspecified or hedged.
+//
 // On the version: the release workflow BUMPS AND THEN RELEASES, so the number in this file is
 // the one already published and a merge cuts the next. Verified rather than assumed - #37 merged
 // while this said 1.0.80 and its no-op fillCredentials first appears in the v1.0.81 jar (javap:

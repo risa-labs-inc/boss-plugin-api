@@ -334,9 +334,22 @@ group = "ai.rever.boss.plugin.bundled"
 //   reach one document. Duplicates are cheap for an event-driven consumer; the guarantee was not.
 // - The host bounds payload size and rate and DROPS the excess rather than queueing it, so a chatty
 //   or hostile script cannot allocate its way through the host heap one call at a time.
-// - Either argument being null uninstalls; callers must uninstall in dispose() or pin their own
-//   classloader across an api hot swap; single owner per handle, so a second caller silently
-//   replaces the first.
+// - Arm and disarm are two methods, setPageEventScript(script, onEvent) with NON-NULL parameters
+//   plus clearPageEventScript(), matching startCoBrowseCapture/stopCoBrowseCapture on the same
+//   interface. The first draft took a nullable pair, which admitted (script, null) and (null,
+//   callback) - both only ever caller bugs, both silently uninstalling. Worth settling before
+//   release rather than after: BrowserHandle is @HostImplemented, so reshaping it later costs a
+//   BossConsole release.
+// - supportsPageEventScript, defaulting to false, so a consumer can tell an older host from a host
+//   that delivered nothing. Silence otherwise has three causes - no implementation, a host-side
+//   size/rate drop, and the user doing nothing - and minBossVersion is only the coarse answer. Same
+//   shape as supportsHiddenEntries (1.0.65) and supportsBulkAdd (1.0.69).
+// - PAGE_EVENT_EMIT pins the METHOD name too. The bridge property was a constant from the start
+//   while `.emit` lived only in prose, which is the same silent-rename hazard one level down: the
+//   name only appears inside a JavaScript string, so renaming it is a compile error at no consumer
+//   and every built plugin posts into a method that is gone.
+// - Callers must uninstall in dispose() or pin their own classloader across an api hot swap; single
+//   owner per handle, so a second caller silently replaces the first.
 // - NO origin scoping, deliberately, and worth stating rather than leaving to be discovered: one
 //   call means the script runs on every main-frame document for the handle's lifetime. That is not
 //   quite the same standing as executeJavaScript, which is per-call and per-document. An origin

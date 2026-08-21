@@ -148,6 +148,19 @@ data class PopupNavigation(
  */
 const val PAGE_EVENT_BRIDGE = "__bossPageEvent"
 
+/**
+ * The method a page-event script calls on its bridge: `__bossPageEvent.emit(payload)`.
+ *
+ * Pinned as a constant for exactly the reason [PAGE_EVENT_BRIDGE] is, which the first draft missed
+ * by leaving this half in prose. Renaming the method host-side would be a compile error at no
+ * consumer - the name only ever appears inside a JavaScript string - and every already-built plugin
+ * would post into a method that no longer exists, with nothing in any log. Same silent dead channel,
+ * one level down.
+ *
+ * `PageEventScriptContractTest` pins both values together.
+ */
+const val PAGE_EVENT_EMIT = "emit"
+
 @HostImplemented
 interface BrowserHandle {
     /**
@@ -560,14 +573,52 @@ interface BrowserHandle {
      * default below, which silently delivers nothing.
      *
      * @param script JavaScript source, evaluated as the body of a function whose single parameter
-     *   is named [PAGE_EVENT_BRIDGE]. Null to uninstall.
+     *   is named [PAGE_EVENT_BRIDGE].
      * @param onEvent Receives the posting document's URL and the string the script passed to the
-     *   bridge, or null to uninstall.
+     *   bridge.
      */
-    fun setPageEventScript(script: String?, onEvent: ((url: String, json: String) -> Unit)?) {
+    fun setPageEventScript(
+        script: String,
+        onEvent: (url: String, payload: String) -> Unit,
+    ) {
         // Default: no-op for hosts without the page-event channel. A caller gets silence, not an
-        // error, which is why the gate is minBossVersion rather than minApiVersion.
+        // error, which is why the gate is minBossVersion rather than minApiVersion - and why
+        // [supportsPageEventScript] exists, so silence can be told apart from absence.
     }
+
+    /**
+     * Uninstall what [setPageEventScript] installed: no further events are delivered.
+     *
+     * A separate method rather than passing nulls, matching [startCoBrowseCapture] /
+     * [stopCoBrowseCapture] on this same interface. The nullable-pair shape admitted
+     * `setPageEventScript(script, null)` and `setPageEventScript(null, callback)`, both of which can
+     * only ever be caller bugs and both of which silently uninstalled - and reshaping this after a
+     * release costs a BossConsole release, because [BrowserHandle] is `@HostImplemented`.
+     *
+     * As with [setPageEventScript], a script already evaluated in a live document is not retracted;
+     * it stops being able to reach anything.
+     *
+     * **Call this from your `dispose()`.** The host retains the callback, whose class comes from the
+     * plugin's classloader, so a live registration pins that classloader across an api hot swap.
+     */
+    fun clearPageEventScript() {
+        // Default: no-op, for the same reason as above.
+    }
+
+    /**
+     * Whether this handle actually implements the page-event channel.
+     *
+     * False on a host that predates it, where [setPageEventScript] is the no-op default above. The
+     * same shape as [ai.rever.boss.plugin.api.FileSystemDataProvider.supportsHiddenEntries] and
+     * `BookmarkDataProvider.supportsBulkAdd`, and for the same reason: a defaulted member makes
+     * "not implemented" indistinguishable from "implemented and nothing happened".
+     *
+     * That distinction matters more here than usual, because silence has three causes - an older
+     * host, a payload the host dropped for size or rate, and the user simply not doing anything. A
+     * consumer that cannot tell the first from the others has to treat its whole feature as
+     * best-effort. `minBossVersion` is the coarse version of this answer; this is the precise one.
+     */
+    val supportsPageEventScript: Boolean get() = false
 
     // ============================================================
     // CLIPBOARD OPERATIONS

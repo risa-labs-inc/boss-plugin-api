@@ -51,9 +51,10 @@ class PageEventScriptContractTest {
         // on one site then attributed to the site the login landed on, which for a cross-domain
         // sign-in means storing it against the wrong site entirely.
         //
-        // `single` rather than `first`: an origin-scoping overload is an anticipated addition, and
-        // `first` would then pick a nondeterministic one and fail with a confusing message about
-        // the wrong method.
+        // `single` rather than `first`, though not for the reason first written down: an
+        // origin-scoping overload would take three parameters and would not match this filter at
+        // all. What `single` actually guards is a future TWO-parameter overload - a spec object,
+        // say - which `first` would pick nondeterministically and then assert against.
         val method = declared.single { it.parameterCount == 2 }
         assertEquals(String::class.java, method.parameterTypes[0])
         assertEquals(
@@ -67,11 +68,43 @@ class PageEventScriptContractTest {
     }
 
     @Test
-    fun `the bridge name is exactly what already-built consumers compiled in`() {
+    fun `uninstalling is its own method, so a null pair cannot mean two things`() {
+        // The nullable-pair shape admitted setPageEventScript(script, null) and
+        // setPageEventScript(null, callback), both of which could only be caller bugs and both of
+        // which silently uninstalled. Reshaping after a release costs a BossConsole release, since
+        // BrowserHandle is @HostImplemented.
+        val clear = BrowserHandle::class.java.methods.filter { it.name == "clearPageEventScript" }
+        assertTrue(clear.isNotEmpty(), "clearPageEventScript is gone; uninstalling has no verb")
+        assertTrue(
+            clear.none { Modifier.isAbstract(it.modifiers) },
+            "clearPageEventScript has no default body, so an older host would throw rather than no-op",
+        )
+    }
+
+    @Test
+    fun `absence is distinguishable from silence`() {
+        // Silence has three causes here: an older host, a host-side drop, and the user doing
+        // nothing. Without this flag a consumer cannot tell the first from the others and has to
+        // treat its whole feature as best-effort. Same shape as supportsHiddenEntries /
+        // supportsBulkAdd.
+        val supports = BrowserHandle::class.java.methods.filter { it.name == "getSupportsPageEventScript" }
+        assertTrue(supports.isNotEmpty(), "supportsPageEventScript is gone")
+        assertTrue(
+            supports.none { Modifier.isAbstract(it.modifiers) },
+            "supportsPageEventScript must default to false for hosts that do not implement the channel",
+        )
+    }
+
+    @Test
+    fun `the bridge name and its method are exactly what already-built consumers compiled in`() {
         // PAGE_EVENT_BRIDGE is `const`, so its value is inlined at every call site. A rename would
         // not be a compile error for anyone: already-built plugins keep posting to the old name and
         // the host installs the new one, which is a dead channel with nothing in any log. This
         // assertion is the only thing standing between a rename and that outcome.
         assertEquals("__bossPageEvent", PAGE_EVENT_BRIDGE)
+        // The method name is the same class of hazard as the property name, which the first draft
+        // left in prose: renaming it host-side is a compile error at no consumer, and every built
+        // plugin posts into a method that no longer exists.
+        assertEquals("emit", PAGE_EVENT_EMIT)
     }
 }

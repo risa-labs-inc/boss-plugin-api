@@ -77,4 +77,4 @@ Pushes to `main` trigger the release workflow which:
 2. Creates a GitHub release
 3. Publishes to the BOSS Plugin Store
 
-The workflow is defined in `.github/workflows/build.yml` and delegates to the shared workflow in `risa-labs-inc/BossConsole-Releases`.
+The workflow is defined in `.github/workflows/release.yml` and delegates to the shared workflow in `risa-labs-inc/BossConsole-Releases`. Pull requests run `.github/workflows/test.yml` (`./gradlew build`, which includes `apiCheck`) - before that existed, nothing ran the tests until after a merge.

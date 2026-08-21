@@ -1,6 +1,6 @@
 name: Test
 
-# build.yml only fires on push to main and delegates to the release workflow, so
+# release.yml only fires on push to main and delegates to the release workflow, so
 # until now nothing ran the tests before a merge. That is a real gap for THIS
 # repo in particular: its tests exist to catch a later tidy-up of a defaulted
 # interface member or a `const` value, and both are things a PR introduces.
@@ -9,6 +9,15 @@ name: Test
 on:
   pull_request:
   workflow_dispatch:
+
+# A build needs to read the repo and nothing else.
+permissions:
+  contents: read
+
+# A force-push should not leave a superseded Compose-dependency build running.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
@@ -26,5 +35,7 @@ jobs:
 
       # `build` rather than `test`: it also runs apiCheck, which is what enforces
       # additive-only evolution of the published contract.
+      # No --no-daemon: setup-gradle recommends leaving the daemon enabled (it degrades
+      # configuration caching and dependency reuse otherwise) and stops it itself at job end.
       - name: Build and test
-        run: ./gradlew build --no-daemon
+        run: ./gradlew build

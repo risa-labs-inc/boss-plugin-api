@@ -104,27 +104,34 @@ data class PopupNavigation(
 }
 
 /**
- * The `window` property a page-event script posts through, to reach the plugin that installed it.
+ * The name a page-event script's bridge is bound to: a **function parameter in its own scope**, not
+ * a property on `window`.
  *
- * **The exact shape, because an implementer cannot guess it from the name.** The host installs an
- * OBJECT here, with one method:
+ * The host wraps the script it is given and passes the bridge in, so the script just uses the name:
  *
  * ```
- * window.__bossPageEvent.emit(someJsonString);   // one String argument, returns undefined
+ * // your script, as handed to setPageEventScript
+ * document.addEventListener('submit', function () {
+ *     __bossPageEvent.emit(JSON.stringify({ kind: 'submit' }));   // one String argument
+ * }, true);
  * ```
  *
- * Not a callable - `window.__bossPageEvent(json)` is a TypeError. The object is a host-side bridge
- * exposed to JavaScript, and only `emit` is reachable. A non-string argument is coerced by the
- * bridge layer; passing none, or extra arguments, is undefined behaviour and may throw inside the
- * page. Call it with exactly one string.
+ * It is an OBJECT with a single `emit(string)` method, not a callable: `__bossPageEvent(json)` is a
+ * TypeError. A non-string argument is coerced by the bridge layer; other arities are undefined.
  *
- * A `const val` on purpose, so the literal is compiled into both sides and there is no runtime
- * lookup to get wrong. That has a consequence worth knowing: renaming it would NOT be a compile
- * error at any already-built consumer, it would be a silently dead bridge, so
- * `PageEventScriptContractTest` pins the value.
+ * **Why a parameter and not a `window` property.** A documented global would be reachable by every
+ * script on the page, which for a channel whose first consumer posts a password means three
+ * separate problems: a page could replace the property and receive the payload itself, forge events
+ * into the plugin's sink, and detect BOSS by probing for the name. A binding in the script's own
+ * scope has none of those properties - there is nothing on `window` to read, replace, or test for.
+ * The host does use a `window` slot to hand the object over, but under an unguessable per-injection
+ * name that it deletes in the same evaluation.
  *
- * See [BrowserHandle.setPageEventScript], which also explains why a script should capture this
- * reference at document start rather than reading it when it wants to post.
+ * A `const val`, so the literal is compiled into both sides and there is no runtime lookup to get
+ * wrong - which also means renaming it would be a compile error at no consumer and a silently dead
+ * bridge at every one. `PageEventScriptContractTest` pins the value.
+ *
+ * See [BrowserHandle.setPageEventScript].
  */
 const val PAGE_EVENT_BRIDGE = "__bossPageEvent"
 
@@ -433,14 +440,28 @@ interface BrowserHandle {
 
     /**
      * Install [script] into every main-frame document as its context is created, and deliver each
-     * `window.`[PAGE_EVENT_BRIDGE]`.emit(json)` call it makes to [onEvent].
+     * `emit` call it makes to [onEvent].
      *
-     * **The host injects; the caller decides what to look for.** The host puts the bridge object on
-     * `window` under [PAGE_EVENT_BRIDGE], evaluates [script], and forwards whatever string that
-     * script hands the bridge. It does not parse the JSON, define an event vocabulary, or know what
-     * any event means. That split is the lesson of [fillCredentials] applied to reading instead of
-     * writing: a signature that forces the *host* to decide which field matters gets the decision
-     * wrong on real pages, because the plugin is the side that knows which box the user acted on.
+     * **How the script is evaluated.** It is wrapped, and the bridge is passed in as a parameter
+     * named [PAGE_EVENT_BRIDGE]. Effectively:
+     *
+     * ```
+     * (function (__bossPageEvent) {
+     *     // your script, verbatim
+     * })(theBridge);
+     * ```
+     *
+     * So write the script as a statement list that may use `__bossPageEvent.emit(json)` anywhere,
+     * and do not look for it on `window` - it is not there. Two consequences worth knowing: a
+     * top-level `return` is legal (it returns from the wrapper), and the wrapper does not isolate
+     * anything else, so declare your own state carefully if the script can be evaluated twice.
+     *
+     * **The host injects; the caller decides what to look for.** The host evaluates the script and
+     * forwards whatever string it hands the bridge. It does not parse the JSON, define an event
+     * vocabulary, or know what any event means. That split is the lesson of [fillCredentials]
+     * applied to reading instead of writing: a signature that forces the *host* to decide which
+     * field matters gets the decision wrong on real pages, because the plugin is the side that
+     * knows which box the user acted on.
      *
      * **What this adds that [executeJavaScript] cannot do.** Not read access - a plugin can already
      * read any page content by evaluating a script and taking its return value. What is new is
@@ -452,62 +473,36 @@ interface BrowserHandle {
      *   A form submit is followed by a navigation that destroys the JS context, so anything latched
      *   in the page for a later read is racing its own teardown.
      *
-     * ## The payload is untrusted, and the script must post through a captured reference
-     *
-     * [PAGE_EVENT_BRIDGE] is a fixed, documented name on `window`, so three things follow. They are
-     * the contract's sharpest edges and none is hypothetical:
-     *
-     * - **Any page script can call it.** What arrives at [onEvent] is attacker-controlled input, not
-     *   proof that [script] produced it. Shape-check it; never trust a field that decides which
-     *   origin or account something belongs to. [url] below is the authoritative answer for that.
-     * - **A page can replace the property before [script] uses it.** A script that resolves
-     *   `window.__bossPageEvent` at the moment it wants to post can hand its payload to the page
-     *   instead. If the payload is sensitive - and the first consumer posts a password - this is the
-     *   difference between safe and not. **Capture the reference at document start**, which is
-     *   exactly what the document-start guarantee is for, and consider removing it afterwards so no
-     *   later script can reach it at all:
-     *
-     * ```
-     * (function () {
-     *     var post = window.__bossPageEvent;                 // captured before page scripts run
-     *     try { delete window.__bossPageEvent; } catch (e) { } // page can no longer call or replace
-     *     document.addEventListener('submit', function () {
-     *         post.emit(JSON.stringify({ … }));              // the captured one, never window.…
-     *     }, true);
-     * })();
-     * ```
-     *
-     * - **A page can detect it.** `typeof window.__bossPageEvent` fingerprints BOSS while a script
-     *   is installed. Deleting the property as above closes that too.
-     *
-     * [script] runs on **every** main-frame document, not a caller-supplied URL pattern: there is no
-     * origin filter, so a listener it installs executes on every site the user visits.
-     *
      * ## Contract
      *
-     * - [url] is the URL of the document that posted the event, read by the host at the moment of
-     *   the call. It is authoritative - a forged payload cannot lie about it, and unlike reading the
-     *   handle's URL after the fact it cannot be overtaken by a navigation the event itself started.
-     *   **Attribute events by this, not by a URL inside the JSON.**
+     * - [url] is the URL of the document that posted, read by the host at the moment of the call.
+     *   It is authoritative, and it is what events should be attributed by - not a URL inside the
+     *   JSON, which is only ever as trustworthy as the code that wrote it. Reading the handle's URL
+     *   after the fact is worse still: a navigation the event itself started can overtake it, so a
+     *   credential typed on one site can be attributed to the site the login landed on.
      * - [onEvent] is invoked on a **JxBrowser thread**, inside the page's own event dispatch, and
      *   MUST NOT block. Do nothing beyond a non-blocking enqueue.
      * - An exception thrown by [onEvent] is swallowed rather than propagated, because the thread it
-     *   would unwind is the page's.
+     *   would unwind is the page's. That includes `CancellationException`, so do not rely on
+     *   cancellation escaping from the sink.
      * - Delivery is in the order the script posted, per document. [onEvent] may be entered
-     *   concurrently for *different* documents (a popup, a background frame committing), so treat
-     *   it as reentrant.
-     * - **No throttling and no size cap.** A chatty or hostile script can post in a tight loop, and
-     *   a payload is as large as the page makes it. Bound both on the receiving side.
+     *   concurrently for *different* documents, so treat it as reentrant.
+     * - **The host bounds each payload's size and the rate it will forward**, and drops what
+     *   exceeds either rather than queueing it. Do not depend on the exact limits; do not assume a
+     *   burst arrives complete.
      * - Main frame only. A form inside a cross-origin iframe is out of reach here, exactly as it is
      *   for [executeJavaScript].
      * - **The host DOES re-inject into the document already loaded** when this is first called, so a
      *   caller does not have to wait for the next navigation. Events posted by that injection are
      *   delivered normally, and may arrive before this call returns.
-     * - [script] is evaluated once per document. Write it to be idempotent anyway: the immediate
-     *   injection and a document-start injection can both reach the same document in a race.
-     * - Calling this again replaces the previous script and callback. **Either argument being null
-     *   uninstalls**: no further events are delivered, though a script already evaluated in a live
-     *   document stays in that document until it navigates.
+     * - [script] is evaluated once per document, but **write it to be idempotent**: the immediate
+     *   injection and a document-start injection can both reach one document, and replacing the
+     *   script does NOT retract the previous one from a document that is already live - the old
+     *   generation keeps running there, and its events arrive at the new sink. A guard the script
+     *   sets on first run is the usual answer.
+     * - Calling this again replaces the script and callback. **Either argument being null
+     *   uninstalls**, and after that no further events are delivered - though as above, a script
+     *   already evaluated in a live document is still there until it navigates.
      * - **Uninstall in your `dispose()`.** The host retains [onEvent], whose class comes from the
      *   plugin's classloader, so a live registration pins that classloader - which matters because
      *   the api layer is hot-swappable (unload-all, swap, reload-all). The host clears its own
@@ -521,12 +516,16 @@ interface BrowserHandle {
      *   exactly that. **The payload may be the user's plaintext secret: do not log it**, host-side
      *   or plugin-side, for the same reason [fillCredentials] warns against concatenating one into
      *   a script.
+     * - **The host applies no policy of its own.** If a setting is supposed to govern whether this
+     *   runs, the plugin enforces it by not installing a script; the host injects whatever it is
+     *   given. Nothing here is gated on a user preference.
      *
      * Because the host owns the implementation, a caller needs the **`minBossVersion`** of the
      * release carrying it, not `minApiVersion` alone: against an older host this is the no-op
      * default below, which silently delivers nothing.
      *
-     * @param script JavaScript source to evaluate at document start, or null to uninstall.
+     * @param script JavaScript source, evaluated as the body of a function whose single parameter
+     *   is named [PAGE_EVENT_BRIDGE]. Null to uninstall.
      * @param onEvent Receives the posting document's URL and the string the script passed to the
      *   bridge, or null to uninstall.
      */

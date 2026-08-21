@@ -13,7 +13,25 @@ data class LoadedPluginInfo(
     val version: String,
     val description: String = "",
     val author: String = "",
+    /**
+     * The plugin's homepage, straight from its manifest. Display metadata, and NOT a download
+     * source: every plugin declares one and it is almost always the repo it is developed in, which
+     * says nothing about where this copy was fetched from. Reading it as a source is what [sourceUrl]
+     * exists to stop - see there.
+     */
     val url: String = "",
+    /**
+     * Where this copy was actually installed FROM, or "" for a plugin store install.
+     *
+     * The host records this when it installs a plugin and it is the only field that answers "fetch
+     * an update from where". [url] cannot answer it: a store plugin whose repo is private still
+     * declares that repo as its homepage, and treating the two as interchangeable sent store
+     * updates to an unauthenticated GitHub API call that answers 404 for every private repo.
+     *
+     * Blank has one meaning, deliberately: ask the store. That covers both a store install and a
+     * host too old to populate this field, and both want the same answer.
+     */
+    val sourceUrl: String = "",
     val type: String = "panel",
     val apiVersion: String = "",
     val minBossVersion: String = "",

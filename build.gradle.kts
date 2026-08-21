@@ -326,10 +326,12 @@ group = "ai.rever.boss.plugin.bundled"
 //   and reading the handle's URL AFTER the fact can be overtaken by the navigation the event itself
 //   started. That would attribute a credential to the page a login LANDED on rather than the one it
 //   was typed into, which for a cross-domain sign-in means storing it against the wrong site.
-// - The host guarantees ONE evaluation per document, so a script does not need a cross-evaluation
-//   guard. It cannot easily have one anyway: each evaluation gets a fresh function scope, so a
-//   script-local flag is invisible to a second run, and the only shared slot is window - which is
-//   the detectability the parameter design exists to remove.
+// - A script may be evaluated MORE than once in one document and must tolerate it. A guard inside
+//   the script cannot fix that (fresh function scope per evaluation), and the only shared slot is
+//   window - the detectability this design removes. A draft of this contract promised the host would
+//   dedupe instead; it could not, because the host's navigation event fires after the new document's
+//   script context is created, so any counter keyed on it advances between the two injections that
+//   reach one document. Duplicates are cheap for an event-driven consumer; the guarantee was not.
 // - The host bounds payload size and rate and DROPS the excess rather than queueing it, so a chatty
 //   or hostile script cannot allocate its way through the host heap one call at a time.
 // - Either argument being null uninstalls; callers must uninstall in dispose() or pin their own

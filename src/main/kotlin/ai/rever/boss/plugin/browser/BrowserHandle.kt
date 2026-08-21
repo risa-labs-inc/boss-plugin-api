@@ -453,7 +453,11 @@ interface BrowserHandle {
 
     /**
      * Install [script] into every main-frame document as its context is created, and deliver each
-     * `emit` call it makes to [onEvent].
+     * [PAGE_EVENT_BRIDGE]`.emit(json)` call it makes to [onEvent].
+     *
+     * [PAGE_EVENT_BRIDGE] is a **parameter passed to the script**, never a property on `window` -
+     * writing `window.__bossPageEvent.emit(...)` gets `undefined`, a TypeError the host's wrapper
+     * swallows, and a channel that silently never fires. See its KDoc.
      *
      * **How the script is evaluated.** It is wrapped, and the bridge is passed in as a parameter
      * named [PAGE_EVENT_BRIDGE]. Effectively:
@@ -509,16 +513,19 @@ interface BrowserHandle {
      * - **The host DOES re-inject into the document already loaded** when this is first called, so a
      *   caller does not have to wait for the next navigation. Events posted by that injection are
      *   delivered normally, and may arrive before this call returns.
-     * - **[script] is evaluated exactly once per document, and the host guarantees that** - it will
-     *   not double-inject, so a script needs no cross-evaluation guard. Worth stating because the
-     *   earlier advice to "write a guard" was not implementable: the wrapper gives each evaluation a
-     *   fresh function scope, so a script-local flag is invisible to a second run, and the only slot
-     *   shared across evaluations is `window` - which is exactly the detectability the parameter
-     *   shape exists to remove.
+     * - **[script] may be evaluated more than once in one document, and must tolerate that.**
+     *   Reinstalling while a page is open evaluates it again in that page, and replacing a script
+     *   does not retract the previous generation from a document already running it - the old
+     *   listeners stay, and their events arrive at the new sink.
      *
-     *   The consequence to know instead: replacing the script does NOT retract the previous one from
-     *   a document that is already live. The old generation keeps running there and its events
-     *   arrive at the new sink; the replacement takes effect from the next document.
+     *   A guard inside the script cannot fix it: each evaluation gets a fresh function scope, so a
+     *   script-local flag is invisible to the next run, and the only slot shared across evaluations
+     *   is `window` - which is the detectability the parameter shape exists to remove. An earlier
+     *   draft of this contract promised the host would dedupe instead. It could not: the host's
+     *   navigation event fires AFTER the new document's script context is created, so any counter
+     *   keyed on it advances between the two injections that reach one document and permits the
+     *   second anyway. Tolerating duplicates is the cheaper side of the trade for an event-driven
+     *   consumer - two identical events cost a conflated channel nothing.
      * - Calling this again replaces the script and callback. **Either argument being null
      *   uninstalls**, and after that no further events are delivered - though as above, a script
      *   already evaluated in a live document is still there until it navigates.

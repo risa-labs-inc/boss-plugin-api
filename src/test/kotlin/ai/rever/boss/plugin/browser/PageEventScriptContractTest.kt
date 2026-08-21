@@ -42,20 +42,28 @@ class PageEventScriptContractTest {
 
     @Test
     fun `it takes the script and a two-argument callback`() {
-        // The callback's FIRST argument is the posting document's URL, supplied by the host. It is
-        // the only trustworthy attribution a consumer has: the bridge is a public property on
-        // window, so any page script can post, and a URL inside the JSON is whatever the poster
-        // chose to write. Collapsing this back to a one-argument callback would leave consumers
-        // guessing which origin an event belongs to - and the first consumer uses it to decide
-        // which site a password gets stored against.
-        val method = declared.first()
-        assertEquals(2, method.parameterCount, "signature changed: ${method.parameterTypes.toList()}")
+        // The callback's FIRST argument is the posting document's URL, supplied by the host.
+        //
+        // The reason is NOT that the channel is forgeable - under the parameter design the bridge
+        // never reaches window, so it largely is not. It is that a URL inside the JSON is only as
+        // trustworthy as whatever wrote it, and the alternative of reading the handle's URL AFTER
+        // the fact can be overtaken by the navigation the event itself started: a credential typed
+        // on one site then attributed to the site the login landed on, which for a cross-domain
+        // sign-in means storing it against the wrong site entirely.
+        //
+        // `single` rather than `first`: an origin-scoping overload is an anticipated addition, and
+        // `first` would then pick a nondeterministic one and fail with a confusing message about
+        // the wrong method.
+        val method = declared.single { it.parameterCount == 2 }
         assertEquals(String::class.java, method.parameterTypes[0])
         assertEquals(
             "kotlin.jvm.functions.Function2",
             method.parameterTypes[1].name,
             "the callback is no longer a two-argument function, so the document URL is gone",
         )
+        // NOT covered, and worth saying so rather than letting a reader assume it is: both Function2
+        // parameters erase to Object, so reflection cannot see that the URL comes FIRST. That order
+        // is enforced by the KDoc alone.
     }
 
     @Test

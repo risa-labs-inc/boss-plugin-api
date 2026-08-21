@@ -117,15 +117,28 @@ data class PopupNavigation(
  * ```
  *
  * It is an OBJECT with a single `emit(string)` method, not a callable: `__bossPageEvent(json)` is a
- * TypeError. A non-string argument is coerced by the bridge layer; other arities are undefined.
+ * TypeError. A non-string argument is coerced by the bridge layer. `emit()` with no argument is a
+ * TypeError from the bridge and posts nothing; arguments beyond the first are ignored.
  *
  * **Why a parameter and not a `window` property.** A documented global would be reachable by every
  * script on the page, which for a channel whose first consumer posts a password means three
  * separate problems: a page could replace the property and receive the payload itself, forge events
  * into the plugin's sink, and detect BOSS by probing for the name. A binding in the script's own
  * scope has none of those properties - there is nothing on `window` to read, replace, or test for.
- * The host does use a `window` slot to hand the object over, but under an unguessable per-injection
- * name that it deletes in the same evaluation.
+ * The host does use a `window` slot to hand the object over - a script cannot be passed arguments -
+ * but under a random per-injection name that it reads into a local and deletes **before invoking the
+ * script body**, in that order and in the same evaluation.
+ *
+ * That ordering is part of the contract rather than an implementation detail: a delete placed after
+ * the script body is skipped whenever the script throws, which leaves a live bridge object reachable
+ * on `window` for the rest of the document - the exact state this design exists to prevent, reached
+ * by a syntax error.
+ *
+ * What the random name does NOT buy is protection from enumeration: `Object.keys(window)` in the gap
+ * between the host writing the slot and the script deleting it finds the key whatever it is called.
+ * That gap exists only for the one-off injection into a document already running page script; at
+ * document start no page code has executed. The name carries no recognisable prefix, so what
+ * enumeration can find there is an anonymous key rather than a "this is BOSS" bit.
  *
  * A `const val`, so the literal is compiled into both sides and there is no runtime lookup to get
  * wrong - which also means renaming it would be a compile error at no consumer and a silently dead
@@ -475,7 +488,8 @@ interface BrowserHandle {
      *
      * ## Contract
      *
-     * - [url] is the URL of the document that posted, read by the host at the moment of the call.
+     * - The callback's FIRST argument is the URL of the document that posted, read by the host at
+     *   the moment of the call.
      *   It is authoritative, and it is what events should be attributed by - not a URL inside the
      *   JSON, which is only ever as trustworthy as the code that wrote it. Reading the handle's URL
      *   after the fact is worse still: a navigation the event itself started can overtake it, so a
@@ -495,11 +509,16 @@ interface BrowserHandle {
      * - **The host DOES re-inject into the document already loaded** when this is first called, so a
      *   caller does not have to wait for the next navigation. Events posted by that injection are
      *   delivered normally, and may arrive before this call returns.
-     * - [script] is evaluated once per document, but **write it to be idempotent**: the immediate
-     *   injection and a document-start injection can both reach one document, and replacing the
-     *   script does NOT retract the previous one from a document that is already live - the old
-     *   generation keeps running there, and its events arrive at the new sink. A guard the script
-     *   sets on first run is the usual answer.
+     * - **[script] is evaluated exactly once per document, and the host guarantees that** - it will
+     *   not double-inject, so a script needs no cross-evaluation guard. Worth stating because the
+     *   earlier advice to "write a guard" was not implementable: the wrapper gives each evaluation a
+     *   fresh function scope, so a script-local flag is invisible to a second run, and the only slot
+     *   shared across evaluations is `window` - which is exactly the detectability the parameter
+     *   shape exists to remove.
+     *
+     *   The consequence to know instead: replacing the script does NOT retract the previous one from
+     *   a document that is already live. The old generation keeps running there and its events
+     *   arrive at the new sink; the replacement takes effect from the next document.
      * - Calling this again replaces the script and callback. **Either argument being null
      *   uninstalls**, and after that no further events are delivered - though as above, a script
      *   already evaluated in a live document is still there until it navigates.
@@ -519,6 +538,15 @@ interface BrowserHandle {
      * - **The host applies no policy of its own.** If a setting is supposed to govern whether this
      *   runs, the plugin enforces it by not installing a script; the host injects whatever it is
      *   given. Nothing here is gated on a user preference.
+     * - **No origin scoping, deliberately.** One call means [script] runs on every main-frame
+     *   document for the handle's lifetime - a genuinely different standing from [executeJavaScript],
+     *   which is per-call and per-document. Stated rather than left to be discovered: a plugin
+     *   installing a keystroke-capable listener here installs it on every site the user visits. An
+     *   origin allowlist is additive later (an overload), and is the obvious next parameter if a
+     *   consumer wants less than everywhere.
+     * - **A drop is not signalled.** A consumer cannot tell "the user submitted nothing" from "the
+     *   rate limit ate that event". The host logs a rate-limited line, which is a diagnostic rather
+     *   than something a caller can act on.
      *
      * Because the host owns the implementation, a caller needs the **`minBossVersion`** of the
      * release carrying it, not `minApiVersion` alone: against an older host this is the no-op

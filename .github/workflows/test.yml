@@ -1,0 +1,30 @@
+name: Test
+
+# build.yml only fires on push to main and delegates to the release workflow, so
+# until now nothing ran the tests before a merge. That is a real gap for THIS
+# repo in particular: its tests exist to catch a later tidy-up of a defaulted
+# interface member or a `const` value, and both are things a PR introduces.
+# The release workflow does run `./gradlew build`, but by then the contract has
+# already shipped.
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # `build` rather than `test`: it also runs apiCheck, which is what enforces
+      # additive-only evolution of the published contract.
+      - name: Build and test
+        run: ./gradlew build --no-daemon

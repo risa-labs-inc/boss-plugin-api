@@ -297,31 +297,49 @@ group = "ai.rever.boss.plugin.bundled"
 // gate on the minBossVersion of the BossConsole release carrying the implementation, not on
 // minApiVersion. Additive.
 //
-// Review settled four things while the shape was still free, all of which would have been
-// unfixable once a consumer shipped:
+// THE BRIDGE IS A SCOPED PARAMETER, NOT A WINDOW PROPERTY, and that is the one decision an
+// implementer must not get wrong. The host wraps the script and passes the object in as a parameter
+// named PAGE_EVENT_BRIDGE. Nothing is left on window.
 //
-// - onEvent takes (url, json), not (json). The bridge is a public property on window, so any page
-//   script can post and a URL inside the JSON is whatever the poster chose to write. The host reads
-//   the posting document's URL at the moment of the call, which is the only trustworthy attribution
-//   a consumer has - and it also beats reading the handle's URL afterwards, which a navigation the
-//   event itself started can overtake. The first consumer uses it to decide which site a password
-//   is stored against, so guessing was not an option.
-// - The bridge is an OBJECT with an `emit(string)` method, not a callable. The KDoc showed
-//   `window.__bossPageEvent(json)` while the natural JxBrowser injection produces an object, and an
-//   implementer reading "installs a bridge object" would have built one shape against the other.
-// - A script must capture the reference at document start and post through the captured one, then
-//   delete the property. Reading `window.__bossPageEvent` at post time lets a page swap it first
-//   and receive the payload - which, for the first consumer, is the user's password. Documented
-//   with a worked example, because it is the difference between safe and not.
-// - Either argument being null uninstalls, the host DOES re-inject into the already-loaded
-//   document, and callers must clear the registration in dispose() or pin their own classloader
-//   across a hot swap. All three were previously unspecified or hedged.
+// Three earlier drafts of this contract said otherwise and each was a security bug, which is why
+// this paragraph is long. A documented global is reachable by every script on the page, so for a
+// channel whose first consumer posts a password: a page could REPLACE the property and receive the
+// payload itself; FORGE events into the plugin's sink; and DETECT BOSS by probing for the name. A
+// binding in the script's own scope has none of those. The host does need a window slot to hand the
+// object across (executeJavaScript takes source, not arguments), so it uses a random per-injection
+// name and, in the SAME evaluation and BEFORE invoking the script body, reads it into a local and
+// deletes it. That ordering is part of the contract: a delete after the script body is skipped
+// whenever the script throws, leaving a live bridge on window for the rest of the document.
 //
-// On the version: the release workflow BUMPS AND THEN RELEASES, so the number in this file is
-// the one already published and a merge cuts the next. Verified rather than assumed - #37 merged
-// while this said 1.0.80 and its no-op fillCredentials first appears in the v1.0.81 jar (javap:
-// abstract in v1.0.80, default in v1.0.81). So do NOT hand-edit this to 1.0.83; the bot writes it,
-// and pre-bumping here would make the merge cut 1.0.84 and 404 both downstream pins.
+// What the random name does not buy: enumeration. Object.keys(window) in the gap between the host
+// writing the slot and the script deleting it finds the key whatever it is called - a gap that only
+// exists for the one-off injection into a document already running page script. The name therefore
+// carries no recognisable prefix, so what enumeration finds is anonymous rather than a "this is
+// BOSS" bit. Closing it fully needs a non-enumerable property, which JsObject.putProperty cannot
+// express.
+//
+// Also settled while the shape was free:
+//
+// - onEvent takes (url, json), not (json). The host reads the posting document's URL at the moment
+//   of the call. The reason is NOT that the channel is forgeable - under the parameter design it
+//   largely is not - it is that a URL inside the JSON is only as trustworthy as whatever wrote it,
+//   and reading the handle's URL AFTER the fact can be overtaken by the navigation the event itself
+//   started. That would attribute a credential to the page a login LANDED on rather than the one it
+//   was typed into, which for a cross-domain sign-in means storing it against the wrong site.
+// - The host guarantees ONE evaluation per document, so a script does not need a cross-evaluation
+//   guard. It cannot easily have one anyway: each evaluation gets a fresh function scope, so a
+//   script-local flag is invisible to a second run, and the only shared slot is window - which is
+//   the detectability the parameter design exists to remove.
+// - The host bounds payload size and rate and DROPS the excess rather than queueing it, so a chatty
+//   or hostile script cannot allocate its way through the host heap one call at a time.
+// - Either argument being null uninstalls; callers must uninstall in dispose() or pin their own
+//   classloader across an api hot swap; single owner per handle, so a second caller silently
+//   replaces the first.
+// - NO origin scoping, deliberately, and worth stating rather than leaving to be discovered: one
+//   call means the script runs on every main-frame document for the handle's lifetime. That is not
+//   quite the same standing as executeJavaScript, which is per-call and per-document. An origin
+//   allowlist is additive later (an overload), and is the obvious next parameter if a second
+//   consumer wants less than "everywhere".
 version = "1.0.82"
 
 java {

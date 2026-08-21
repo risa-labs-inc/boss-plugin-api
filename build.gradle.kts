@@ -355,7 +355,7 @@ group = "ai.rever.boss.plugin.bundled"
 //   quite the same standing as executeJavaScript, which is per-call and per-document. An origin
 //   allowlist is additive later (an overload), and is the obvious next parameter if a second
 //   consumer wants less than "everywhere".
-version = "1.0.82"
+version = "1.0.83"
 
 java {
     toolchain {

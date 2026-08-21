@@ -103,6 +103,64 @@ data class PopupNavigation(
     }
 }
 
+/**
+ * The name a page-event script's bridge is bound to: a **function parameter in its own scope**, not
+ * a property on `window`.
+ *
+ * The host wraps the script it is given and passes the bridge in, so the script just uses the name:
+ *
+ * ```
+ * // your script, as handed to setPageEventScript
+ * document.addEventListener('submit', function () {
+ *     __bossPageEvent.emit(JSON.stringify({ kind: 'submit' }));   // one String argument
+ * }, true);
+ * ```
+ *
+ * It is an OBJECT with a single `emit(string)` method, not a callable: `__bossPageEvent(json)` is a
+ * TypeError. A non-string argument is coerced by the bridge layer. `emit()` with no argument is a
+ * TypeError from the bridge and posts nothing; arguments beyond the first are ignored.
+ *
+ * **Why a parameter and not a `window` property.** A documented global would be reachable by every
+ * script on the page, which for a channel whose first consumer posts a password means three
+ * separate problems: a page could replace the property and receive the payload itself, forge events
+ * into the plugin's sink, and detect BOSS by probing for the name. A binding in the script's own
+ * scope has none of those properties - there is nothing on `window` to read, replace, or test for.
+ * The host does use a `window` slot to hand the object over - a script cannot be passed arguments -
+ * but under a random per-injection name that it reads into a local and deletes **before invoking the
+ * script body**, in that order and in the same evaluation.
+ *
+ * That ordering is part of the contract rather than an implementation detail: a delete placed after
+ * the script body is skipped whenever the script throws, which leaves a live bridge object reachable
+ * on `window` for the rest of the document - the exact state this design exists to prevent, reached
+ * by a syntax error.
+ *
+ * What the random name does NOT buy is protection from enumeration: `Object.keys(window)` in the gap
+ * between the host writing the slot and the script deleting it finds the key whatever it is called.
+ * That gap exists only for the one-off injection into a document already running page script; at
+ * document start no page code has executed. The name carries no recognisable prefix, so what
+ * enumeration can find there is an anonymous key rather than a "this is BOSS" bit.
+ *
+ * A `const val`, so the literal is compiled into both sides and there is no runtime lookup to get
+ * wrong - which also means renaming it would be a compile error at no consumer and a silently dead
+ * bridge at every one. `PageEventScriptContractTest` pins the value.
+ *
+ * See [BrowserHandle.setPageEventScript].
+ */
+const val PAGE_EVENT_BRIDGE = "__bossPageEvent"
+
+/**
+ * The method a page-event script calls on its bridge: `__bossPageEvent.emit(payload)`.
+ *
+ * Pinned as a constant for exactly the reason [PAGE_EVENT_BRIDGE] is, which the first draft missed
+ * by leaving this half in prose. Renaming the method host-side would be a compile error at no
+ * consumer - the name only ever appears inside a JavaScript string - and every already-built plugin
+ * would post into a method that no longer exists, with nothing in any log. Same silent dead channel,
+ * one level down.
+ *
+ * `PageEventScriptContractTest` pins both values together.
+ */
+const val PAGE_EVENT_EMIT = "emit"
+
 @HostImplemented
 interface BrowserHandle {
     /**
@@ -401,6 +459,166 @@ interface BrowserHandle {
         // auto-applied quick fix would produce code that compiles and fills nothing.
     )
     suspend fun fillCredentials(username: String, password: String, fillBoth: Boolean = true): Boolean = false
+
+    // ============================================================
+    // PAGE EVENT CHANNEL
+    // ============================================================
+
+    /**
+     * Install [script] into every main-frame document as its context is created, and deliver each
+     * [PAGE_EVENT_BRIDGE]`.emit(json)` call it makes to [onEvent].
+     *
+     * [PAGE_EVENT_BRIDGE] is a **parameter passed to the script**, never a property on `window` -
+     * writing `window.__bossPageEvent.emit(...)` gets `undefined`, a TypeError the host's wrapper
+     * swallows, and a channel that silently never fires. See its KDoc.
+     *
+     * **How the script is evaluated.** It is wrapped, and the bridge is passed in as a parameter
+     * named [PAGE_EVENT_BRIDGE]. Effectively:
+     *
+     * ```
+     * (function (__bossPageEvent) {
+     *     // your script, verbatim
+     * })(theBridge);
+     * ```
+     *
+     * So write the script as a statement list that may use `__bossPageEvent.emit(json)` anywhere,
+     * and do not look for it on `window` - it is not there. Two consequences worth knowing: a
+     * top-level `return` is legal (it returns from the wrapper), and the wrapper does not isolate
+     * anything else, so declare your own state carefully if the script can be evaluated twice.
+     *
+     * **The host injects; the caller decides what to look for.** The host evaluates the script and
+     * forwards whatever string it hands the bridge. It does not parse the JSON, define an event
+     * vocabulary, or know what any event means. That split is the lesson of [fillCredentials]
+     * applied to reading instead of writing: a signature that forces the *host* to decide which
+     * field matters gets the decision wrong on real pages, because the plugin is the side that
+     * knows which box the user acted on.
+     *
+     * **What this adds that [executeJavaScript] cannot do.** Not read access - a plugin can already
+     * read any page content by evaluating a script and taking its return value. What is new is
+     * *timing*, in two ways a poll has no answer for:
+     *
+     * - **Document start.** [script] runs before the page's own scripts, so a listener it installs
+     *   sees events the page would otherwise consume first.
+     * - **A push.** An event can be delivered while the document that produced it is still alive.
+     *   A form submit is followed by a navigation that destroys the JS context, so anything latched
+     *   in the page for a later read is racing its own teardown.
+     *
+     * ## Contract
+     *
+     * - The callback's FIRST argument is the URL of the document that posted, read by the host at
+     *   the moment of the call.
+     *   It is authoritative, and it is what events should be attributed by - not a URL inside the
+     *   JSON, which is only ever as trustworthy as the code that wrote it. Reading the handle's URL
+     *   after the fact is worse still: a navigation the event itself started can overtake it, so a
+     *   credential typed on one site can be attributed to the site the login landed on.
+     * - [onEvent] is invoked on a **JxBrowser thread**, inside the page's own event dispatch, and
+     *   MUST NOT block. Do nothing beyond a non-blocking enqueue.
+     * - An exception thrown by [onEvent] is swallowed rather than propagated, because the thread it
+     *   would unwind is the page's. That includes `CancellationException`, so do not rely on
+     *   cancellation escaping from the sink.
+     * - Delivery is in the order the script posted, per document. [onEvent] may be entered
+     *   concurrently for *different* documents, so treat it as reentrant.
+     * - **The host bounds each payload's size and the rate it will forward**, and drops what
+     *   exceeds either rather than queueing it. Do not depend on the exact limits; do not assume a
+     *   burst arrives complete.
+     * - Main frame only. A form inside a cross-origin iframe is out of reach here, exactly as it is
+     *   for [executeJavaScript].
+     * - **The host DOES re-inject into the document already loaded** when this is first called, so a
+     *   caller does not have to wait for the next navigation. Events posted by that injection are
+     *   delivered normally, and may arrive before this call returns.
+     * - **[script] may be evaluated more than once in one document, and must tolerate that.**
+     *   Reinstalling while a page is open evaluates it again in that page, and replacing a script
+     *   does not retract the previous generation from a document already running it - the old
+     *   listeners stay, and their events arrive at the new sink.
+     *
+     *   A guard inside the script cannot fix it: each evaluation gets a fresh function scope, so a
+     *   script-local flag is invisible to the next run, and the only slot shared across evaluations
+     *   is `window` - which is the detectability the parameter shape exists to remove. An earlier
+     *   draft of this contract promised the host would dedupe instead. It could not: the host's
+     *   navigation event fires AFTER the new document's script context is created, so any counter
+     *   keyed on it advances between the two injections that reach one document and permits the
+     *   second anyway. Tolerating duplicates is the cheaper side of the trade for an event-driven
+     *   consumer - two identical events cost a conflated channel nothing.
+     * - Calling this again replaces the script and callback. **Either argument being null
+     *   uninstalls**, and after that no further events are delivered - though as above, a script
+     *   already evaluated in a live document is still there until it navigates.
+     * - **Uninstall in your `dispose()`.** The host retains [onEvent], whose class comes from the
+     *   plugin's classloader, so a live registration pins that classloader - which matters because
+     *   the api layer is hot-swappable (unload-all, swap, reload-all). The host clears its own
+     *   reference when the handle's browser goes away, but that is the handle's lifetime, not the
+     *   plugin's.
+     * - A handle whose browser is gone does nothing, and never throws.
+     * - Coexists with [startCoBrowseCapture]. Both inject at document start and both deliver JSON
+     *   over a bridge, and the host multiplexes the single underlying injection hook, so arming one
+     *   does not switch off the other. Note the *inverted* posture though: co-browse has
+     *   `maskInputs` so it never streams what the user typed, while this channel exists to carry
+     *   exactly that. **The payload may be the user's plaintext secret: do not log it**, host-side
+     *   or plugin-side, for the same reason [fillCredentials] warns against concatenating one into
+     *   a script.
+     * - **The host applies no policy of its own.** If a setting is supposed to govern whether this
+     *   runs, the plugin enforces it by not installing a script; the host injects whatever it is
+     *   given. Nothing here is gated on a user preference.
+     * - **No origin scoping, deliberately.** One call means [script] runs on every main-frame
+     *   document for the handle's lifetime - a genuinely different standing from [executeJavaScript],
+     *   which is per-call and per-document. Stated rather than left to be discovered: a plugin
+     *   installing a keystroke-capable listener here installs it on every site the user visits. An
+     *   origin allowlist is additive later (an overload), and is the obvious next parameter if a
+     *   consumer wants less than everywhere.
+     * - **A drop is not signalled.** A consumer cannot tell "the user submitted nothing" from "the
+     *   rate limit ate that event". The host logs a rate-limited line, which is a diagnostic rather
+     *   than something a caller can act on.
+     *
+     * Because the host owns the implementation, a caller needs the **`minBossVersion`** of the
+     * release carrying it, not `minApiVersion` alone: against an older host this is the no-op
+     * default below, which silently delivers nothing.
+     *
+     * @param script JavaScript source, evaluated as the body of a function whose single parameter
+     *   is named [PAGE_EVENT_BRIDGE].
+     * @param onEvent Receives the posting document's URL and the string the script passed to the
+     *   bridge.
+     */
+    fun setPageEventScript(
+        script: String,
+        onEvent: (url: String, payload: String) -> Unit,
+    ) {
+        // Default: no-op for hosts without the page-event channel. A caller gets silence, not an
+        // error, which is why the gate is minBossVersion rather than minApiVersion - and why
+        // [supportsPageEventScript] exists, so silence can be told apart from absence.
+    }
+
+    /**
+     * Uninstall what [setPageEventScript] installed: no further events are delivered.
+     *
+     * A separate method rather than passing nulls, matching [startCoBrowseCapture] /
+     * [stopCoBrowseCapture] on this same interface. The nullable-pair shape admitted
+     * `setPageEventScript(script, null)` and `setPageEventScript(null, callback)`, both of which can
+     * only ever be caller bugs and both of which silently uninstalled - and reshaping this after a
+     * release costs a BossConsole release, because [BrowserHandle] is `@HostImplemented`.
+     *
+     * As with [setPageEventScript], a script already evaluated in a live document is not retracted;
+     * it stops being able to reach anything.
+     *
+     * **Call this from your `dispose()`.** The host retains the callback, whose class comes from the
+     * plugin's classloader, so a live registration pins that classloader across an api hot swap.
+     */
+    fun clearPageEventScript() {
+        // Default: no-op, for the same reason as above.
+    }
+
+    /**
+     * Whether this handle actually implements the page-event channel.
+     *
+     * False on a host that predates it, where [setPageEventScript] is the no-op default above. The
+     * same shape as [ai.rever.boss.plugin.api.FileSystemDataProvider.supportsHiddenEntries] and
+     * `BookmarkDataProvider.supportsBulkAdd`, and for the same reason: a defaulted member makes
+     * "not implemented" indistinguishable from "implemented and nothing happened".
+     *
+     * That distinction matters more here than usual, because silence has three causes - an older
+     * host, a payload the host dropped for size or rate, and the user simply not doing anything. A
+     * consumer that cannot tell the first from the others has to treat its whole feature as
+     * best-effort. `minBossVersion` is the coarse version of this answer; this is the precise one.
+     */
+    val supportsPageEventScript: Boolean get() = false
 
     // ============================================================
     // CLIPBOARD OPERATIONS

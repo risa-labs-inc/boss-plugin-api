@@ -6355,6 +6355,7 @@ public abstract interface class ai/rever/boss/plugin/browser/BrowserHandle {
 	public fun applyCoBrowseControl (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun canGoBack ()Z
 	public abstract fun canGoForward ()Z
+	public fun clearPageEventScript ()V
 	public abstract fun copySelection ()V
 	public abstract fun cut ()V
 	public fun dispatchCoBrowseInput (Ljava/lang/String;)V
@@ -6364,6 +6365,7 @@ public abstract interface class ai/rever/boss/plugin/browser/BrowserHandle {
 	public static synthetic fun fillCredentials$default (Lai/rever/boss/plugin/browser/BrowserHandle;Ljava/lang/String;Ljava/lang/String;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun getCurrentUrl ()Ljava/lang/String;
 	public abstract fun getId ()Ljava/lang/String;
+	public fun getSupportsPageEventScript ()Z
 	public abstract fun getTitle ()Ljava/lang/String;
 	public abstract fun getZoomLevel ()D
 	public abstract fun goBack ()V
@@ -6390,6 +6392,7 @@ public abstract interface class ai/rever/boss/plugin/browser/BrowserHandle {
 	public abstract fun setFullscreenHandler (Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)V
 	public abstract fun setOpenInNewTabCallback (Lkotlin/jvm/functions/Function1;)V
 	public fun setOpenInNewTabWithDataCallback (Lkotlin/jvm/functions/Function1;)V
+	public fun setPageEventScript (Ljava/lang/String;Lkotlin/jvm/functions/Function2;)V
 	public abstract fun setZoomLevel (D)V
 	public abstract fun showDevTools ()V
 	public fun startCoBrowseCapture (Lkotlin/jvm/functions/Function1;Z)V
@@ -6402,17 +6405,25 @@ public abstract interface class ai/rever/boss/plugin/browser/BrowserHandle {
 
 public final class ai/rever/boss/plugin/browser/BrowserHandle$DefaultImpls {
 	public static fun applyCoBrowseControl (Lai/rever/boss/plugin/browser/BrowserHandle;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static fun clearPageEventScript (Lai/rever/boss/plugin/browser/BrowserHandle;)V
 	public static fun dispatchCoBrowseInput (Lai/rever/boss/plugin/browser/BrowserHandle;Ljava/lang/String;)V
 	public static fun executeJavaScript (Lai/rever/boss/plugin/browser/BrowserHandle;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static fun fillCredentials (Lai/rever/boss/plugin/browser/BrowserHandle;Ljava/lang/String;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun fillCredentials$default (Lai/rever/boss/plugin/browser/BrowserHandle;Ljava/lang/String;Ljava/lang/String;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static fun getSupportsPageEventScript (Lai/rever/boss/plugin/browser/BrowserHandle;)Z
 	public static fun isCoBrowseCapturing (Lai/rever/boss/plugin/browser/BrowserHandle;)Z
 	public static fun loadUrlAndWait (Lai/rever/boss/plugin/browser/BrowserHandle;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static fun setCoBrowseControlEnabled (Lai/rever/boss/plugin/browser/BrowserHandle;Z)V
 	public static fun setOpenInNewTabWithDataCallback (Lai/rever/boss/plugin/browser/BrowserHandle;Lkotlin/jvm/functions/Function1;)V
+	public static fun setPageEventScript (Lai/rever/boss/plugin/browser/BrowserHandle;Ljava/lang/String;Lkotlin/jvm/functions/Function2;)V
 	public static fun startCoBrowseCapture (Lai/rever/boss/plugin/browser/BrowserHandle;Lkotlin/jvm/functions/Function1;Z)V
 	public static synthetic fun startCoBrowseCapture$default (Lai/rever/boss/plugin/browser/BrowserHandle;Lkotlin/jvm/functions/Function1;ZILjava/lang/Object;)V
 	public static fun stopCoBrowseCapture (Lai/rever/boss/plugin/browser/BrowserHandle;)V
+}
+
+public final class ai/rever/boss/plugin/browser/BrowserHandleKt {
+	public static final field PAGE_EVENT_BRIDGE Ljava/lang/String;
+	public static final field PAGE_EVENT_EMIT Ljava/lang/String;
 }
 
 public final class ai/rever/boss/plugin/browser/BrowserProfileInfo {

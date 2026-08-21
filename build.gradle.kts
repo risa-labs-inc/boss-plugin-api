@@ -278,7 +278,7 @@ group = "ai.rever.boss.plugin.bundled"
 // fill, and says to return a sentinel because executeJavaScript answers null for unsupported,
 // no-frame, threw and evaluated-to-null alike. Doc-only. Additive.
 //
-// NEXT - BrowserHandle.setPageEventScript(script, onEvent) + the PAGE_EVENT_BRIDGE constant. A
+// 1.0.83 - BrowserHandle.setPageEventScript(script, onEvent) + the PAGE_EVENT_BRIDGE constant. A
 // document-start injection point with a push back to the plugin, for fluck-browser's "save this
 // password?" prompt. The prompt needs the credential the user typed, and the only moment it exists
 // is the submit that is immediately followed by a navigation destroying the JS context - so a
@@ -296,6 +296,12 @@ group = "ai.rever.boss.plugin.bundled"
 // HOST-IMPLEMENTED, so the default body is a no-op that silently delivers nothing and consumers
 // gate on the minBossVersion of the BossConsole release carrying the implementation, not on
 // minApiVersion. Additive.
+//
+// On the version: the release workflow BUMPS AND THEN RELEASES, so the number in this file is
+// the one already published and a merge cuts the next. Verified rather than assumed - #37 merged
+// while this said 1.0.80 and its no-op fillCredentials first appears in the v1.0.81 jar (javap:
+// abstract in v1.0.80, default in v1.0.81). So do NOT hand-edit this to 1.0.83; the bot writes it,
+// and pre-bumping here would make the merge cut 1.0.84 and 404 both downstream pins.
 version = "1.0.82"
 
 java {

@@ -355,6 +355,7 @@ group = "ai.rever.boss.plugin.bundled"
 //   quite the same standing as executeJavaScript, which is per-call and per-document. An origin
 //   allowlist is additive later (an overload), and is the obvious next parameter if a second
 //   consumer wants less than "everywhere".
+//
 // 1.0.85 - adds DownloadCenterProvider + PluginContext.downloadCenterProvider: the one place every
 // in-flight transfer is reported, so the host's bottom bar can show all of them. Before it, the only
 // visible download progress was a status-bar widget the Toolbox plugin owned, which is why every
@@ -378,11 +379,21 @@ group = "ai.rever.boss.plugin.bundled"
 // - begin() does NOT coalesce progress. Stated in TransferHandle.progress rather than left to be
 //   measured: a per-8KiB loop on a 40 MB jar is ~5,000 emissions, each waking the bar, the dialog and
 //   every plugin watching its own id.
-// - A plugin that must also run on an OLDER host cannot rely on a null check. PluginContext is
-//   host-compiled and parent-first, so the property does not exist there and the read throws
-//   NoSuchMethodError - and the host's BinaryCompatibilityValidator rejects the whole plugin if any
-//   of its ai.rever.boss.plugin.* classes names a type it cannot resolve. Both are documented on the
-//   property, because the Toolbox met both while adopting this.
+// - A plugin that must also run on an OLDER host cannot rely on a null check, and the reason is
+//   worth stating precisely because it looked like a contradiction of the evolution rules. New TYPES
+//   do resolve on an old host, from the installed api jar via the ApiClassLoader - that is what
+//   minApiVersion gates. The PROPERTY does not: PluginContext is host-compiled and parent-first, so
+//   below minBossVersion the read is a NoSuchMethodError. Either miss makes the host's
+//   BinaryCompatibilityValidator reject the WHOLE plugin, since it member-checks every
+//   ai.rever.boss.plugin.* class in the jar - so undercutting a floor means moving those references
+//   out of that package entirely, not catching something. AGENTS.md now carries this as a general
+//   rule; the Toolbox met both halves adopting this.
+// - TransferPhase.allowsCancel is the PHASE half of the cancel rule. Renderers must use
+//   TransferInfo.cancellable, which is that AND a cancel action existing; the extension exists so
+//   the phase half has one definition, and its own KDoc says so - an api property that looked like
+//   the whole answer would reintroduce "Cancel offered mid-jar-swap" from inside the api.
+// - transfers is readable by every installed plugin, deliberately, like applicationEventBus. Id
+//   qualification protects addressing, not reading.
 version = "1.0.84"
 
 java {

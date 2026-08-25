@@ -120,15 +120,23 @@ interface PluginContext {
      * the user sees one progress item and one Cancel for every transfer in the app.
      *
      * Gate with manifest `minBossVersion` for the host release that implements it
-     * (**9.4.34**); the types themselves ship with the api jar. `minApiVersion`
-     * alone is not enough and the failure is not null: [PluginContext] is
-     * host-compiled and served parent-first, so on an older host this property
-     * does not exist and reading it throws `NoSuchMethodError`. A plugin that
-     * wants to run on both must keep every reference to this property and to
-     * `DownloadCenterProvider` out of its `ai.rever.boss.plugin.*` classes - the
-     * host's binary-compatibility validator rejects a plugin whose contract
-     * classes name a type it cannot resolve - and reach them from a class in
-     * another package, inside a `catch (LinkageError)`.
+     * (**9.4.34**); the types themselves ship with the api jar, so they follow
+     * `minApiVersion` as usual. `minApiVersion` alone is not enough for THIS
+     * property, and the failure is not null: [PluginContext] is host-compiled and
+     * served parent-first, so on an older host the property does not exist and
+     * reading it throws `NoSuchMethodError` - which the host's
+     * `BinaryCompatibilityValidator` turns into a refusal to load the plugin at all,
+     * since it member-checks every `ai.rever.boss.plugin.*` class in the jar.
+     *
+     * A plugin that must also run BELOW either floor cannot express that with a null
+     * check. It has to keep the reference out of its `ai.rever.boss.plugin.*` classes
+     * entirely - the validator skips other packages - and reach it from a class in
+     * another package inside a `catch (LinkageError)`, guarding the call site too
+     * (verifying that method is what throws, and that throw lands on the caller).
+     * Which references have to move depends on which floor is being undercut: this
+     * property below `minBossVersion 9.4.34`, and the five types as well below
+     * `minApiVersion 1.0.85`, since an older installed api jar does not carry them.
+     * See AGENTS.md's evolution rules.
      */
     val downloadCenterProvider: DownloadCenterProvider?
         get() = null

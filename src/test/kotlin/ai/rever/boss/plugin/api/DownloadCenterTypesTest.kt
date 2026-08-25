@@ -32,7 +32,7 @@ class DownloadCenterTypesTest {
             title: String,
             kind: TransferKind,
             detail: String?,
-            onCancel: (() -> Unit)?,
+            onCancel: (() -> Unit)?
         ): TransferHandle {
             lastId = id
             lastTitle = title
@@ -59,6 +59,23 @@ class DownloadCenterTypesTest {
         TransferPhase.entries
             .filter { it != TransferPhase.INSTALLING }
             .forEach { assertTrue(it.allowsCancel, "$it should be abandonable") }
+    }
+
+    @Test
+    fun `allowsCancel is the phase half, not the answer`() {
+        val noAction =
+            TransferInfo(
+                id = "p",
+                title = "Docker",
+                kind = TransferKind.PLUGIN_INSTALL,
+                phase = TransferPhase.DOWNLOADING,
+            )
+
+        // The phase permits it; the transfer still is not cancellable, because no
+        // cancel action was supplied. A renderer reaching for the phase alone would
+        // offer a Cancel that does nothing.
+        assertTrue(noAction.phase.allowsCancel)
+        assertFalse(noAction.cancellable)
     }
 
     @Test

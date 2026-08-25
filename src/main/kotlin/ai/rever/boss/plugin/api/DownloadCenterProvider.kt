@@ -71,6 +71,11 @@ enum class TransferPhase {
  * parameter: a new parameter moves the synthetic constructor and `copy$default`
  * descriptors, so a plugin compiled against the old shape gets
  * `NoSuchMethodError` (the same rule `AiRequest.extras` documents).
+ *
+ * The consequence of that escape hatch: **do not `copy()` a TransferInfo you
+ * received.** `copy()` and `equals` cover constructor parameters only, so any field
+ * added later per the rule above is silently dropped by the copy and invisible to
+ * equality. Read it, pass it on whole, or build a fresh one.
  */
 @HostImplemented
 data class TransferInfo(
@@ -101,10 +106,26 @@ interface TransferHandle {
      */
     fun progress(fraction: Float)
 
-    /** Move the transfer to a new phase. [TransferPhase.INSTALLING] withdraws cancel. */
+    /**
+     * Move the transfer to a new phase. [TransferPhase.INSTALLING] withdraws cancel.
+     *
+     * **Clears the progress fraction**, in both directions and by design. Leaving
+     * [TransferPhase.DOWNLOADING] must drop it, or a stale `0.6` renders under
+     * "Installing" for the whole jar swap; and re-entering it drops it too, which is
+     * the route back to indeterminate - call this before a second attempt whose
+     * response may not carry a Content-Length, or its bar sits at whatever the first
+     * attempt reached while new bytes arrive.
+     */
     fun phase(phase: TransferPhase)
 
-    /** Remove the transfer. Idempotent, and safe to call from a finally block. */
+    /**
+     * Remove the transfer. Idempotent, and safe to call from a finally block.
+     *
+     * Call it promptly once cancelled. The host keeps the row until then - it cannot
+     * know the work has stopped - so a slow socket leaves a live-looking bar behind a
+     * Cancel that was already pressed. The host swallows repeat presses (the action
+     * is single-shot), so the caller owes only the [done].
+     */
     fun done()
 }
 
@@ -129,22 +150,51 @@ interface DownloadCenterProvider {
      * update alike. Observe this to reflect work someone else started - a
      * plugin's own Install button should look busy when the same install was
      * triggered from a toast or from the host's own prompt.
+     *
+     * **Readable by every installed plugin, deliberately.** That is the price of one
+     * shared status bar: which plugins the user installs and updates, when, and
+     * whatever any reporter put in [TransferInfo.detail], are visible to all of them
+     * - the same trade `PluginContext.applicationEventBus` makes for browser events.
+     * Id qualification protects addressing, not reading. Gate at install time by
+     * choosing which plugins you allow, and keep secrets out of the text you report;
+     * narrowing this later (redacting other namespaces' detail) would be a breaking
+     * behaviour change, so it is stated rather than assumed.
      */
     val transfers: StateFlow<List<TransferInfo>>
 
     /**
      * Start tracking a transfer.
      *
-     * Beginning an [id] that is already in flight does NOT create a second
-     * entry: the returned handle is bound to the existing one and its [done]
-     * is a no-op, so a fallback path nested inside an outer operation cannot
-     * remove the row its caller still owns.
+     * Beginning an [id] that is already in flight does NOT create a second entry.
+     * The returned handle is bound to the existing one, and the whole rule is:
      *
-     * Two things about [id]. The host namespaces a plugin-supplied one with the
-     * calling plugin's id, so two plugins cannot collide on `"update"` and no
-     * plugin can address another's transfer (or the host's). And it is the key a
-     * plugin matches its own work by in [transfers], so the natural choice is the
-     * pluginId being installed.
+     * - its [done] is a no-op - ALWAYS, not merely after the first call - so a
+     *   fallback path nested inside an outer operation cannot remove the row its
+     *   caller still owns;
+     * - its [TransferHandle.progress] and [TransferHandle.phase] DO write the shared
+     *   entry. That is deliberate for real nesting, where both are reporting the same
+     *   work, and it is why joining is not a way to run two independent operations on
+     *   one id: the second would drag the first's bar or withdraw its Cancel;
+     * - [title], [kind], [detail] and [onCancel] of the joining call are ignored -
+     *   the row keeps what the owner opened it with. A host that cannot tell the two
+     *   apart may withdraw Cancel entirely rather than offer one that abandons the
+     *   wrong operation;
+     * - once the owner has called [done], later reports from a bound handle are
+     *   no-ops. Nothing resurrects a finished row.
+     *
+     * **The [id] round trip.** The host qualifies a plugin-supplied id with the
+     * calling plugin's id, so two plugins cannot collide on `"update"` and no plugin
+     * can address another's transfer or the host's. That would remove the only join
+     * key, so the qualification is invisible to its owner:
+     *
+     * - an id you pass to [begin] comes back to YOU unchanged in [transfers], which
+     *   is what lets you match your own work by the id you chose;
+     * - another plugin's rows appear qualified, so they are never mistaken for one
+     *   of yours - and are not addressable by you;
+     * - host-initiated transfers are NOT qualified, and the host keys plugin work by
+     *   pluginId. That is what makes the headline case work: a plugin sees
+     *   `id == "<some.plugin.id>"` for an install the host started, and can show its
+     *   own button busy for it.
      *
      * Keep [title] and [detail] free of signed URLs, tokens and absolute paths:
      * every installed plugin can read [transfers].
@@ -162,11 +212,18 @@ interface DownloadCenterProvider {
 }
 
 /**
- * Whether a transfer in this phase may be cancelled.
+ * Whether this PHASE permits cancellation - half of the rule, not the answer.
  *
- * The rule lived as prose in the api and as a separate expression in the host and
- * in the Toolbox's row rendering - two copies that can drift, with "Cancel offered
- * mid-jar-swap" as the failure mode. One property, so there is one answer.
+ * **Anything rendering a row must use [TransferInfo.cancellable]**, which is this
+ * AND a cancel action having been supplied. Reaching for this one instead offers
+ * Cancel on a transfer whose reporter passed `onCancel = null`, which is the same
+ * bug class it exists to prevent, one level up.
+ *
+ * It is here so the phase half has one definition rather than being re-derived
+ * wherever a host or a plugin asks. Note that centralisation is bounded by
+ * parent-first shadowing: the host compiles this file in from its pinned jar, so a
+ * later api release cannot change the rule for host-rendered rows - the host's copy
+ * wins, as with `AnalyticsKt.track`.
  */
 val TransferPhase.allowsCancel: Boolean
     get() = this != TransferPhase.INSTALLING

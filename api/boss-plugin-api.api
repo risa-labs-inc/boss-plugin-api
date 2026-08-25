@@ -1455,6 +1455,16 @@ public abstract interface class ai/rever/boss/plugin/api/DirectoryPickerProvider
 	public abstract fun pickDirectory (Lkotlin/jvm/functions/Function1;)V
 }
 
+public abstract interface class ai/rever/boss/plugin/api/DownloadCenterProvider {
+	public abstract fun begin (Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/api/TransferKind;Ljava/lang/String;Lkotlin/jvm/functions/Function0;)Lai/rever/boss/plugin/api/TransferHandle;
+	public static synthetic fun begin$default (Lai/rever/boss/plugin/api/DownloadCenterProvider;Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/api/TransferKind;Ljava/lang/String;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)Lai/rever/boss/plugin/api/TransferHandle;
+	public abstract fun getTransfers ()Lkotlinx/coroutines/flow/StateFlow;
+}
+
+public final class ai/rever/boss/plugin/api/DownloadCenterProvider$DefaultImpls {
+	public static synthetic fun begin$default (Lai/rever/boss/plugin/api/DownloadCenterProvider;Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/api/TransferKind;Ljava/lang/String;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)Lai/rever/boss/plugin/api/TransferHandle;
+}
+
 public abstract interface class ai/rever/boss/plugin/api/DownloadDataProvider {
 	public abstract fun cancelDownload-gIAlu-s (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun clearCompleted-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -3610,6 +3620,7 @@ public abstract interface class ai/rever/boss/plugin/api/PluginContext {
 	public fun getDashboardContentProvider ()Lai/rever/boss/plugin/api/DashboardContentProvider;
 	public fun getDiagnosticProvider ()Lai/rever/boss/plugin/api/DiagnosticProvider;
 	public fun getDirectoryPickerProvider ()Lai/rever/boss/plugin/api/DirectoryPickerProvider;
+	public fun getDownloadCenterProvider ()Lai/rever/boss/plugin/api/DownloadCenterProvider;
 	public fun getDownloadDataProvider ()Lai/rever/boss/plugin/api/DownloadDataProvider;
 	public fun getEditorContentProvider ()Lai/rever/boss/plugin/api/EditorContentProvider;
 	public fun getFilePickerProvider ()Lai/rever/boss/plugin/api/FilePickerProvider;
@@ -3681,6 +3692,7 @@ public final class ai/rever/boss/plugin/api/PluginContext$DefaultImpls {
 	public static fun getDashboardContentProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/DashboardContentProvider;
 	public static fun getDiagnosticProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/DiagnosticProvider;
 	public static fun getDirectoryPickerProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/DirectoryPickerProvider;
+	public static fun getDownloadCenterProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/DownloadCenterProvider;
 	public static fun getDownloadDataProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/DownloadDataProvider;
 	public static fun getEditorContentProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/EditorContentProvider;
 	public static fun getFilePickerProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/FilePickerProvider;
@@ -5658,6 +5670,57 @@ public final synthetic class ai/rever/boss/plugin/api/ThreadData$$serializer : k
 
 public final class ai/rever/boss/plugin/api/ThreadData$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public abstract interface class ai/rever/boss/plugin/api/TransferHandle {
+	public abstract fun done ()V
+	public abstract fun phase (Lai/rever/boss/plugin/api/TransferPhase;)V
+	public abstract fun progress (F)V
+}
+
+public final class ai/rever/boss/plugin/api/TransferInfo {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/api/TransferKind;Lai/rever/boss/plugin/api/TransferPhase;Ljava/lang/Float;Z)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/api/TransferKind;Lai/rever/boss/plugin/api/TransferPhase;Ljava/lang/Float;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Lai/rever/boss/plugin/api/TransferKind;
+	public final fun component5 ()Lai/rever/boss/plugin/api/TransferPhase;
+	public final fun component6 ()Ljava/lang/Float;
+	public final fun component7 ()Z
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/api/TransferKind;Lai/rever/boss/plugin/api/TransferPhase;Ljava/lang/Float;Z)Lai/rever/boss/plugin/api/TransferInfo;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/TransferInfo;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/api/TransferKind;Lai/rever/boss/plugin/api/TransferPhase;Ljava/lang/Float;ZILjava/lang/Object;)Lai/rever/boss/plugin/api/TransferInfo;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCancellable ()Z
+	public final fun getDetail ()Ljava/lang/String;
+	public final fun getId ()Ljava/lang/String;
+	public final fun getKind ()Lai/rever/boss/plugin/api/TransferKind;
+	public final fun getPhase ()Lai/rever/boss/plugin/api/TransferPhase;
+	public final fun getProgress ()Ljava/lang/Float;
+	public final fun getTitle ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/TransferKind : java/lang/Enum {
+	public static final field APP_UPDATE Lai/rever/boss/plugin/api/TransferKind;
+	public static final field OTHER Lai/rever/boss/plugin/api/TransferKind;
+	public static final field PLUGIN_INSTALL Lai/rever/boss/plugin/api/TransferKind;
+	public static final field PLUGIN_UPDATE Lai/rever/boss/plugin/api/TransferKind;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lai/rever/boss/plugin/api/TransferKind;
+	public static fun values ()[Lai/rever/boss/plugin/api/TransferKind;
+}
+
+public final class ai/rever/boss/plugin/api/TransferPhase : java/lang/Enum {
+	public static final field DOWNLOADING Lai/rever/boss/plugin/api/TransferPhase;
+	public static final field INSTALLING Lai/rever/boss/plugin/api/TransferPhase;
+	public static final field PREPARING Lai/rever/boss/plugin/api/TransferPhase;
+	public static final field READY_TO_INSTALL Lai/rever/boss/plugin/api/TransferPhase;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lai/rever/boss/plugin/api/TransferPhase;
+	public static fun values ()[Lai/rever/boss/plugin/api/TransferPhase;
 }
 
 public final class ai/rever/boss/plugin/api/UnshareSecretRequestData {

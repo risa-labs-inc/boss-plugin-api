@@ -112,6 +112,18 @@ interface PluginContext {
         get() = null
 
     /**
+     * Optional download center for reporting long-running transfers (plugin
+     * jars, large assets) to the host's status bar and its download dialog.
+     *
+     * Returns null if the host has no download center. Distinct from
+     * [downloadDataProvider], which is the browser's file downloads: this one
+     * is where a plugin reports work it is doing itself, so the user sees one
+     * progress item and one Cancel for every transfer in the app.
+     */
+    val downloadCenterProvider: DownloadCenterProvider?
+        get() = null
+
+    /**
      * Optional bookmark data provider for plugins that manage bookmarks.
      *
      * Returns null if bookmark management is not available.

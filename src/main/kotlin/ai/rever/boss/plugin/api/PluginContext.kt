@@ -115,10 +115,20 @@ interface PluginContext {
      * Optional download center for reporting long-running transfers (plugin
      * jars, large assets) to the host's status bar and its download dialog.
      *
-     * Returns null if the host has no download center. Distinct from
-     * [downloadDataProvider], which is the browser's file downloads: this one
-     * is where a plugin reports work it is doing itself, so the user sees one
-     * progress item and one Cancel for every transfer in the app.
+     * Distinct from [downloadDataProvider], which is the browser's file
+     * downloads: this one is where a plugin reports work it is doing itself, so
+     * the user sees one progress item and one Cancel for every transfer in the app.
+     *
+     * Gate with manifest `minBossVersion` for the host release that implements it
+     * (**9.4.34**); the types themselves ship with the api jar. `minApiVersion`
+     * alone is not enough and the failure is not null: [PluginContext] is
+     * host-compiled and served parent-first, so on an older host this property
+     * does not exist and reading it throws `NoSuchMethodError`. A plugin that
+     * wants to run on both must keep every reference to this property and to
+     * `DownloadCenterProvider` out of its `ai.rever.boss.plugin.*` classes - the
+     * host's binary-compatibility validator rejects a plugin whose contract
+     * classes name a type it cannot resolve - and reach them from a class in
+     * another package, inside a `catch (LinkageError)`.
      */
     val downloadCenterProvider: DownloadCenterProvider?
         get() = null

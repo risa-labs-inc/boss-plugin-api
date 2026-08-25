@@ -5,7 +5,11 @@ import kotlinx.coroutines.flow.StateFlow
 /**
  * What a tracked transfer belongs to. Drives the verb the host shows
  * ("Installing", "Updating", "Downloading BOSS").
+ *
+ * An open set: the host switches on it, so a new constant is a host-contract
+ * change gated by `minBossVersion`, not something the api jar can add alone.
  */
+@HostImplemented
 enum class TransferKind {
     PLUGIN_INSTALL,
     PLUGIN_UPDATE,
@@ -21,7 +25,16 @@ enum class TransferKind {
  * the action rather than offering one that can corrupt an install. Everything
  * else can be abandoned - a download is bytes, and a downloaded-but-uninstalled
  * app update is a file to delete.
+ *
+ * **There is deliberately no failure phase.** A transfer that fails ends, and the
+ * row goes with it; saying why is the caller's job, through whatever it already
+ * uses to report one (a toast, a panel banner, a status message). A row that
+ * lingered to show an error would need its own dismissal, and a progress bar is
+ * the wrong surface for a message the user has to read. The cost of the choice is
+ * that a vanished row does not distinguish success from failure on its own - so a
+ * caller whose failure has no other surface should give it one.
  */
+@HostImplemented
 enum class TransferPhase {
     /** Resolving what to fetch (release lookup, store metadata). No bytes yet. */
     PREPARING,
@@ -32,7 +45,14 @@ enum class TransferPhase {
     /** Downloaded; unloading/loading, verifying, or otherwise committing it. */
     INSTALLING,
 
-    /** Downloaded and waiting for the user to trigger the install (app update). */
+    /**
+     * Downloaded and waiting for the user to press Install.
+     *
+     * **Reported by the host, for the application's own update.** A plugin has no
+     * way to hear that Install was pressed - [DownloadCenterProvider.begin] takes
+     * a cancel action and nothing else - so a plugin setting this phase would show
+     * a button that does nothing. Plugins go from [DOWNLOADING] to [INSTALLING].
+     */
     READY_TO_INSTALL
 }
 
@@ -44,14 +64,21 @@ enum class TransferPhase {
  * @property progress fraction in 0..1, or null while indeterminate (size
  *   unknown, or a phase that is not a download).
  * @property cancellable derived by the host: a cancel action was supplied AND
- *   the transfer is not being installed. Never set by the reporter.
+ *   the transfer is not being installed. Never set by a reporter - it is a
+ *   constructor parameter because the host builds these, not an input.
+ *
+ * Extend this with a body-level `val` or a method, NEVER a constructor
+ * parameter: a new parameter moves the synthetic constructor and `copy$default`
+ * descriptors, so a plugin compiled against the old shape gets
+ * `NoSuchMethodError` (the same rule `AiRequest.extras` documents).
  */
+@HostImplemented
 data class TransferInfo(
     val id: String,
     val title: String,
-    val detail: String? = null,
     val kind: TransferKind,
     val phase: TransferPhase,
+    val detail: String? = null,
     val progress: Float? = null,
     val cancellable: Boolean = false
 )
@@ -62,8 +89,16 @@ data class TransferInfo(
  * Every handle must be closed with [done] - use try/finally, so a failure or a
  * cancellation cannot strand a row in the status bar forever.
  */
+@HostImplemented
 interface TransferHandle {
-    /** Report download progress as a fraction in 0..1. Values outside are clamped. */
+    /**
+     * Report download progress as a fraction in 0..1. Values outside are clamped.
+     *
+     * Not coalesced by the host: every call publishes new state that wakes the
+     * status bar, the dialog, and every plugin observing [DownloadCenterProvider.transfers].
+     * Report on whole-percent steps or at most ~10x a second - a per-8KiB loop on
+     * a 40 MB jar is ~5,000 emissions, each a real recomposition.
+     */
     fun progress(fraction: Float)
 
     /** Move the transfer to a new phase. [TransferPhase.INSTALLING] withdraws cancel. */
@@ -87,6 +122,7 @@ interface TransferHandle {
  *
  * Returns null from [PluginContext] on hosts without a download center.
  */
+@HostImplemented
 interface DownloadCenterProvider {
     /**
      * Everything in flight host-wide, plugin transfers and the application
@@ -104,6 +140,15 @@ interface DownloadCenterProvider {
      * is a no-op, so a fallback path nested inside an outer operation cannot
      * remove the row its caller still owns.
      *
+     * Two things about [id]. The host namespaces a plugin-supplied one with the
+     * calling plugin's id, so two plugins cannot collide on `"update"` and no
+     * plugin can address another's transfer (or the host's). And it is the key a
+     * plugin matches its own work by in [transfers], so the natural choice is the
+     * pluginId being installed.
+     *
+     * Keep [title] and [detail] free of signed URLs, tokens and absolute paths:
+     * every installed plugin can read [transfers].
+     *
      * @param onCancel invoked when the user cancels; supply it only when the
      *   work can actually be abandoned safely. Null means no Cancel is offered.
      */
@@ -115,3 +160,13 @@ interface DownloadCenterProvider {
         onCancel: (() -> Unit)? = null
     ): TransferHandle
 }
+
+/**
+ * Whether a transfer in this phase may be cancelled.
+ *
+ * The rule lived as prose in the api and as a separate expression in the host and
+ * in the Toolbox's row rendering - two copies that can drift, with "Cancel offered
+ * mid-jar-swap" as the failure mode. One property, so there is one answer.
+ */
+val TransferPhase.allowsCancel: Boolean
+    get() = this != TransferPhase.INSTALLING

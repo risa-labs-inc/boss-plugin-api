@@ -48,6 +48,8 @@ class DownloadCenterTypesTest {
 
         override fun phase(phase: TransferPhase) = Unit
 
+        override fun detail(text: String?) = Unit
+
         override fun done() = Unit
     }
 
@@ -87,6 +89,7 @@ class DownloadCenterTypesTest {
         assertNull(info.detail)
         assertNull(info.progress, "indeterminate until a size is known")
         assertFalse(info.cancellable, "the host derives this; a reporter never sets it")
+        assertNull(info.owner, "null is the host's own transfer")
     }
 
     @Test

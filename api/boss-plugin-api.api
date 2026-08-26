@@ -5677,6 +5677,7 @@ public final class ai/rever/boss/plugin/api/ThreadData$Companion {
 }
 
 public abstract interface class ai/rever/boss/plugin/api/TransferHandle {
+	public abstract fun detail (Ljava/lang/String;)V
 	public abstract fun done ()V
 	public abstract fun phase (Lai/rever/boss/plugin/api/TransferPhase;)V
 	public abstract fun progress (F)V
@@ -5684,8 +5685,8 @@ public abstract interface class ai/rever/boss/plugin/api/TransferHandle {
 
 public final class ai/rever/boss/plugin/api/TransferInfo {
 	public static final field $stable I
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/api/TransferKind;Lai/rever/boss/plugin/api/TransferPhase;Ljava/lang/String;Ljava/lang/Float;Z)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/api/TransferKind;Lai/rever/boss/plugin/api/TransferPhase;Ljava/lang/String;Ljava/lang/Float;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/api/TransferKind;Lai/rever/boss/plugin/api/TransferPhase;Ljava/lang/String;Ljava/lang/Float;ZLjava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/api/TransferKind;Lai/rever/boss/plugin/api/TransferPhase;Ljava/lang/String;Ljava/lang/Float;ZLjava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()Lai/rever/boss/plugin/api/TransferKind;
@@ -5693,13 +5694,15 @@ public final class ai/rever/boss/plugin/api/TransferInfo {
 	public final fun component5 ()Ljava/lang/String;
 	public final fun component6 ()Ljava/lang/Float;
 	public final fun component7 ()Z
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/api/TransferKind;Lai/rever/boss/plugin/api/TransferPhase;Ljava/lang/String;Ljava/lang/Float;Z)Lai/rever/boss/plugin/api/TransferInfo;
-	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/TransferInfo;Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/api/TransferKind;Lai/rever/boss/plugin/api/TransferPhase;Ljava/lang/String;Ljava/lang/Float;ZILjava/lang/Object;)Lai/rever/boss/plugin/api/TransferInfo;
+	public final fun component8 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/api/TransferKind;Lai/rever/boss/plugin/api/TransferPhase;Ljava/lang/String;Ljava/lang/Float;ZLjava/lang/String;)Lai/rever/boss/plugin/api/TransferInfo;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/TransferInfo;Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/api/TransferKind;Lai/rever/boss/plugin/api/TransferPhase;Ljava/lang/String;Ljava/lang/Float;ZLjava/lang/String;ILjava/lang/Object;)Lai/rever/boss/plugin/api/TransferInfo;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getCancellable ()Z
 	public final fun getDetail ()Ljava/lang/String;
 	public final fun getId ()Ljava/lang/String;
 	public final fun getKind ()Lai/rever/boss/plugin/api/TransferKind;
+	public final fun getOwner ()Ljava/lang/String;
 	public final fun getPhase ()Lai/rever/boss/plugin/api/TransferPhase;
 	public final fun getProgress ()Ljava/lang/Float;
 	public final fun getTitle ()Ljava/lang/String;

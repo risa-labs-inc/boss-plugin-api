@@ -66,6 +66,11 @@ enum class TransferPhase {
  * @property cancellable derived by the host: a cancel action was supplied AND
  *   the transfer is not being installed. Never set by a reporter - it is a
  *   constructor parameter because the host builds these, not an input.
+ * @property owner which plugin reported this, or null for a host-initiated transfer.
+ *   Also host-set. It exists because [id] alone cannot answer "is this mine": your own
+ *   ids come back unqualified and so do the host's, so a plugin installing `com.foo`
+ *   while the host installs `com.foo` sees two rows reading `com.foo`. Both are real -
+ *   two downloads are running - but only one is yours, and this says which.
  *
  * Extend this with a body-level `val` or a method, NEVER a constructor
  * parameter: a new parameter moves the synthetic constructor and `copy$default`
@@ -85,7 +90,8 @@ data class TransferInfo(
     val phase: TransferPhase,
     val detail: String? = null,
     val progress: Float? = null,
-    val cancellable: Boolean = false
+    val cancellable: Boolean = false,
+    val owner: String? = null
 )
 
 /**
@@ -93,11 +99,25 @@ data class TransferInfo(
  *
  * Every handle must be closed with [done] - use try/finally, so a failure or a
  * cancellation cannot strand a row in the status bar forever.
+ *
+ * **The host does not sweep.** A plugin disposed mid-transfer, or unloaded by an api
+ * hot swap, leaves its row behind unless its own `finally` ran - which it does when the
+ * work is on the plugin's scope, since cancelling that scope unwinds through it. Work
+ * started off that scope has no such guarantee, and a handle held across a hot swap
+ * belongs to the old classloader: report through a fresh one after a reload rather than
+ * reusing it.
  */
 @HostImplemented
 interface TransferHandle {
     /**
-     * Report download progress as a fraction in 0..1. Values outside are clamped.
+     * Report download progress as a fraction in 0..1.
+     *
+     * Values outside the range are clamped; a NON-FINITE value (`NaN` or an infinity)
+     * is treated as indeterminate rather than clamped, because `coerceIn` propagates
+     * `NaN` straight to the bar. That is the likely caller bug rather than a
+     * hypothetical: `bytesRead.toFloat() / contentLength` is `NaN` when the length is
+     * absent or zero - the same missing `Content-Length` this interface already warns
+     * about.
      *
      * Not coalesced by the host: every call publishes new state that wakes the
      * status bar, the dialog, and every plugin observing [DownloadCenterProvider.transfers].
@@ -117,6 +137,16 @@ interface TransferHandle {
      * attempt reached while new bytes arrive.
      */
     fun phase(phase: TransferPhase)
+
+    /**
+     * Replace the row's detail line, or clear it with null.
+     *
+     * [DownloadCenterProvider.begin] takes the first one, but the text a row most
+     * wants to change is exactly this - "12.4 / 40 MB", "2 of 7 files" - and a
+     * multi-step install would otherwise show its first step's text for the whole run.
+     * The title does not change: it names the thing, not the step.
+     */
+    fun detail(text: String?)
 
     /**
      * Remove the transfer. Idempotent, and safe to call from a finally block.
@@ -195,6 +225,12 @@ interface DownloadCenterProvider {
      *   pluginId. That is what makes the headline case work: a plugin sees
      *   `id == "<some.plugin.id>"` for an install the host started, and can show its
      *   own button busy for it.
+     *
+     * A consequence worth stating: because both your ids and the host's come back
+     * unqualified, two rows can read the same [id] - yours, and one the host started
+     * for the same plugin. Those are two real transfers rather than a duplicate, and
+     * [TransferInfo.owner] tells them apart. Read [id] as "some transfer for this
+     * thing" and `owner` as "whose".
      *
      * Keep [title] and [detail] free of signed URLs, tokens and absolute paths:
      * every installed plugin can read [transfers].

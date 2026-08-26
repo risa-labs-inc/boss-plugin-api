@@ -394,7 +394,7 @@ group = "ai.rever.boss.plugin.bundled"
 //   the whole answer would reintroduce "Cancel offered mid-jar-swap" from inside the api.
 // - transfers is readable by every installed plugin, deliberately, like applicationEventBus. Id
 //   qualification protects addressing, not reading.
-version = "1.0.84"
+version = "1.0.85"
 
 java {
     toolchain {

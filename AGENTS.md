@@ -60,6 +60,25 @@ The host resolves the newest installed api jar into a shared **ApiClassLoader** 
 - Only additive changes; new interface methods always get default bodies. Never evolve sealed hierarchies or data classes across the boundary.
 - CI enforces additive-only evolution via the kotlinx binary-compatibility-validator (`./gradlew apiCheck`; regenerate the dump with `./gradlew apiDump` and commit `api/boss-plugin-api.api`).
 
+**Naming a gated declaration from a plugin's contract package is all-or-nothing.** The host's
+`BinaryCompatibilityValidator` walks the constant pool of every `ai.rever.boss.plugin.*` class in a
+plugin jar and, when a referenced api class or member cannot be resolved, **rejects the whole
+plugin** - it does not degrade at the call site. So a manifest floor is not just documentation:
+
+| Reference | Resolves from | Gate | Below the gate |
+|---|---|---|---|
+| a new TYPE | the installed api jar, via the ApiClassLoader | `minApiVersion` | class not found → plugin rejected |
+| a new MEMBER on a `@HostImplemented` type | the host's pinned copy, parent-first | `minBossVersion` | method/field not found → plugin rejected |
+
+A plugin that wants ONE build to run above and below a floor therefore cannot use a null check or a
+`try`/`catch` in its own package. Every such reference has to live in a package outside
+`ai.rever.boss.plugin.*` (the validator skips those, which is what makes an optional adapter
+possible), reached inside `catch (LinkageError)` - and the call INTO that class needs the same guard,
+because resolving and verifying the adapter method is what throws, and that lands on the caller
+where the callee's own catch cannot see it. The Toolbox does this for
+`PluginContext.downloadCenterProvider` (1.0.85); see its AGENTS.md for the shape and for the
+`javap`-over-the-jar check that keeps it honest.
+
 ### Distribution: store/GitHub-releases ONLY
 
 There is deliberately no Maven publication. The released jar is the single artifact: the Plugin Store serves it, the host's ApiClassLoader loads it at runtime (hot-swappable - a newer api plugin triggers unload-all → swap → reload-all, no restart), and BossConsole's build downloads the pinned release jar and filters the api package locally for compilation (`plugins/plugin-api-core`, `fetchApiPluginJar`).

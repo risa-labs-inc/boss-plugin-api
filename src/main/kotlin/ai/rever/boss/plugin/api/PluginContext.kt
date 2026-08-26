@@ -112,6 +112,36 @@ interface PluginContext {
         get() = null
 
     /**
+     * Optional download center for reporting long-running transfers (plugin
+     * jars, large assets) to the host's status bar and its download dialog.
+     *
+     * Distinct from [downloadDataProvider], which is the browser's file
+     * downloads: this one is where a plugin reports work it is doing itself, so
+     * the user sees one progress item and one Cancel for every transfer in the app.
+     *
+     * Gate with manifest `minBossVersion` for the host release that implements it
+     * (**9.4.34**); the types themselves ship with the api jar, so they follow
+     * `minApiVersion` as usual. `minApiVersion` alone is not enough for THIS
+     * property, and the failure is not null: [PluginContext] is host-compiled and
+     * served parent-first, so on an older host the property does not exist and
+     * reading it throws `NoSuchMethodError` - which the host's
+     * `BinaryCompatibilityValidator` turns into a refusal to load the plugin at all,
+     * since it member-checks every `ai.rever.boss.plugin.*` class in the jar.
+     *
+     * A plugin that must also run BELOW either floor cannot express that with a null
+     * check. It has to keep the reference out of its `ai.rever.boss.plugin.*` classes
+     * entirely - the validator skips other packages - and reach it from a class in
+     * another package inside a `catch (LinkageError)`, guarding the call site too
+     * (verifying that method is what throws, and that throw lands on the caller).
+     * Which references have to move depends on which floor is being undercut: this
+     * property below `minBossVersion 9.4.34`, and the five types as well below
+     * `minApiVersion 1.0.85`, since an older installed api jar does not carry them.
+     * See AGENTS.md's evolution rules.
+     */
+    val downloadCenterProvider: DownloadCenterProvider?
+        get() = null
+
+    /**
      * Optional bookmark data provider for plugins that manage bookmarks.
      *
      * Returns null if bookmark management is not available.

@@ -355,6 +355,45 @@ group = "ai.rever.boss.plugin.bundled"
 //   quite the same standing as executeJavaScript, which is per-call and per-document. An origin
 //   allowlist is additive later (an overload), and is the obvious next parameter if a second
 //   consumer wants less than "everywhere".
+//
+// 1.0.85 - adds DownloadCenterProvider + PluginContext.downloadCenterProvider: the one place every
+// in-flight transfer is reported, so the host's bottom bar can show all of them. Before it, the only
+// visible download progress was a status-bar widget the Toolbox plugin owned, which is why every
+// download the HOST started (a plugin update from a panel badge, a missing dependency, the
+// application's own update) ran with no progress at all - nothing could report into a plugin's widget.
+// Decisions worth keeping, because all five types are @HostImplemented and reshaping them later costs
+// a BossConsole release:
+// - TransferPhase.INSTALLING is the ONLY phase that withdraws Cancel, and TransferPhase.allowsCancel
+//   is the single expression of that. Abandoning a jar swap leaves the plugin unloaded; a download is
+//   bytes, and a downloaded-but-uninstalled app update is a file to delete - which is what lets one
+//   rule serve both a plugin's rows and the app update's Install/Cancel pair.
+// - NO failure phase. A failed transfer ends and its row goes; saying why belongs to whatever the
+//   caller already reports with. A row that lingered to show an error would need its own dismissal,
+//   and a progress bar is the wrong surface for a message someone has to read. The cost is stated in
+//   the KDoc: a vanished row does not distinguish success from failure by itself.
+// - READY_TO_INSTALL is host-only. begin() takes a cancel action and nothing else, so a plugin
+//   setting that phase would render an Install button with nothing behind it.
+// - The host namespaces a plugin-supplied id with the calling plugin's id. Without that, ids are one
+//   shared namespace: two plugins collide on "update" and hit the nested-begin rule by accident, and
+//   any plugin could address the host's app-update row - withdrawing its Cancel or faking progress.
+// - begin() does NOT coalesce progress. Stated in TransferHandle.progress rather than left to be
+//   measured: a per-8KiB loop on a 40 MB jar is ~5,000 emissions, each waking the bar, the dialog and
+//   every plugin watching its own id.
+// - A plugin that must also run on an OLDER host cannot rely on a null check, and the reason is
+//   worth stating precisely because it looked like a contradiction of the evolution rules. New TYPES
+//   do resolve on an old host, from the installed api jar via the ApiClassLoader - that is what
+//   minApiVersion gates. The PROPERTY does not: PluginContext is host-compiled and parent-first, so
+//   below minBossVersion the read is a NoSuchMethodError. Either miss makes the host's
+//   BinaryCompatibilityValidator reject the WHOLE plugin, since it member-checks every
+//   ai.rever.boss.plugin.* class in the jar - so undercutting a floor means moving those references
+//   out of that package entirely, not catching something. AGENTS.md now carries this as a general
+//   rule; the Toolbox met both halves adopting this.
+// - TransferPhase.allowsCancel is the PHASE half of the cancel rule. Renderers must use
+//   TransferInfo.cancellable, which is that AND a cancel action existing; the extension exists so
+//   the phase half has one definition, and its own KDoc says so - an api property that looked like
+//   the whole answer would reintroduce "Cancel offered mid-jar-swap" from inside the api.
+// - transfers is readable by every installed plugin, deliberately, like applicationEventBus. Id
+//   qualification protects addressing, not reading.
 version = "1.0.84"
 
 java {

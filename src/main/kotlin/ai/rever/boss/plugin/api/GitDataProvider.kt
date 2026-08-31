@@ -14,6 +14,7 @@ import kotlinx.serialization.Serializable
  * - plugin-panel-git-status and plugin-panel-git-log depend only on this interface
  * - At registration time, composeApp provides the implementation
  */
+@HostImplemented
 interface GitDataProvider {
     // ═══════════════════════════════════════════════════════════════════════════
     // STATE (per-window)
@@ -120,7 +121,9 @@ interface GitDataProvider {
     /**
      * Commit the staged changes with [message] (`git commit -m`).
      *
-     * @return Operation result; an error on hosts that predate this member.
+     * @return Operation result. The error default body protects implementors
+     * that predate this member; callers gate on minBossVersion (see the
+     * gating note on the DIFF block below).
      */
     suspend fun commit(message: String): GitOperationResultData =
         GitOperationResultData.Error("Commit is not supported on this host")
@@ -146,6 +149,14 @@ interface GitDataProvider {
     // Every member here carries a default body: this interface has implementors
     // compiled against earlier versions (the host, the OOP IPC proxy), and a
     // defaultless addition rejects them at load.
+    //
+    // GATING, for every 1.0.87 member below: [GitDataProvider] is @HostImplemented,
+    // so these members resolve from the host's pinned copy, parent-first. A plugin
+    // that references any of them gates on minBossVersion, not minApiVersion -
+    // below the floor the validator rejects the WHOLE plugin at load, it does not
+    // degrade at the call site. The default bodies protect IMPLEMENTORS compiled
+    // against earlier versions; they are not a graceful-degradation path for
+    // callers.
     // ═══════════════════════════════════════════════════════════════════════════
 
     /**
@@ -184,15 +195,17 @@ interface GitDataProvider {
     /**
      * Open a diff tab for [filePath] in the window [windowId]: working tree vs
      * HEAD, or the index when [staged], or [fromRef] vs [toRef] when both are
-     * given. Fire-and-forget like [openFile]; no-op on hosts that predate it
-     * (empty default body, per the note above).
+     * given. Fire-and-forget like [openFile], and [windowId] is required and
+     * second for the same reason it is on [openFile] - a defaulted trailing
+     * window parameter compiles cleanly and opens the tab nowhere. The empty
+     * default body protects implementors that predate it, per the note above.
      */
     fun openDiff(
         filePath: String,
+        windowId: String,
         staged: Boolean = false,
         fromRef: String? = null,
-        toRef: String? = null,
-        windowId: String = ""
+        toRef: String? = null
     ) {}
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -223,7 +236,8 @@ interface GitDataProvider {
      * `git fetch` - update remote-tracking refs without touching the work tree.
      *
      * @param prune also delete remote-tracking refs whose remote branch is gone.
-     * @return the operation result; an error on hosts that predate this member.
+     * @return the operation result. The error default body protects
+     * implementors, not callers - see the gating note on the DIFF block.
      */
     suspend fun fetch(prune: Boolean = false): GitOperationResultData =
         GitOperationResultData.Error("Fetch is not supported on this host")
@@ -231,7 +245,8 @@ interface GitDataProvider {
     /**
      * `git pull` into the checked-out branch.
      *
-     * @return the operation result; an error on hosts that predate this member.
+     * @return the operation result. The error default body protects
+     * implementors, not callers - see the gating note on the DIFF block.
      */
     suspend fun pull(): GitOperationResultData =
         GitOperationResultData.Error("Pull is not supported on this host")
@@ -242,7 +257,8 @@ interface GitDataProvider {
      * purpose; a caller that needs one uses a terminal, where the consequences
      * are visible.
      *
-     * @return the operation result; an error on hosts that predate this member.
+     * @return the operation result. The error default body protects
+     * implementors, not callers - see the gating note on the DIFF block.
      */
     suspend fun push(): GitOperationResultData =
         GitOperationResultData.Error("Push is not supported on this host")
@@ -255,8 +271,9 @@ interface GitDataProvider {
      * branch picker needs every branch, including ones whose tip is older than
      * the last N commits of HEAD.
      *
-     * @return the branches, or an empty list when no repo is open or the host
-     * predates this member.
+     * @return the branches, or an empty list when no repo is open. The empty
+     * default body protects implementors, not callers - see the gating note
+     * on the DIFF block.
      */
     suspend fun branches(): List<GitBranchRefData> = emptyList()
 
@@ -265,9 +282,11 @@ interface GitDataProvider {
      * from HEAD (`git log <ref>`).
      *
      * A null or blank [ref] means HEAD, and the default body delegates to
-     * [logGraph] for exactly that case - so on a host that predates this
-     * member the graph still draws the checked-out branch and only the branch
-     * picker degrades.
+     * [logGraph] for that case. Defensive only: both members ship in 1.0.87,
+     * so the delegation matters just for an implementor built against an
+     * intermediate snapshot that had [logGraph] without this member - it is
+     * not a degradation path callers can rely on (see the gating note on the
+     * DIFF block).
      *
      * @return the nodes, or an empty list when [ref] names nothing.
      */
@@ -407,7 +426,7 @@ data class DiffHunk(
  */
 @Serializable
 data class DiffLine(
-    val kind: DiffLineKind,
+    val kind: DiffLineKind = DiffLineKind.UNKNOWN,
     val text: String,
     val oldLine: Int? = null,
     val newLine: Int? = null
@@ -416,10 +435,18 @@ data class DiffLine(
 /**
  * Kind of a [DiffLine]. Consumers must `when` over this with an `else` branch:
  * it is an open set across the compiled-plugin boundary.
+ *
+ * [UNKNOWN] exists for the WIRE side of that openness: this enum crosses the
+ * IPC boundary inside [DiffLine], and without it the first added kind would
+ * make an older consumer's decoder throw and take the whole diff down.
+ * Decoders must coerce unrecognised names to [UNKNOWN] - with kotlinx
+ * serialization, `Json { coerceInputValues = true }` does it via [DiffLine]'s
+ * default. Producers never emit it.
  */
 @Serializable
 enum class DiffLineKind {
     CONTEXT,
     ADDED,
-    REMOVED
+    REMOVED,
+    UNKNOWN
 }

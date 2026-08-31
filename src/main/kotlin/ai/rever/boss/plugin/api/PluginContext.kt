@@ -39,6 +39,7 @@ interface PluginSandboxRef {
  * This interface abstracts the host application's services that plugins need.
  * Plugins should depend on this interface rather than concrete implementations.
  */
+@HostImplemented
 interface PluginContext {
     /**
      * Registry for panel registration.

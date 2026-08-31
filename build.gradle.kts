@@ -426,11 +426,12 @@ group = "ai.rever.boss.plugin.bundled"
 // carries each commit's parent hashes (plus ref decorations) so a consumer can
 // draw true branch lanes. A new type rather than a member on GitCommitInfoData
 // because data classes never evolve across the boundary.
-// (7) Git remote + branch-scoped graph: fetch/pull/push, branches() returning the
-// new GitBranchRefData, and logGraphFor(ref, limit) so the graph can show a branch
-// other than HEAD. logGraphFor's default body delegates to logGraph for a null
-// ref, so a host that predates this still draws HEAD correctly and only the
-// branch picker degrades.
+// (7) Git remote + branch-scoped graph: fetch/pull/push and commit(message) -
+// the staged-changes commit verb the panels need once staging is remote-capable -
+// branches() returning the new GitBranchRefData, and logGraphFor(ref, limit) so
+// the graph can show a branch other than HEAD. logGraphFor's default body
+// delegates to logGraph for a null ref (defensive: matters only for implementors
+// built against an intermediate snapshot; consumers gate on minBossVersion).
 // (8) New DiffTabConfig - the read side of the host's diff tab config, so the
 // diff RENDERER can live in the editor-tab plugin (where BossEditor is) rather
 // than in the host, which had no access to it and drew every line as plain Text.

@@ -95,6 +95,29 @@ class AiGatewayTypesTest {
         assertFalse(rendered.contains("sk-secret"), rendered)
     }
 
+    // ==================== AiRequest.modelOverride ====================
+
+    @Test
+    fun `modelOverride is null until the extras key is set`() {
+        val bare = AiRequest()
+
+        assertEquals(null, bare.modelOverride)
+
+        val overridden =
+            bare.copy(extras = bare.extras + (AiRequest.EXTRAS_KEY_MODEL_OVERRIDE to "claude-opus-5"))
+
+        assertEquals("claude-opus-5", overridden.modelOverride)
+        // The documented set-path must not disturb the original (copy semantics).
+        assertEquals(null, bare.modelOverride)
+    }
+
+    @Test
+    fun `the extras key literal is pinned - old jars inlined it`() {
+        // EXTRAS_KEY_MODEL_OVERRIDE is a const val: already-compiled plugins carry the
+        // LITERAL, so changing the string silently orphans every request they build.
+        assertEquals("modelOverride", AiRequest.EXTRAS_KEY_MODEL_OVERRIDE)
+    }
+
     // ==================== open-set contracts ====================
 
     @Test

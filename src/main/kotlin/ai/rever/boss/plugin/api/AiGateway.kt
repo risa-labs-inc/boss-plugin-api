@@ -255,6 +255,14 @@ data class AiRequest(
      * [extras]). Set it with `copy(extras = extras + (EXTRAS_KEY_MODEL_OVERRIDE to id))`
      * or build the extras map directly; gateways that predate this getter
      * simply ignore the key.
+     *
+     * Gating asymmetry worth knowing: [EXTRAS_KEY_MODEL_OVERRIDE] is a
+     * `const val`, so it inlines into the caller's constant pool - no
+     * `Fieldref`, usable below any version floor. This getter emits a
+     * `Methodref`, so a plugin that calls it gets rejected by the validator
+     * on a host that predates it. A plugin that must run below the floor
+     * therefore reads `extras[AiRequest.EXTRAS_KEY_MODEL_OVERRIDE]` (well,
+     * the literal the const inlined) instead of `request.modelOverride`.
      */
     val modelOverride: String?
         get() = extras[EXTRAS_KEY_MODEL_OVERRIDE]

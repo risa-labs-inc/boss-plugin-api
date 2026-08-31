@@ -1604,6 +1604,7 @@ public final class ai/rever/boss/plugin/api/DiffLineKind : java/lang/Enum {
 	public static final field CONTEXT Lai/rever/boss/plugin/api/DiffLineKind;
 	public static final field Companion Lai/rever/boss/plugin/api/DiffLineKind$Companion;
 	public static final field REMOVED Lai/rever/boss/plugin/api/DiffLineKind;
+	public static final field UNKNOWN Lai/rever/boss/plugin/api/DiffLineKind;
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lai/rever/boss/plugin/api/DiffLineKind;
 	public static fun values ()[Lai/rever/boss/plugin/api/DiffLineKind;
@@ -2468,8 +2469,8 @@ public abstract interface class ai/rever/boss/plugin/api/GitDataProvider {
 	public static synthetic fun logGraph$default (Lai/rever/boss/plugin/api/GitDataProvider;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public fun logGraphFor (Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun logGraphFor$default (Lai/rever/boss/plugin/api/GitDataProvider;Ljava/lang/String;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public fun openDiff (Ljava/lang/String;ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public static synthetic fun openDiff$default (Lai/rever/boss/plugin/api/GitDataProvider;Ljava/lang/String;ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
+	public fun openDiff (Ljava/lang/String;Ljava/lang/String;ZLjava/lang/String;Ljava/lang/String;)V
+	public static synthetic fun openDiff$default (Lai/rever/boss/plugin/api/GitDataProvider;Ljava/lang/String;Ljava/lang/String;ZLjava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
 	public abstract fun openFile (Ljava/lang/String;Ljava/lang/String;)V
 	public fun pull (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun push (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -2500,8 +2501,8 @@ public final class ai/rever/boss/plugin/api/GitDataProvider$DefaultImpls {
 	public static synthetic fun logGraph$default (Lai/rever/boss/plugin/api/GitDataProvider;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static fun logGraphFor (Lai/rever/boss/plugin/api/GitDataProvider;Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun logGraphFor$default (Lai/rever/boss/plugin/api/GitDataProvider;Ljava/lang/String;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public static fun openDiff (Lai/rever/boss/plugin/api/GitDataProvider;Ljava/lang/String;ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public static synthetic fun openDiff$default (Lai/rever/boss/plugin/api/GitDataProvider;Ljava/lang/String;ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
+	public static fun openDiff (Lai/rever/boss/plugin/api/GitDataProvider;Ljava/lang/String;Ljava/lang/String;ZLjava/lang/String;Ljava/lang/String;)V
+	public static synthetic fun openDiff$default (Lai/rever/boss/plugin/api/GitDataProvider;Ljava/lang/String;Ljava/lang/String;ZLjava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
 	public static fun pull (Lai/rever/boss/plugin/api/GitDataProvider;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static fun push (Lai/rever/boss/plugin/api/GitDataProvider;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun refreshLog$default (Lai/rever/boss/plugin/api/GitDataProvider;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;

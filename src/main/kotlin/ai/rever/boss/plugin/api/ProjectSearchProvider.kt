@@ -14,11 +14,27 @@ import kotlinx.serialization.Serializable
  *
  * Scanning rules implementations should state in their KDoc: binary files
  * (NUL heuristic) and oversized files are skipped, results are capped by
- * [maxResults], and a scan is cancellable by cancelling its coroutine.
+ * [maxResults], and a scan is cancellable by cancelling its coroutine. For
+ * regex queries, cancellation alone is not enough - `Regex.find` has no
+ * suspension point, so a catastrophic-backtracking pattern would wedge the
+ * dispatcher thread - so implementations must also match under a per-file
+ * time budget and treat exceeding it as a skipped file.
+ *
+ * Path confinement: every path in this interface is confined to the current
+ * project root. Relative paths resolve against it; a path that escapes it
+ * (absolute or via `..`) is never scanned, and on the write path it fails
+ * that file with a [FileReplaceResult.error] rather than touching disk
+ * outside the project.
  */
 interface ProjectSearchProvider {
     /**
      * Search file contents under the current project.
+     *
+     * This is the ergonomic entry point, and it is a thin default body over
+     * the seven-argument overload (`excludePattern = null`). Implementors
+     * MUST override the seven-argument overload - the exclude-aware engine -
+     * and normally leave this one alone; overriding only this one leaves the
+     * seven-argument overload returning empty.
      *
      * @param query Literal text, or a regular expression when [isRegex]
      * @param pathPattern Optional glob filter on the path relative to the
@@ -37,7 +53,8 @@ interface ProjectSearchProvider {
         caseSensitive: Boolean = false,
         wholeWord: Boolean = false,
         maxResults: Int = 200
-    ): List<FileMatch> = emptyList()
+    ): List<FileMatch> =
+        searchInProject(query, pathPattern, null, isRegex, caseSensitive, wholeWord, maxResults)
 
     /**
      * Search file contents, with an exclude filter applied by the ENGINE.
@@ -57,9 +74,14 @@ interface ProjectSearchProvider {
      * @param excludePattern Comma-separated globs; a file matching any of them is
      * never scanned. Same syntax as [pathPattern]. Null or blank excludes nothing.
      *
-     * The default body delegates to the six-argument overload, so a host that
-     * predates this returns unfiltered results rather than none - the exclude box
-     * stops working, the search does not.
+     * This overload is the PRIMARY one - the one implementors override. The
+     * six-argument overload's default body delegates HERE with
+     * `excludePattern = null`, so a host that builds the one exclude-aware
+     * engine serves both entry points; the delegation deliberately does not
+     * run the other way, because an engine implemented only here would have
+     * left the ergonomic six-argument entry silently returning empty. The
+     * `emptyList()` default protects implementors compiled against an
+     * intermediate snapshot that predates the overload, nothing more.
      */
     suspend fun searchInProject(
         query: String,
@@ -69,8 +91,7 @@ interface ProjectSearchProvider {
         caseSensitive: Boolean,
         wholeWord: Boolean,
         maxResults: Int
-    ): List<FileMatch> =
-        searchInProject(query, pathPattern, isRegex, caseSensitive, wholeWord, maxResults)
+    ): List<FileMatch> = emptyList()
 
     /**
      * Replace occurrences across an EXPLICIT file list - never project-wide by
@@ -79,7 +100,9 @@ interface ProjectSearchProvider {
      *
      * @param replacement For [isRegex] queries this supports `$1`..`$9`
      * capture-group references, Kotlin `Regex.replace` semantics
-     * @param files Explicit relative-or-absolute paths to touch
+     * @param files Explicit paths to touch, confined to the project root
+     * (see the interface note); a path outside it fails that file, never
+     * writes
      * @param dryRun Count what WOULD be replaced without writing anything
      * @return Per-file outcome; [ReplaceSummary.totalReplacements] is the sum
      */

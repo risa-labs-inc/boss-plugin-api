@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
  * Provider interface for code editor content.
  * This allows the code editor tab to be loaded as a dynamic plugin.
  */
+@HostImplemented
 interface EditorContentProvider {
     /**
      * Display code editor content with syntax highlighting and editing capabilities.
@@ -75,8 +76,7 @@ interface EditorContentProvider {
     @Deprecated(
         "The in-editor find bar is owned by the editor-tab plugin UI; " +
             "project-wide content search is ProjectSearchProvider (1.0.87). " +
-            "This disk-layer API will not implement editor-state methods.",
-        ReplaceWith("")
+            "This disk-layer API will not implement editor-state methods."
     )
     fun showFindDialog() {}
 
@@ -87,8 +87,7 @@ interface EditorContentProvider {
     @Deprecated(
         "The in-editor replace bar is owned by the editor-tab plugin UI; " +
             "project-wide replace is ProjectSearchProvider.replaceInProject (1.0.87). " +
-            "This disk-layer API will not implement editor-state methods.",
-        ReplaceWith("")
+            "This disk-layer API will not implement editor-state methods."
     )
     fun showReplaceDialog() {}
 
@@ -101,8 +100,7 @@ interface EditorContentProvider {
     @Deprecated(
         "Navigation is the editor-tab plugin's concern (see " +
             "EditorTabPluginAPI.openEditor); this disk-layer API will not " +
-            "implement editor-state methods.",
-        ReplaceWith("")
+            "implement editor-state methods."
     )
     fun goToLine(line: Int) {}
 
@@ -112,8 +110,7 @@ interface EditorContentProvider {
      */
     @Deprecated(
         "In-editor search state is owned by the editor-tab plugin; this " +
-            "disk-layer API will not implement editor-state methods.",
-        ReplaceWith("")
+            "disk-layer API will not implement editor-state methods."
     )
     fun findNext() {}
 
@@ -123,8 +120,7 @@ interface EditorContentProvider {
      */
     @Deprecated(
         "In-editor search state is owned by the editor-tab plugin; this " +
-            "disk-layer API will not implement editor-state methods.",
-        ReplaceWith("")
+            "disk-layer API will not implement editor-state methods."
     )
     fun findPrevious() {}
 
@@ -417,8 +413,7 @@ interface EditorContentProvider {
     @Deprecated(
         "Undo lives in the editor's own undo stack (the editor-tab plugin's " +
             "buffer model, 1.0.87); this disk-layer API will not implement " +
-            "editor-state methods.",
-        ReplaceWith("")
+            "editor-state methods."
     )
     fun undo(): Boolean = false
 
@@ -429,8 +424,7 @@ interface EditorContentProvider {
     @Deprecated(
         "Redo lives in the editor's own undo stack (the editor-tab plugin's " +
             "buffer model, 1.0.87); this disk-layer API will not implement " +
-            "editor-state methods.",
-        ReplaceWith("")
+            "editor-state methods."
     )
     fun redo(): Boolean = false
 
@@ -441,8 +435,7 @@ interface EditorContentProvider {
     @Deprecated(
         "Undo availability lives in the editor's own undo stack (the " +
             "editor-tab plugin's buffer model, 1.0.87); this disk-layer API " +
-            "will not implement editor-state methods.",
-        ReplaceWith("")
+            "will not implement editor-state methods."
     )
     fun canUndo(): Boolean = false
 
@@ -453,8 +446,7 @@ interface EditorContentProvider {
     @Deprecated(
         "Redo availability lives in the editor's own undo stack (the " +
             "editor-tab plugin's buffer model, 1.0.87); this disk-layer API " +
-            "will not implement editor-state methods.",
-        ReplaceWith("")
+            "will not implement editor-state methods."
     )
     fun canRedo(): Boolean = false
 

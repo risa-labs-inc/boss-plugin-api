@@ -13,6 +13,15 @@ package ai.rever.boss.plugin.api
  * editor-tab plugin and become what it always should have been: a variation
  * of the editor tab.
  *
+ * THE HANDOFF IS A CAST, and this is the contract for it: the renderer
+ * receives the diff tab's [TabInfo] from the host, and that object - the
+ * host's `DiffTabInfo`, nothing else - is the one that implements this
+ * interface. Read it as `(tabInfo as? DiffTabConfig)`, never an unchecked
+ * cast: on a host that predates the implements-clause the cast returns null,
+ * and the renderer falls back to rendering nothing rather than throwing at
+ * tab-open time. The implements-clause is host behaviour, so it arrives with
+ * a BossConsole release (minBossVersion), not with this jar.
+ *
  * An interface rather than a data class on purpose: the host owns the tab
  * config (it has to persist and restore it), and this is only the read side
  * of that contract.

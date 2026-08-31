@@ -116,6 +116,13 @@ interface EditorTabPluginAPI {
      * cancel when done, rather than waiting for completion. Emissions may be dropped
      * under load (the buffer keeps a bounded queue), so treat a change as "re-read via
      * [readBuffer]", not as a delta.
+     *
+     * Re-reading is a WHOLE-BUFFER round trip ([BufferSnapshot.content] is the full
+     * text), and this flow fires on every keystroke - an out-of-process consumer
+     * must debounce (conflate to the latest version, read once per quiet period)
+     * rather than read per emission. A cheaper `readBufferRange`/content-hash skip
+     * is deliberately left as a future member; [BufferChange] stays minimal so it
+     * can arrive without reshaping this contract.
      */
     fun observeChanges(path: String): Flow<BufferChange>? = null
 

@@ -54,14 +54,20 @@ public abstract interface class ai/rever/boss/plugin/api/ActiveTabsProvider {
 	public abstract fun getBrowserIntegration (Ljava/lang/String;)Lai/rever/boss/plugin/api/BrowserIntegration;
 	public abstract fun getFallbackIcon (Ljava/lang/String;)Landroidx/compose/ui/graphics/vector/ImageVector;
 	public abstract fun getFaviconCacheKey (Ljava/lang/String;)Ljava/lang/String;
+	public fun getLiveWorkspaceIds ()Ljava/util/Set;
+	public fun getSupportsTabTransfer ()Z
 	public abstract fun getTabUrl (Ljava/lang/String;)Ljava/lang/String;
 	public abstract fun loadFavicon (Ljava/lang/String;Landroidx/compose/runtime/Composer;I)Landroidx/compose/ui/graphics/painter/Painter;
+	public fun moveTabToWorkspace (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun refreshTabs (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun selectTab (Ljava/lang/String;Ljava/lang/String;)V
 }
 
 public final class ai/rever/boss/plugin/api/ActiveTabsProvider$DefaultImpls {
 	public static fun createBrowserTabInRightSplit (Lai/rever/boss/plugin/api/ActiveTabsProvider;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+	public static fun getLiveWorkspaceIds (Lai/rever/boss/plugin/api/ActiveTabsProvider;)Ljava/util/Set;
+	public static fun getSupportsTabTransfer (Lai/rever/boss/plugin/api/ActiveTabsProvider;)Z
+	public static fun moveTabToWorkspace (Lai/rever/boss/plugin/api/ActiveTabsProvider;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class ai/rever/boss/plugin/api/AiAgentResult {

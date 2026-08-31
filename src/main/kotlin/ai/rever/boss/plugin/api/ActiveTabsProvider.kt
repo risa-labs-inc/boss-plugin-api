@@ -11,7 +11,12 @@ import kotlinx.serialization.Serializable
  *
  * This interface allows the TopOfMind panel to display all open tabs
  * organized by workspace without direct coupling to SplitViewState.
+ *
+ * Implemented by the host and marked [HostImplemented] because the host compiles this in and
+ * serves it parent-first: an older host's copy is what a plugin resolves, so a member added here
+ * ships with a BossConsole release and is gated on `minBossVersion`, never `minApiVersion` alone.
  */
+@HostImplemented
 interface ActiveTabsProvider {
     /**
      * StateFlow of all active tabs across all workspaces.
@@ -117,6 +122,66 @@ interface ActiveTabsProvider {
      * @return true if the tab was closed successfully
      */
     fun closeTab(tabId: String): Boolean
+
+    /**
+     * Whether this host implements [moveTabToWorkspace].
+     *
+     * Tells "this host has no implementation" apart from "it ran and refused", which the
+     * defaulted `false` return cannot - same shape as `SplitViewOperations.supportsOpenPanelAsTab`
+     * and `BookmarkDataProvider.supportsBulkAdd`. Out-of-process plugins get `false`: the IPC
+     * proxy does not forward the move, so an affordance built on it would silently do nothing.
+     *
+     * Host-wide, not per-tab. `true` says the call is wired up, never that any particular tab or
+     * workspace will resolve.
+     */
+    val supportsTabTransfer: Boolean get() = false
+
+    /**
+     * Every workspace this window is actually RUNNING - the one on screen plus the ones preserved
+     * behind it - whether or not they currently hold any tabs.
+     *
+     * Switching workspaces does not tear the old one down, so a window runs several at once and
+     * shows one. That is why [activeTabs] reports tabs whose `workspaceId` is not the current one.
+     *
+     * Not derivable from [activeTabs]: a workspace with no tabs contributes no rows there, so a
+     * freshly created empty workspace would be invisible - and an empty workspace is a perfectly
+     * good destination for [moveTabToWorkspace]. Nor is it `WorkspaceDataProvider.workspaces`,
+     * which lists every workspace SAVED on disk, most of which are not running and cannot receive
+     * a live tab.
+     */
+    val liveWorkspaceIds: Set<String> get() = emptySet()
+
+    /**
+     * Move a tab into another workspace running in this window, keeping it alive.
+     *
+     * The tab's component instance and its lifecycle transfer as-is, so a browser tab keeps its
+     * page, its history and its playing media, and a terminal keeps its session. This is a MOVE of
+     * a running thing, not a close-and-reopen from saved configuration.
+     *
+     * **Destinations are limited to [liveWorkspaceIds].** A workspace that exists only on disk has
+     * no live panel to receive the tab; putting one there would mean serializing it into the saved
+     * layout and destroying the component, which is a different operation and not this one. Passing
+     * a workspace id that is not live returns `false`.
+     *
+     * **Which panel it lands in** is the destination workspace's active panel; the host picks it. A
+     * caller cannot name one, because [ActiveTabData.panelId] is only ever populated for panels
+     * that already hold tabs.
+     *
+     * Nothing else moves: the current workspace stays on screen, and the tab is NOT selected in its
+     * new panel. Call [selectTab] afterwards if you want it foremost when the user next goes there.
+     *
+     * Suspending because the transfer must run on the UI thread; the implementation marshals.
+     *
+     * Gate on [supportsTabTransfer], and on the `minBossVersion` of the release that pins the api
+     * adding this. The defaulted `false` covers a host that ships this api version without the
+     * implementation; it does NOT make an older host safe, since the api package is served
+     * parent-first and that host's copy has no such method at all.
+     *
+     * @param tabId The tab to move, from [activeTabs].
+     * @param targetWorkspaceId A workspace id from [liveWorkspaceIds].
+     * @return true if the tab was moved.
+     */
+    suspend fun moveTabToWorkspace(tabId: String, targetWorkspaceId: String): Boolean = false
 }
 
 /**

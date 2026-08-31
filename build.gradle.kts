@@ -394,7 +394,48 @@ group = "ai.rever.boss.plugin.bundled"
 //   the whole answer would reintroduce "Cancel offered mid-jar-swap" from inside the api.
 // - transfers is readable by every installed plugin, deliberately, like applicationEventBus. Id
 //   qualification protects addressing, not reading.
-version = "1.0.86"
+// 1.0.87: IDE features batch (IDE-IMPLEMENTATION-PLAN P0-P7), shipped as ONE
+// release per the plan's R8 rule - the surface below was cut over four working
+// versions (.87 diff+buffer+search, .88 graph, .89 DiffTabConfig, .90 remote+
+// branch graph) and collapsed back into a single release before publishing, so
+// consumers pin one number and the manifests cannot drift apart again.
+//
+// (1) GitDataProvider gains diffFile/diffRef/diffBetween/diffNames (all
+// default-bodied, per the additive-only rule) plus openDiff - the OOP-safe path
+// for a plugin to open a diff tab, mirroring openFile since
+// SplitViewOperations.openTab is in-process-only - and the
+// GitDiffData/DiffHunk/DiffLine/DiffLineKind model, where GitDiffData.rawUnified
+// is the forward-compat hatch for anything the parsed hunks do not express.
+// (2) EditorTabPluginAPI gains the D3 live-buffer contract: readBuffer/applyEdit
+// (version-guarded, undoable on open buffers)/observeChanges/focusedDocument/
+// openEditor/openSplit, with BufferSnapshot/FocusedDocument/EditResult/
+// BufferChange (one buffer per path, monotonic Long version).
+// (3) New ProjectSearchProvider (searchInProject/replaceInProject, dryRun
+// default true, $1..$9 capture semantics) + FileMatch/ReplaceSummary/
+// FileReplaceResult, exposed via a new PluginContext.projectSearchProvider val
+// (host-compiled parent-first member: consumers gate on minBossVersion).
+// (4) EditorContentProvider's dead editor-state seams (find/replace/goToLine
+// no-ops, undo/redo/canUndo/canRedo) are @Deprecated by doc: the disk-layer
+// API will not gain editor-state methods.
+// (5) AiRequest gains a body-level modelOverride getter + EXTRAS_KEY_MODEL_OVERRIDE
+// constant - a per-request model tier through the extras escape hatch, since a
+// constructor parameter here would be a hard break. AiModelInfo.displayName from
+// the plan is deliberately NOT added (constructor param = break); UIs label with
+// modelId.
+// (6) Git graph: logGraph(limit) returning the new GitCommitNodeData, which
+// carries each commit's parent hashes (plus ref decorations) so a consumer can
+// draw true branch lanes. A new type rather than a member on GitCommitInfoData
+// because data classes never evolve across the boundary.
+// (7) Git remote + branch-scoped graph: fetch/pull/push, branches() returning the
+// new GitBranchRefData, and logGraphFor(ref, limit) so the graph can show a branch
+// other than HEAD. logGraphFor's default body delegates to logGraph for a null
+// ref, so a host that predates this still draws HEAD correctly and only the
+// branch picker degrades.
+// (8) New DiffTabConfig - the read side of the host's diff tab config, so the
+// diff RENDERER can live in the editor-tab plugin (where BossEditor is) rather
+// than in the host, which had no access to it and drew every line as plain Text.
+// All default-bodied; purely additive; apiCheck clean.
+version = "1.0.87"
 
 java {
     toolchain {

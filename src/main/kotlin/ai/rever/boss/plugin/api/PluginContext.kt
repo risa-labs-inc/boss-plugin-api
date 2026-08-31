@@ -176,6 +176,17 @@ interface PluginContext {
         get() = null
 
     /**
+     * Optional project content search/replace provider (1.0.87).
+     *
+     * Returns null on hosts that predate it - a search tab must hide itself
+     * rather than offer a dead field. This is a host-compiled member of
+     * [PluginContext] (parent-first), so consuming plugins gate on
+     * minBossVersion, not minApiVersion.
+     */
+    val projectSearchProvider: ProjectSearchProvider?
+        get() = null
+
+    /**
      * Optional file system data provider for plugins that browse files.
      *
      * Returns null if file system operations are not available.

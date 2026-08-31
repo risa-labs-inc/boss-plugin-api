@@ -246,7 +246,24 @@ data class AiRequest(
      * older gateway instead of failing. Do not put credentials here.
      */
     val extras: Map<String, String> = emptyMap(),
-)
+) {
+    /**
+     * The model id a caller wants for this request, or null to use the active
+     * provider's default. A view over [extras] rather than a constructor
+     * parameter - adding one here would move the synthetic constructor and
+     * `copy$default`, a hard break for every already-compiled caller (see
+     * [extras]). Set it with `copy(extras = extras + (EXTRAS_KEY_MODEL_OVERRIDE to id))`
+     * or build the extras map directly; gateways that predate this getter
+     * simply ignore the key.
+     */
+    val modelOverride: String?
+        get() = extras[EXTRAS_KEY_MODEL_OVERRIDE]
+
+    companion object {
+        /** [extras] key carrying a per-request model id (see [modelOverride]). */
+        const val EXTRAS_KEY_MODEL_OVERRIDE = "modelOverride"
+    }
+}
 
 /**
  * One turn in a conversation.

@@ -532,6 +532,8 @@ public final class ai/rever/boss/plugin/api/AiReply {
 
 public final class ai/rever/boss/plugin/api/AiRequest {
 	public static final field $stable I
+	public static final field Companion Lai/rever/boss/plugin/api/AiRequest$Companion;
+	public static final field EXTRAS_KEY_MODEL_OVERRIDE Ljava/lang/String;
 	public fun <init> ()V
 	public fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/lang/Float;Ljava/lang/Integer;JLjava/util/Map;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/lang/Float;Ljava/lang/Integer;JLjava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -547,11 +549,15 @@ public final class ai/rever/boss/plugin/api/AiRequest {
 	public final fun getExtras ()Ljava/util/Map;
 	public final fun getMaxTokens ()Ljava/lang/Integer;
 	public final fun getMessages ()Ljava/util/List;
+	public final fun getModelOverride ()Ljava/lang/String;
 	public final fun getSystem ()Ljava/lang/String;
 	public final fun getTemperature ()Ljava/lang/Float;
 	public final fun getTimeoutMs ()J
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/AiRequest$Companion {
 }
 
 public final class ai/rever/boss/plugin/api/AiRound {
@@ -1100,6 +1106,72 @@ public final class ai/rever/boss/plugin/api/BrowserTabData$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
+public final class ai/rever/boss/plugin/api/BufferChange {
+	public static final field $stable I
+	public static final field Companion Lai/rever/boss/plugin/api/BufferChange$Companion;
+	public fun <init> (Ljava/lang/String;J)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()J
+	public final fun copy (Ljava/lang/String;J)Lai/rever/boss/plugin/api/BufferChange;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/BufferChange;Ljava/lang/String;JILjava/lang/Object;)Lai/rever/boss/plugin/api/BufferChange;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPath ()Ljava/lang/String;
+	public final fun getVersion ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class ai/rever/boss/plugin/api/BufferChange$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field $stable I
+	public static final field INSTANCE Lai/rever/boss/plugin/api/BufferChange$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lai/rever/boss/plugin/api/BufferChange;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lai/rever/boss/plugin/api/BufferChange;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ai/rever/boss/plugin/api/BufferChange$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class ai/rever/boss/plugin/api/BufferSnapshot {
+	public static final field $stable I
+	public static final field Companion Lai/rever/boss/plugin/api/BufferSnapshot$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;JZ)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()J
+	public final fun component4 ()Z
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;JZ)Lai/rever/boss/plugin/api/BufferSnapshot;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/BufferSnapshot;Ljava/lang/String;Ljava/lang/String;JZILjava/lang/Object;)Lai/rever/boss/plugin/api/BufferSnapshot;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getContent ()Ljava/lang/String;
+	public final fun getPath ()Ljava/lang/String;
+	public final fun getVersion ()J
+	public fun hashCode ()I
+	public final fun isModified ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class ai/rever/boss/plugin/api/BufferSnapshot$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field $stable I
+	public static final field INSTANCE Lai/rever/boss/plugin/api/BufferSnapshot$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lai/rever/boss/plugin/api/BufferSnapshot;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lai/rever/boss/plugin/api/BufferSnapshot;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ai/rever/boss/plugin/api/BufferSnapshot$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
 public abstract interface class ai/rever/boss/plugin/api/CacheProvider {
 	public abstract fun clearPluginCache (Ljava/lang/String;)Z
 	public abstract fun getPluginCacheDirectory (Ljava/lang/String;)Ljava/lang/String;
@@ -1451,6 +1523,103 @@ public final class ai/rever/boss/plugin/api/DialogChoiceItem {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class ai/rever/boss/plugin/api/DiffHunk {
+	public static final field $stable I
+	public static final field Companion Lai/rever/boss/plugin/api/DiffHunk$Companion;
+	public fun <init> (IIIILjava/lang/String;Ljava/util/List;)V
+	public synthetic fun <init> (IIIILjava/lang/String;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()I
+	public final fun component2 ()I
+	public final fun component3 ()I
+	public final fun component4 ()I
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()Ljava/util/List;
+	public final fun copy (IIIILjava/lang/String;Ljava/util/List;)Lai/rever/boss/plugin/api/DiffHunk;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/DiffHunk;IIIILjava/lang/String;Ljava/util/List;ILjava/lang/Object;)Lai/rever/boss/plugin/api/DiffHunk;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getHeader ()Ljava/lang/String;
+	public final fun getLines ()Ljava/util/List;
+	public final fun getNewLines ()I
+	public final fun getNewStart ()I
+	public final fun getOldLines ()I
+	public final fun getOldStart ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class ai/rever/boss/plugin/api/DiffHunk$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field $stable I
+	public static final field INSTANCE Lai/rever/boss/plugin/api/DiffHunk$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lai/rever/boss/plugin/api/DiffHunk;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lai/rever/boss/plugin/api/DiffHunk;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ai/rever/boss/plugin/api/DiffHunk$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class ai/rever/boss/plugin/api/DiffLine {
+	public static final field $stable I
+	public static final field Companion Lai/rever/boss/plugin/api/DiffLine$Companion;
+	public fun <init> (Lai/rever/boss/plugin/api/DiffLineKind;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;)V
+	public synthetic fun <init> (Lai/rever/boss/plugin/api/DiffLineKind;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lai/rever/boss/plugin/api/DiffLineKind;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/Integer;
+	public final fun component4 ()Ljava/lang/Integer;
+	public final fun copy (Lai/rever/boss/plugin/api/DiffLineKind;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;)Lai/rever/boss/plugin/api/DiffLine;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/DiffLine;Lai/rever/boss/plugin/api/DiffLineKind;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;ILjava/lang/Object;)Lai/rever/boss/plugin/api/DiffLine;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getKind ()Lai/rever/boss/plugin/api/DiffLineKind;
+	public final fun getNewLine ()Ljava/lang/Integer;
+	public final fun getOldLine ()Ljava/lang/Integer;
+	public final fun getText ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class ai/rever/boss/plugin/api/DiffLine$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field $stable I
+	public static final field INSTANCE Lai/rever/boss/plugin/api/DiffLine$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lai/rever/boss/plugin/api/DiffLine;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lai/rever/boss/plugin/api/DiffLine;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ai/rever/boss/plugin/api/DiffLine$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class ai/rever/boss/plugin/api/DiffLineKind : java/lang/Enum {
+	public static final field ADDED Lai/rever/boss/plugin/api/DiffLineKind;
+	public static final field CONTEXT Lai/rever/boss/plugin/api/DiffLineKind;
+	public static final field Companion Lai/rever/boss/plugin/api/DiffLineKind$Companion;
+	public static final field REMOVED Lai/rever/boss/plugin/api/DiffLineKind;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lai/rever/boss/plugin/api/DiffLineKind;
+	public static fun values ()[Lai/rever/boss/plugin/api/DiffLineKind;
+}
+
+public final class ai/rever/boss/plugin/api/DiffLineKind$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public abstract interface class ai/rever/boss/plugin/api/DiffTabConfig {
+	public abstract fun getFilePath ()Ljava/lang/String;
+	public abstract fun getFromRef ()Ljava/lang/String;
+	public abstract fun getStaged ()Z
+	public abstract fun getToRef ()Ljava/lang/String;
+}
+
 public abstract interface class ai/rever/boss/plugin/api/DirectoryPickerProvider {
 	public abstract fun pickDirectory (Lkotlin/jvm/functions/Function1;)V
 }
@@ -1565,6 +1734,40 @@ public final class ai/rever/boss/plugin/api/DynamicPluginListener$DefaultImpls {
 	public static fun pluginLoaded (Lai/rever/boss/plugin/api/DynamicPluginListener;Lai/rever/boss/plugin/api/PluginManifest;)V
 	public static fun pluginUnloadFailed (Lai/rever/boss/plugin/api/DynamicPluginListener;Lai/rever/boss/plugin/api/PluginManifest;Ljava/lang/Throwable;)V
 	public static fun pluginUnloaded (Lai/rever/boss/plugin/api/DynamicPluginListener;Lai/rever/boss/plugin/api/PluginManifest;)V
+}
+
+public final class ai/rever/boss/plugin/api/EditResult {
+	public static final field $stable I
+	public static final field Companion Lai/rever/boss/plugin/api/EditResult$Companion;
+	public fun <init> (ZLjava/lang/Long;Ljava/lang/String;)V
+	public synthetic fun <init> (ZLjava/lang/Long;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Z
+	public final fun component2 ()Ljava/lang/Long;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (ZLjava/lang/Long;Ljava/lang/String;)Lai/rever/boss/plugin/api/EditResult;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/EditResult;ZLjava/lang/Long;Ljava/lang/String;ILjava/lang/Object;)Lai/rever/boss/plugin/api/EditResult;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getApplied ()Z
+	public final fun getNewVersion ()Ljava/lang/Long;
+	public final fun getReason ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class ai/rever/boss/plugin/api/EditResult$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field $stable I
+	public static final field INSTANCE Lai/rever/boss/plugin/api/EditResult$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lai/rever/boss/plugin/api/EditResult;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lai/rever/boss/plugin/api/EditResult;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ai/rever/boss/plugin/api/EditResult$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
 public abstract interface class ai/rever/boss/plugin/api/EditorContentProvider {
@@ -1730,14 +1933,28 @@ public final class ai/rever/boss/plugin/api/EditorTabData$Companion {
 public abstract interface class ai/rever/boss/plugin/api/EditorTabPluginAPI {
 	public fun EditorSettingsPanel (Landroidx/compose/ui/Modifier;Landroidx/compose/runtime/Composer;I)V
 	public fun LspSettingsPanel (Landroidx/compose/ui/Modifier;Landroidx/compose/runtime/Composer;I)V
+	public fun applyEdit (Ljava/lang/String;IIIILjava/lang/String;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun autoSaveEnabled ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun focusedDocument ()Lai/rever/boss/plugin/api/FocusedDocument;
+	public fun observeChanges (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public fun openEditor (Ljava/lang/String;Ljava/lang/Integer;)Z
+	public static synthetic fun openEditor$default (Lai/rever/boss/plugin/api/EditorTabPluginAPI;Ljava/lang/String;Ljava/lang/Integer;ILjava/lang/Object;)Z
+	public fun openSplit (Ljava/lang/String;)Z
+	public fun readBuffer (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun setAutoSaveEnabled (Z)V
 }
 
 public final class ai/rever/boss/plugin/api/EditorTabPluginAPI$DefaultImpls {
 	public static fun EditorSettingsPanel (Lai/rever/boss/plugin/api/EditorTabPluginAPI;Landroidx/compose/ui/Modifier;Landroidx/compose/runtime/Composer;I)V
 	public static fun LspSettingsPanel (Lai/rever/boss/plugin/api/EditorTabPluginAPI;Landroidx/compose/ui/Modifier;Landroidx/compose/runtime/Composer;I)V
+	public static fun applyEdit (Lai/rever/boss/plugin/api/EditorTabPluginAPI;Ljava/lang/String;IIIILjava/lang/String;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static fun autoSaveEnabled (Lai/rever/boss/plugin/api/EditorTabPluginAPI;)Lkotlinx/coroutines/flow/StateFlow;
+	public static fun focusedDocument (Lai/rever/boss/plugin/api/EditorTabPluginAPI;)Lai/rever/boss/plugin/api/FocusedDocument;
+	public static fun observeChanges (Lai/rever/boss/plugin/api/EditorTabPluginAPI;Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public static fun openEditor (Lai/rever/boss/plugin/api/EditorTabPluginAPI;Ljava/lang/String;Ljava/lang/Integer;)Z
+	public static synthetic fun openEditor$default (Lai/rever/boss/plugin/api/EditorTabPluginAPI;Ljava/lang/String;Ljava/lang/Integer;ILjava/lang/Object;)Z
+	public static fun openSplit (Lai/rever/boss/plugin/api/EditorTabPluginAPI;Ljava/lang/String;)Z
+	public static fun readBuffer (Lai/rever/boss/plugin/api/EditorTabPluginAPI;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static fun setAutoSaveEnabled (Lai/rever/boss/plugin/api/EditorTabPluginAPI;Z)V
 }
 
@@ -1768,6 +1985,43 @@ public final class ai/rever/boss/plugin/api/FileChangeType : java/lang/Enum {
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lai/rever/boss/plugin/api/FileChangeType;
 	public static fun values ()[Lai/rever/boss/plugin/api/FileChangeType;
+}
+
+public final class ai/rever/boss/plugin/api/FileMatch {
+	public static final field $stable I
+	public static final field Companion Lai/rever/boss/plugin/api/FileMatch$Companion;
+	public fun <init> (Ljava/lang/String;IIILjava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()I
+	public final fun component3 ()I
+	public final fun component4 ()I
+	public final fun component5 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;IIILjava/lang/String;)Lai/rever/boss/plugin/api/FileMatch;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/FileMatch;Ljava/lang/String;IIILjava/lang/String;ILjava/lang/Object;)Lai/rever/boss/plugin/api/FileMatch;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getColumn ()I
+	public final fun getContextLine ()Ljava/lang/String;
+	public final fun getLine ()I
+	public final fun getMatchLength ()I
+	public final fun getPath ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class ai/rever/boss/plugin/api/FileMatch$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field $stable I
+	public static final field INSTANCE Lai/rever/boss/plugin/api/FileMatch$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lai/rever/boss/plugin/api/FileMatch;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lai/rever/boss/plugin/api/FileMatch;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ai/rever/boss/plugin/api/FileMatch$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
 public final class ai/rever/boss/plugin/api/FileNodeData {
@@ -1878,6 +2132,40 @@ public final class ai/rever/boss/plugin/api/FileReadResult$Success : ai/rever/bo
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class ai/rever/boss/plugin/api/FileReplaceResult {
+	public static final field $stable I
+	public static final field Companion Lai/rever/boss/plugin/api/FileReplaceResult$Companion;
+	public fun <init> (Ljava/lang/String;ILjava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;ILjava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()I
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;ILjava/lang/String;)Lai/rever/boss/plugin/api/FileReplaceResult;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/FileReplaceResult;Ljava/lang/String;ILjava/lang/String;ILjava/lang/Object;)Lai/rever/boss/plugin/api/FileReplaceResult;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getError ()Ljava/lang/String;
+	public final fun getPath ()Ljava/lang/String;
+	public final fun getReplacements ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class ai/rever/boss/plugin/api/FileReplaceResult$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field $stable I
+	public static final field INSTANCE Lai/rever/boss/plugin/api/FileReplaceResult$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lai/rever/boss/plugin/api/FileReplaceResult;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lai/rever/boss/plugin/api/FileReplaceResult;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ai/rever/boss/plugin/api/FileReplaceResult$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
 public abstract interface class ai/rever/boss/plugin/api/FileSystemDataProvider {
 	public abstract fun copyToClipboard-IoAF18A (Ljava/lang/String;)Ljava/lang/Object;
 	public abstract fun createFile-0E7RQCE (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -1931,6 +2219,49 @@ public final class ai/rever/boss/plugin/api/FilterOperator : java/lang/Enum {
 
 public abstract interface class ai/rever/boss/plugin/api/FluckPanelContentProvider {
 	public abstract fun FluckPanelContent (Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class ai/rever/boss/plugin/api/FocusedDocument {
+	public static final field $stable I
+	public static final field Companion Lai/rever/boss/plugin/api/FocusedDocument$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;JLjava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()J
+	public final fun component4 ()Ljava/lang/Integer;
+	public final fun component5 ()Ljava/lang/Integer;
+	public final fun component6 ()Ljava/lang/Integer;
+	public final fun component7 ()Ljava/lang/Integer;
+	public final fun component8 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;JLjava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;)Lai/rever/boss/plugin/api/FocusedDocument;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/FocusedDocument;Ljava/lang/String;Ljava/lang/String;JLjava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;ILjava/lang/Object;)Lai/rever/boss/plugin/api/FocusedDocument;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getContent ()Ljava/lang/String;
+	public final fun getLanguage ()Ljava/lang/String;
+	public final fun getPath ()Ljava/lang/String;
+	public final fun getSelectionEndCol ()Ljava/lang/Integer;
+	public final fun getSelectionEndLine ()Ljava/lang/Integer;
+	public final fun getSelectionStartCol ()Ljava/lang/Integer;
+	public final fun getSelectionStartLine ()Ljava/lang/Integer;
+	public final fun getVersion ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class ai/rever/boss/plugin/api/FocusedDocument$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field $stable I
+	public static final field INSTANCE Lai/rever/boss/plugin/api/FocusedDocument$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lai/rever/boss/plugin/api/FocusedDocument;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lai/rever/boss/plugin/api/FocusedDocument;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ai/rever/boss/plugin/api/FocusedDocument$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
 public final class ai/rever/boss/plugin/api/GcCollectorData {
@@ -1994,6 +2325,40 @@ public final class ai/rever/boss/plugin/api/GenericDialogProvider$DefaultImpls {
 	public static synthetic fun showTextInputDialog$default (Lai/rever/boss/plugin/api/GenericDialogProvider;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
+public final class ai/rever/boss/plugin/api/GitBranchRefData {
+	public static final field $stable I
+	public static final field Companion Lai/rever/boss/plugin/api/GitBranchRefData$Companion;
+	public fun <init> (Ljava/lang/String;ZZ)V
+	public synthetic fun <init> (Ljava/lang/String;ZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Z
+	public final fun component3 ()Z
+	public final fun copy (Ljava/lang/String;ZZ)Lai/rever/boss/plugin/api/GitBranchRefData;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/GitBranchRefData;Ljava/lang/String;ZZILjava/lang/Object;)Lai/rever/boss/plugin/api/GitBranchRefData;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getName ()Ljava/lang/String;
+	public fun hashCode ()I
+	public final fun isCurrent ()Z
+	public final fun isRemote ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class ai/rever/boss/plugin/api/GitBranchRefData$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field $stable I
+	public static final field INSTANCE Lai/rever/boss/plugin/api/GitBranchRefData$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lai/rever/boss/plugin/api/GitBranchRefData;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lai/rever/boss/plugin/api/GitBranchRefData;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ai/rever/boss/plugin/api/GitBranchRefData$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
 public final class ai/rever/boss/plugin/api/GitCommitInfoData {
 	public static final field $stable I
 	public static final field Companion Lai/rever/boss/plugin/api/GitCommitInfoData$Companion;
@@ -2035,16 +2400,79 @@ public final class ai/rever/boss/plugin/api/GitCommitInfoData$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
+public final class ai/rever/boss/plugin/api/GitCommitNodeData {
+	public static final field $stable I
+	public static final field Companion Lai/rever/boss/plugin/api/GitCommitNodeData$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JLjava/util/List;Ljava/util/List;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()J
+	public final fun component7 ()Ljava/util/List;
+	public final fun component8 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JLjava/util/List;Ljava/util/List;)Lai/rever/boss/plugin/api/GitCommitNodeData;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/GitCommitNodeData;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JLjava/util/List;Ljava/util/List;ILjava/lang/Object;)Lai/rever/boss/plugin/api/GitCommitNodeData;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAuthor ()Ljava/lang/String;
+	public final fun getAuthorEmail ()Ljava/lang/String;
+	public final fun getDate ()J
+	public final fun getHash ()Ljava/lang/String;
+	public final fun getParents ()Ljava/util/List;
+	public final fun getRefs ()Ljava/util/List;
+	public final fun getShortHash ()Ljava/lang/String;
+	public final fun getSubject ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class ai/rever/boss/plugin/api/GitCommitNodeData$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field $stable I
+	public static final field INSTANCE Lai/rever/boss/plugin/api/GitCommitNodeData$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lai/rever/boss/plugin/api/GitCommitNodeData;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lai/rever/boss/plugin/api/GitCommitNodeData;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ai/rever/boss/plugin/api/GitCommitNodeData$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
 public abstract interface class ai/rever/boss/plugin/api/GitDataProvider {
+	public fun branches (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun checkout (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun cherryPick (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun commit (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun diffBetween (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun diffBetween$default (Lai/rever/boss/plugin/api/GitDataProvider;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public fun diffFile (Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun diffFile$default (Lai/rever/boss/plugin/api/GitDataProvider;Ljava/lang/String;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public fun diffNames (ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun diffNames$default (Lai/rever/boss/plugin/api/GitDataProvider;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public fun diffRef (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun diffRef$default (Lai/rever/boss/plugin/api/GitDataProvider;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun discardChanges (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun fetch (ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun fetch$default (Lai/rever/boss/plugin/api/GitDataProvider;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun getCommitLog ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getCurrentProjectPath ()Ljava/lang/String;
 	public abstract fun getFileStatus ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun isGitRepository ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun isLoading ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun logGraph (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun logGraph$default (Lai/rever/boss/plugin/api/GitDataProvider;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public fun logGraphFor (Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun logGraphFor$default (Lai/rever/boss/plugin/api/GitDataProvider;Ljava/lang/String;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public fun openDiff (Ljava/lang/String;ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public static synthetic fun openDiff$default (Lai/rever/boss/plugin/api/GitDataProvider;Ljava/lang/String;ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
 	public abstract fun openFile (Ljava/lang/String;Ljava/lang/String;)V
+	public fun pull (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun push (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun refreshLog (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun refreshLog$default (Lai/rever/boss/plugin/api/GitDataProvider;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun refreshStatus (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -2056,7 +2484,69 @@ public abstract interface class ai/rever/boss/plugin/api/GitDataProvider {
 }
 
 public final class ai/rever/boss/plugin/api/GitDataProvider$DefaultImpls {
+	public static fun branches (Lai/rever/boss/plugin/api/GitDataProvider;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static fun commit (Lai/rever/boss/plugin/api/GitDataProvider;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static fun diffBetween (Lai/rever/boss/plugin/api/GitDataProvider;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun diffBetween$default (Lai/rever/boss/plugin/api/GitDataProvider;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static fun diffFile (Lai/rever/boss/plugin/api/GitDataProvider;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun diffFile$default (Lai/rever/boss/plugin/api/GitDataProvider;Ljava/lang/String;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static fun diffNames (Lai/rever/boss/plugin/api/GitDataProvider;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun diffNames$default (Lai/rever/boss/plugin/api/GitDataProvider;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static fun diffRef (Lai/rever/boss/plugin/api/GitDataProvider;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun diffRef$default (Lai/rever/boss/plugin/api/GitDataProvider;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static fun fetch (Lai/rever/boss/plugin/api/GitDataProvider;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun fetch$default (Lai/rever/boss/plugin/api/GitDataProvider;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static fun logGraph (Lai/rever/boss/plugin/api/GitDataProvider;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun logGraph$default (Lai/rever/boss/plugin/api/GitDataProvider;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static fun logGraphFor (Lai/rever/boss/plugin/api/GitDataProvider;Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun logGraphFor$default (Lai/rever/boss/plugin/api/GitDataProvider;Ljava/lang/String;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static fun openDiff (Lai/rever/boss/plugin/api/GitDataProvider;Ljava/lang/String;ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public static synthetic fun openDiff$default (Lai/rever/boss/plugin/api/GitDataProvider;Ljava/lang/String;ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
+	public static fun pull (Lai/rever/boss/plugin/api/GitDataProvider;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static fun push (Lai/rever/boss/plugin/api/GitDataProvider;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun refreshLog$default (Lai/rever/boss/plugin/api/GitDataProvider;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class ai/rever/boss/plugin/api/GitDiffData {
+	public static final field $stable I
+	public static final field Companion Lai/rever/boss/plugin/api/GitDiffData$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;IIZLjava/util/List;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;IIZLjava/util/List;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()I
+	public final fun component4 ()I
+	public final fun component5 ()Z
+	public final fun component6 ()Ljava/util/List;
+	public final fun component7 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;IIZLjava/util/List;Ljava/lang/String;)Lai/rever/boss/plugin/api/GitDiffData;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/GitDiffData;Ljava/lang/String;Ljava/lang/String;IIZLjava/util/List;Ljava/lang/String;ILjava/lang/Object;)Lai/rever/boss/plugin/api/GitDiffData;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAdditions ()I
+	public final fun getDeletions ()I
+	public final fun getHunks ()Ljava/util/List;
+	public final fun getOldPath ()Ljava/lang/String;
+	public final fun getPath ()Ljava/lang/String;
+	public final fun getRawUnified ()Ljava/lang/String;
+	public fun hashCode ()I
+	public final fun isBinary ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class ai/rever/boss/plugin/api/GitDiffData$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field $stable I
+	public static final field INSTANCE Lai/rever/boss/plugin/api/GitDiffData$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lai/rever/boss/plugin/api/GitDiffData;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lai/rever/boss/plugin/api/GitDiffData;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ai/rever/boss/plugin/api/GitDiffData$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
 public final class ai/rever/boss/plugin/api/GitFileStatusData {
@@ -3648,6 +4138,7 @@ public abstract interface class ai/rever/boss/plugin/api/PluginContext {
 	public fun getPluginStoreApiKeyProvider ()Lai/rever/boss/plugin/api/PluginStoreApiKeyProvider;
 	public fun getProjectDataProvider ()Lai/rever/boss/plugin/api/ProjectDataProvider;
 	public fun getProjectPath ()Ljava/lang/String;
+	public fun getProjectSearchProvider ()Lai/rever/boss/plugin/api/ProjectSearchProvider;
 	public fun getRoleManagementProvider ()Lai/rever/boss/plugin/api/RoleManagementProvider;
 	public fun getRunConfigurationDataProvider ()Lai/rever/boss/plugin/api/RunConfigurationDataProvider;
 	public fun getSandbox ()Lai/rever/boss/plugin/api/PluginSandboxRef;
@@ -3718,6 +4209,7 @@ public final class ai/rever/boss/plugin/api/PluginContext$DefaultImpls {
 	public static fun getPluginStoreApiKeyProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/PluginStoreApiKeyProvider;
 	public static fun getProjectDataProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/ProjectDataProvider;
 	public static fun getProjectPath (Lai/rever/boss/plugin/api/PluginContext;)Ljava/lang/String;
+	public static fun getProjectSearchProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/ProjectSearchProvider;
 	public static fun getRoleManagementProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/RoleManagementProvider;
 	public static fun getRunConfigurationDataProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/RunConfigurationDataProvider;
 	public static fun getSandbox (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/PluginSandboxRef;
@@ -4457,6 +4949,22 @@ public abstract interface class ai/rever/boss/plugin/api/ProjectDataProvider {
 	public abstract fun updateRecentProjects (Lai/rever/boss/plugin/api/ProjectData;)V
 }
 
+public abstract interface class ai/rever/boss/plugin/api/ProjectSearchProvider {
+	public fun replaceInProject (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ZZZZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun replaceInProject$default (Lai/rever/boss/plugin/api/ProjectSearchProvider;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ZZZZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public fun searchInProject (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZZILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun searchInProject (Ljava/lang/String;Ljava/lang/String;ZZZILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun searchInProject$default (Lai/rever/boss/plugin/api/ProjectSearchProvider;Ljava/lang/String;Ljava/lang/String;ZZZILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class ai/rever/boss/plugin/api/ProjectSearchProvider$DefaultImpls {
+	public static fun replaceInProject (Lai/rever/boss/plugin/api/ProjectSearchProvider;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ZZZZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun replaceInProject$default (Lai/rever/boss/plugin/api/ProjectSearchProvider;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ZZZZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static fun searchInProject (Lai/rever/boss/plugin/api/ProjectSearchProvider;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZZILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static fun searchInProject (Lai/rever/boss/plugin/api/ProjectSearchProvider;Ljava/lang/String;Ljava/lang/String;ZZZILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun searchInProject$default (Lai/rever/boss/plugin/api/ProjectSearchProvider;Ljava/lang/String;Ljava/lang/String;ZZZILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
 public final class ai/rever/boss/plugin/api/QueryFilter {
 	public static final field $stable I
 	public fun <init> (Ljava/lang/String;Lai/rever/boss/plugin/api/FilterOperator;Ljava/lang/String;)V
@@ -4551,6 +5059,40 @@ public final class ai/rever/boss/plugin/api/RepairStrategy : java/lang/Enum {
 }
 
 public final class ai/rever/boss/plugin/api/RepairStrategy$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class ai/rever/boss/plugin/api/ReplaceSummary {
+	public static final field $stable I
+	public static final field Companion Lai/rever/boss/plugin/api/ReplaceSummary$Companion;
+	public fun <init> (IILjava/util/List;)V
+	public synthetic fun <init> (IILjava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()I
+	public final fun component2 ()I
+	public final fun component3 ()Ljava/util/List;
+	public final fun copy (IILjava/util/List;)Lai/rever/boss/plugin/api/ReplaceSummary;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/ReplaceSummary;IILjava/util/List;ILjava/lang/Object;)Lai/rever/boss/plugin/api/ReplaceSummary;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFiles ()Ljava/util/List;
+	public final fun getFilesReplaced ()I
+	public final fun getTotalReplacements ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class ai/rever/boss/plugin/api/ReplaceSummary$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field $stable I
+	public static final field INSTANCE Lai/rever/boss/plugin/api/ReplaceSummary$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lai/rever/boss/plugin/api/ReplaceSummary;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lai/rever/boss/plugin/api/ReplaceSummary;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ai/rever/boss/plugin/api/ReplaceSummary$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 

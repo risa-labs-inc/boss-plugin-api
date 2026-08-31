@@ -2,7 +2,9 @@ package ai.rever.boss.plugin.api
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.serialization.Serializable
 
 /**
  * Plugin API exposed by the editor-tab plugin for the host (and other plugins) to consume.
@@ -60,4 +62,136 @@ interface EditorTabPluginAPI {
      * [autoSaveEnabled] returning non-null before offering the control.
      */
     fun setAutoSaveEnabled(enabled: Boolean) {}
+
+    // ============================================================
+    // LIVE BUFFER MODEL (1.0.87, IDE scope decision D3)
+    //
+    // Invariants every implementation must hold:
+    // - ONE BUFFER PER PATH: split panes and multiple tabs on the same path are
+    //   viewports over one shared editor state, never copies.
+    // - MONOTONIC VERSION: every buffer has a `version: Long` bumped on each
+    //   document change; [readBuffer] and [focusedDocument] report it, and
+    //   [applyEdit] takes expectedVersion and fails with reason "stale" on
+    //   mismatch rather than mis-applying over newer content.
+    // - UNDOABLE WRITES: [applyEdit] routes through the editor's undo manager, so
+    //   an applied edit is one undo step. It operates on OPEN BUFFERS ONLY: a path
+    //   with no buffer fails with applied=false, and writing that file is the
+    //   caller's job (git is the undo there). An applied edit always reports a
+    //   non-null newVersion.
+    //
+    //   This used to claim applyEdit wrote closed files directly and reported
+    //   newVersion = null. No implementation ever did that, and callers that
+    //   believed it - treating a null version as a closed-file success - would
+    //   have gone on to chain edits against a version that does not exist.
+    // ============================================================
+
+    /**
+     * Snapshot of the live buffer for [path], or null when the file has no open
+     * buffer (then the caller falls back to disk).
+     */
+    suspend fun readBuffer(path: String): BufferSnapshot? = null
+
+    /**
+     * Apply a text edit to the live buffer at [path], replacing the range
+     * ([startLine], [startCol])..([endLine], [endCol]) with [newText]. Line and
+     * column are 1-based. Fails (applied=false) when the buffer is gone or
+     * [expectedVersion] no longer matches; [EditResult.reason] names why
+     * ("stale" is the version-mismatch case).
+     */
+    suspend fun applyEdit(
+        path: String,
+        startLine: Int,
+        startCol: Int,
+        endLine: Int,
+        endCol: Int,
+        newText: String,
+        expectedVersion: Long
+    ): EditResult = EditResult(applied = false, reason = "unsupported")
+
+    /**
+     * Observe buffer changes for [path] (one emission per document change), or
+     * null when the plugin predates this method.
+     *
+     * A hot stream that does NOT complete on its own - collect it within a scope you
+     * cancel when done, rather than waiting for completion. Emissions may be dropped
+     * under load (the buffer keeps a bounded queue), so treat a change as "re-read via
+     * [readBuffer]", not as a delta.
+     */
+    fun observeChanges(path: String): Flow<BufferChange>? = null
+
+    /**
+     * The document of the focused editor tab, with the current selection, or
+     * null when no editor tab is focused.
+     */
+    fun focusedDocument(): FocusedDocument? = null
+
+    /**
+     * Open (or focus) an editor tab for [path], optionally at [line] (1-based).
+     * Returns false when no editor tab can be opened in this context.
+     */
+    fun openEditor(path: String, line: Int? = null): Boolean = false
+
+    /**
+     * Open [path] in a split pane of the current editor tab (P3 implements the
+     * rendering; the surface ships in 1.0.87 so one release carries it).
+     * Same path = a second viewport over the shared buffer; different path = a
+     * side-by-side comparison pair.
+     */
+    fun openSplit(path: String): Boolean = false
 }
+
+/**
+ * A live-buffer snapshot (1.0.87). [version] is the buffer's monotonic change
+ * version at read time - pass it back to [EditorTabPluginAPI.applyEdit] as
+ * expectedVersion.
+ */
+@Serializable
+data class BufferSnapshot(
+    val path: String,
+    val content: String,
+    val version: Long,
+    val isModified: Boolean
+)
+
+/**
+ * The focused editor's document plus its selection (1.0.87). Selection ends
+ * are null when the caret is not in a selection. Lines/columns are 1-based.
+ */
+@Serializable
+data class FocusedDocument(
+    val path: String,
+    val content: String,
+    val version: Long,
+    val selectionStartLine: Int?,
+    val selectionStartCol: Int?,
+    val selectionEndLine: Int?,
+    val selectionEndCol: Int?,
+    val language: String
+)
+
+/**
+ * Outcome of an [EditorTabPluginAPI.applyEdit] call (1.0.87).
+ *
+ * [newVersion] is the buffer's version after an APPLIED edit, so it is non-null
+ * whenever [applied] is true - applyEdit operates on open buffers only (see the LIVE
+ * BUFFER MODEL block above); there is no closed-file disk-write path that reports a
+ * null version on success. [reason] is "stale" for a version mismatch, otherwise a
+ * short human-readable failure.
+ */
+@Serializable
+data class EditResult(
+    val applied: Boolean,
+    val newVersion: Long? = null,
+    val reason: String? = null
+)
+
+/**
+ * One buffer change emission (1.0.87): the buffer's new [version]. The change
+ * content itself is never carried - consumers re-read through readBuffer,
+ * which keeps the flow small and the buffer the single source of truth.
+ */
+@Serializable
+data class BufferChange(
+    val path: String,
+    val version: Long
+)

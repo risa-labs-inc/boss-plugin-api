@@ -72,12 +72,24 @@ interface EditorContentProvider {
      * Show the find dialog for the currently focused editor.
      * If no editor is focused, this is a no-op.
      */
+    @Deprecated(
+        "The in-editor find bar is owned by the editor-tab plugin UI; " +
+            "project-wide content search is ProjectSearchProvider (1.0.87). " +
+            "This disk-layer API will not implement editor-state methods.",
+        ReplaceWith("")
+    )
     fun showFindDialog() {}
 
     /**
      * Show the find & replace dialog for the currently focused editor.
      * If no editor is focused, this is a no-op.
      */
+    @Deprecated(
+        "The in-editor replace bar is owned by the editor-tab plugin UI; " +
+            "project-wide replace is ProjectSearchProvider.replaceInProject (1.0.87). " +
+            "This disk-layer API will not implement editor-state methods.",
+        ReplaceWith("")
+    )
     fun showReplaceDialog() {}
 
     /**
@@ -86,18 +98,34 @@ interface EditorContentProvider {
      *
      * @param line The line number to navigate to (1-based)
      */
+    @Deprecated(
+        "Navigation is the editor-tab plugin's concern (see " +
+            "EditorTabPluginAPI.openEditor); this disk-layer API will not " +
+            "implement editor-state methods.",
+        ReplaceWith("")
+    )
     fun goToLine(line: Int) {}
 
     /**
      * Find the next occurrence of the current search term.
      * If no editor is focused or no search term is active, this is a no-op.
      */
+    @Deprecated(
+        "In-editor search state is owned by the editor-tab plugin; this " +
+            "disk-layer API will not implement editor-state methods.",
+        ReplaceWith("")
+    )
     fun findNext() {}
 
     /**
      * Find the previous occurrence of the current search term.
      * If no editor is focused or no search term is active, this is a no-op.
      */
+    @Deprecated(
+        "In-editor search state is owned by the editor-tab plugin; this " +
+            "disk-layer API will not implement editor-state methods.",
+        ReplaceWith("")
+    )
     fun findPrevious() {}
 
     // ============ Phase 1: Editor Feature Toggles ============
@@ -386,24 +414,48 @@ interface EditorContentProvider {
      * Undo the last edit in the focused editor.
      * @return true if an undo was performed
      */
+    @Deprecated(
+        "Undo lives in the editor's own undo stack (the editor-tab plugin's " +
+            "buffer model, 1.0.87); this disk-layer API will not implement " +
+            "editor-state methods.",
+        ReplaceWith("")
+    )
     fun undo(): Boolean = false
 
     /**
      * Redo the last undone edit in the focused editor.
      * @return true if a redo was performed
      */
+    @Deprecated(
+        "Redo lives in the editor's own undo stack (the editor-tab plugin's " +
+            "buffer model, 1.0.87); this disk-layer API will not implement " +
+            "editor-state methods.",
+        ReplaceWith("")
+    )
     fun redo(): Boolean = false
 
     /**
      * Check if undo is available in the focused editor.
      * @return true if undo is available
      */
+    @Deprecated(
+        "Undo availability lives in the editor's own undo stack (the " +
+            "editor-tab plugin's buffer model, 1.0.87); this disk-layer API " +
+            "will not implement editor-state methods.",
+        ReplaceWith("")
+    )
     fun canUndo(): Boolean = false
 
     /**
      * Check if redo is available in the focused editor.
      * @return true if redo is available
      */
+    @Deprecated(
+        "Redo availability lives in the editor's own undo stack (the " +
+            "editor-tab plugin's buffer model, 1.0.87); this disk-layer API " +
+            "will not implement editor-state methods.",
+        ReplaceWith("")
+    )
     fun canRedo(): Boolean = false
 
     // ============ Phase 4: Code Completion (E13) ============

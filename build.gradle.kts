@@ -451,6 +451,37 @@ group = "ai.rever.boss.plugin.bundled"
 // 1.0.88, 404ing the fetchApiPluginJar pin in the host PR this exists to
 // unblock (BossConsole#289). Precedent: the 1.0.85 and 1.0.86 PRs edited this
 // comment block and left the line at 1.0.84 / 1.0.85.
+// 1.0.88: adds ActiveTabsProvider.moveTabToWorkspace + liveWorkspaceIds + supportsTabTransfer, and
+// marks ActiveTabsProvider @HostImplemented.
+//
+// A BOSS window RUNS several workspaces at once and shows one: switching preserves the whole split
+// tree of the one you leave, and those stay live BossTabsComponents. The read side of that has been
+// exposed all along - activeTabs reports tabs whose workspaceId is not the current one - but every
+// WRITE path in the host searched the current tree only, so there was no way to move a tab between
+// workspaces, and selectTab/closeTab silently did nothing for a tab in a preserved one. The host
+// already has the primitive (detachTab/adoptTab transfer the live component and its lifecycle, so a
+// moved browser tab keeps its page and playing media); nothing crossed a workspace boundary with it.
+//
+// Three members rather than one. supportsTabTransfer is the probe, because a defaulted `false`
+// return cannot separate "no implementation here" from "it ran and refused" - same shape as
+// supportsOpenPanelAsTab and supportsHiddenEntries. liveWorkspaceIds is NOT derivable from
+// activeTabs: a workspace with no tabs contributes no rows, so a freshly created empty one would be
+// invisible as a destination; nor is it WorkspaceDataProvider.workspaces, which lists everything
+// SAVED, most of which is not running and cannot receive a live tab. Destinations are deliberately
+// limited to live workspaces - putting a tab into a cold on-disk one means serializing it into the
+// saved layout and destroying the component, which is a different operation.
+//
+// suspend, because detach/adopt touch Essenty LifecycleRegistries and must run on the UI thread; the
+// implementation marshals rather than making every caller find the UI dispatcher. refreshTabs is
+// already suspend here, so it reads consistently. No targetPanelId parameter: a plugin cannot name a
+// panel in a preserved workspace, since ActiveTabData.panelId is only populated for panels that
+// already hold tabs - the host picks that workspace's active panel.
+//
+// NOT jar-only. ActiveTabsProvider is inside the api package plugin-api-core filters into the host
+// and serves parent-first, so the host's pinned copy is what every plugin resolves: an older host's
+// copy has none of these members and a call is a NoSuchMethodError, not the defaulted no-op. Gate on
+// the minBossVersion of the release that pins 1.0.88, same shape as 1.0.77 openPanelAsTab. The
+// annotation is added to say so at the declaration site; it is documentation-only. Additive.
 version = "1.0.87"
 
 java {

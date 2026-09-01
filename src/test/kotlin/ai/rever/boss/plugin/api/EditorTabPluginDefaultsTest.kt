@@ -24,7 +24,7 @@ class EditorTabPluginDefaultsTest {
         // BufferSnapshot would tell it the file is open and blank.
         assertNull(runBlocking { api.readBuffer("a.kt") })
         assertNull(api.observeChanges("a.kt"))
-        assertNull(api.focusedDocument())
+        assertNull(runBlocking { api.focusedDocument() })
     }
 
     @Test
@@ -49,8 +49,8 @@ class EditorTabPluginDefaultsTest {
 
     @Test
     fun `unimplemented openEditor and openSplit refuse rather than claiming success`() {
-        assertFalse(api.openEditor("a.kt"))
-        assertFalse(api.openSplit("a.kt"))
+        assertFalse(runBlocking { api.openEditor("a.kt") })
+        assertFalse(runBlocking { api.openSplit("a.kt") })
     }
 
     @Test

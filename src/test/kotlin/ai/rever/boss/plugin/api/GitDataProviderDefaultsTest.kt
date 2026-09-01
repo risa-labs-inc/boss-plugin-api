@@ -91,4 +91,24 @@ class GitDataProviderDefaultsTest {
             assertTrue(provider.push() is GitOperationResultData.Error)
         }
     }
+
+    @Test
+    fun `the read-side defaults are empty, not throwing`() {
+        // Empty (not throwing) is the contract: a panel below the floor
+        // renders "nothing to show"; a throw would take the whole panel down.
+        runBlocking {
+            assertTrue(provider.diffFile("a.kt").isEmpty())
+            assertTrue(provider.diffRef("abc123").isEmpty())
+            assertTrue(provider.diffBetween("a", "b").isEmpty())
+            assertTrue(provider.diffNames().isEmpty())
+            assertTrue(provider.branches().isEmpty())
+        }
+    }
+
+    @Test
+    fun `the openDiff default is a no-op, even for a blank window`() {
+        // A no-op that is not throwing: a caller below the floor clicks and
+        // nothing happens, which the UI can surface - a throw cannot be.
+        provider.openDiff("a.kt", windowId = "")
+    }
 }

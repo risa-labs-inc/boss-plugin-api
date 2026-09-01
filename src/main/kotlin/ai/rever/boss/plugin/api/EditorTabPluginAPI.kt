@@ -137,31 +137,47 @@ interface EditorTabPluginAPI {
      * Re-reading is a WHOLE-BUFFER round trip ([BufferSnapshot.content] is the full
      * text), and this flow fires on every keystroke - an out-of-process consumer
      * must debounce (conflate to the latest version, read once per quiet period)
-     * rather than read per emission. A cheaper `readBufferRange`/content-hash skip
-     * is deliberately left as a future member; [BufferChange] stays minimal so it
-     * can arrive without reshaping this contract.
+     * rather than read per emission. Implementations MAY conflate the emissions
+     * themselves, for the same reason the consumer should: a change is a version,
+     * not a delta, so dropping all but the latest per quiet period loses nothing.
+     * A cheaper `readBufferRange`/content-hash skip is deliberately left as a
+     * future member; [BufferChange] stays minimal so it can arrive without
+     * reshaping this contract.
      */
     fun observeChanges(path: String): Flow<BufferChange>? = null
 
     /**
      * The document of the focused editor tab, with the current selection, or
      * null when no editor tab is focused.
+     *
+     * suspend for the same reason [readBuffer] is: the payload is the FULL
+     * document text, so a synchronous call would be a blocking IPC round trip
+     * on the caller's thread when the editor-tab plugin is out of process -
+     * and "what is the user looking at" is exactly the call a composable makes.
      */
-    fun focusedDocument(): FocusedDocument? = null
+    suspend fun focusedDocument(): FocusedDocument? = null
 
     /**
      * Open (or focus) an editor tab for [path], optionally at [line] (1-based).
      * Returns false when no editor tab can be opened in this context.
+     *
+     * suspend rather than fire-and-forget like [GitDataProvider.openFile]:
+     * the caller branches on the result (fall back to openFile), so the IPC
+     * round trip must complete - and on the caller's coroutine, not its
+     * thread.
      */
-    fun openEditor(path: String, line: Int? = null): Boolean = false
+    suspend fun openEditor(path: String, line: Int? = null): Boolean = false
 
     /**
      * Open [path] in a split pane of the current editor tab (P3 implements the
      * rendering; the surface ships in 1.0.87 so one release carries it).
      * Same path = a second viewport over the shared buffer; different path = a
      * side-by-side comparison pair.
+     *
+     * suspend for the same reason as [openEditor]: the caller needs the
+     * answer to decide whether the split happened.
      */
-    fun openSplit(path: String): Boolean = false
+    suspend fun openSplit(path: String): Boolean = false
 }
 
 /**
@@ -202,12 +218,14 @@ data class FocusedDocument(
  * null version on success. [reason] is [REASON_STALE] for a version mismatch (the
  * retry-after-re-read case), otherwise a short human-readable failure.
  *
- * [reason] values cross this boundary as free strings, so the ONE that carries
- * control flow - [REASON_STALE] - is pinned as a const on the companion and a
- * test pins the literal, for the same reason
- * [AiRequest.EXTRAS_KEY_MODEL_OVERRIDE] is: a later rewording would silently
- * kill every `reason == REASON_STALE` retry loop. Callers must not
- * pattern-match on any other value.
+ * [reason] values cross this boundary as free strings, so the two that carry
+ * control flow are pinned as consts on the companion and a test pins both
+ * literals, for the same reason [AiRequest.EXTRAS_KEY_MODEL_OVERRIDE] is: a
+ * later rewording would silently kill every retry loop or availability check.
+ * Exactly two values are stable enough to pattern-match on: [REASON_STALE]
+ * (re-read the buffer and retry) and [REASON_UNSUPPORTED] (the host predates
+ * this member - hide the feature, do not retry). Every other value is
+ * human-readable prose and must not drive control flow.
  */
 @Serializable
 data class EditResult(

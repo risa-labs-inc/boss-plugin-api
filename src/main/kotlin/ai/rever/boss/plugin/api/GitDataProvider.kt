@@ -197,8 +197,11 @@ interface GitDataProvider {
      * HEAD, or the index when [staged], or [fromRef] vs [toRef] when both are
      * given. Fire-and-forget like [openFile], and [windowId] is required and
      * second for the same reason it is on [openFile] - a defaulted trailing
-     * window parameter compiles cleanly and opens the tab nowhere. The empty
-     * default body protects implementors that predate it, per the note above.
+     * window parameter compiles cleanly and opens the tab nowhere. An empty
+     * [filePath] asks for a whole-commit / ref-range diff tab, the same
+     * convention as [DiffTabConfig.filePath] (set [fromRef]/[toRef] for the
+     * ref-range case). The empty default body protects implementors that
+     * predate it, per the note above.
      */
     fun openDiff(
         filePath: String,
@@ -420,14 +423,19 @@ data class DiffHunk(
 )
 
 /**
- * One line of a hunk. [oldLine]/[newLine] are 1-based line numbers on each
- * side; null on the side the line does not exist on (a CONTEXT line has both,
- * an ADDED line only [newLine], a REMOVED line only [oldLine]).
+ * One line of a hunk. [text] is the line content minus the hunk marker;
+ * [oldLine]/[newLine] are 1-based line numbers on each side, null on the side
+ * the line does not exist on (a CONTEXT line has both, an ADDED line only
+ * [newLine], a REMOVED line only [oldLine]).
+ *
+ * [text] is first and required on purpose: a hunk line IS its text, so
+ * `DiffLine("+foo")` is the natural construction; [kind] carries a default
+ * because the WIRE side needs one (see [DiffLineKind]).
  */
 @Serializable
 data class DiffLine(
-    val kind: DiffLineKind = DiffLineKind.UNKNOWN,
     val text: String,
+    val kind: DiffLineKind = DiffLineKind.UNKNOWN,
     val oldLine: Int? = null,
     val newLine: Int? = null
 )

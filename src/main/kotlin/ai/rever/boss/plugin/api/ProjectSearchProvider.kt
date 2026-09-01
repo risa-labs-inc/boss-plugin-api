@@ -23,12 +23,20 @@ import kotlinx.serialization.Serializable
  * Matching is strictly PER-LINE: the engine matches each line on its own, and
  * a regex never spans a newline. A pattern containing one matches nothing
  * rather than producing a multi-line range, which [FileMatch] cannot name.
+ * Zero-length matches are legal output (a regex like `a*`, `^`, or a bare
+ * `\b`): they carry [FileMatch.matchLength] = 0, an insertion point rather
+ * than a span.
  *
  * Path confinement: every path in this interface is confined to the current
  * project root. Relative paths resolve against it; a path that escapes it
  * (absolute or via `..`) is never scanned, and on the write path it fails
  * that file with a [FileReplaceResult.error] rather than touching disk
- * outside the project.
+ * outside the project. A symlink does not create an escape: confinement is
+ * decided on REAL paths - the implementation resolves each candidate with
+ * `toRealPath()` and compares it against the project root's own real path, so
+ * a link INSIDE the project pointing outside resolves outside and is skipped.
+ * The walk must not follow symlinks (or must track visited real paths), since
+ * a link cycle wedges it.
  */
 @HostImplemented
 interface ProjectSearchProvider {
@@ -53,7 +61,12 @@ interface ProjectSearchProvider {
      * on alternation (`\bfoo|bar\b` matches bounded `foo` OR unbounded `bar`,
      * alternation binding looser than concatenation), and a CAPTURING wrap
      * shifts every `$1..$9` reference in [replaceInProject] by one, silently
-     * substituting the wrong capture
+     * substituting the wrong capture. For a LITERAL query the engine must
+     * `Regex.escape` it BEFORE the wrap, or a literal `foo(bar)`, `a.b` or
+     * `C++` would be read as a pattern and mis-match or throw. Expect the
+     * honest edge case too: a boundary against a query edge that is not a
+     * word character (`$foo`, `foo.`) has nothing to bound, so such a query
+     * matches nothing
      * @param maxResults Hard cap on returned matches
      * @return Matches in scan order, capped; empty when nothing matches
      */
@@ -127,7 +140,10 @@ interface ProjectSearchProvider {
      * @param files Explicit paths to touch, confined to the project root
      * (see the interface note); a path outside it fails that file, never
      * writes
-     * @param dryRun Count what WOULD be replaced without writing anything
+     * @param dryRun Count what WOULD be replaced without writing anything. For
+     * zero-length regex matches the count is the number of insertion points,
+     * and the engine must advance at least one position after an empty match
+     * so the scan terminates rather than counting forever
      * @return Per-file outcome; [ReplaceSummary.totalReplacements] is the sum
      */
     suspend fun replaceInProject(
@@ -152,6 +168,13 @@ interface ProjectSearchProvider {
  * [contextLine] from [column] for [matchLength] has no out-of-bounds path.
  * A [endLine]/[endColumn] pair is deliberately absent because the contract
  * does not need it, not because it would be dropped later.
+ *
+ * [contextLine] is otherwise the full source line, but implementations MAY
+ * truncate a very long one (a minified bundle is megabytes, repeated up to
+ * [ProjectSearchProvider.searchInProject]'s maxResults across an IPC
+ * boundary) - with one condition: the slice from [column] - 1 for
+ * [matchLength] characters must always be present, or the slicing invariant
+ * above breaks.
  */
 @Serializable
 data class FileMatch(

@@ -1566,14 +1566,14 @@ public final class ai/rever/boss/plugin/api/DiffHunk$Companion {
 public final class ai/rever/boss/plugin/api/DiffLine {
 	public static final field $stable I
 	public static final field Companion Lai/rever/boss/plugin/api/DiffLine$Companion;
-	public fun <init> (Lai/rever/boss/plugin/api/DiffLineKind;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;)V
-	public synthetic fun <init> (Lai/rever/boss/plugin/api/DiffLineKind;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Lai/rever/boss/plugin/api/DiffLineKind;
-	public final fun component2 ()Ljava/lang/String;
+	public fun <init> (Ljava/lang/String;Lai/rever/boss/plugin/api/DiffLineKind;Ljava/lang/Integer;Ljava/lang/Integer;)V
+	public synthetic fun <init> (Ljava/lang/String;Lai/rever/boss/plugin/api/DiffLineKind;Ljava/lang/Integer;Ljava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lai/rever/boss/plugin/api/DiffLineKind;
 	public final fun component3 ()Ljava/lang/Integer;
 	public final fun component4 ()Ljava/lang/Integer;
-	public final fun copy (Lai/rever/boss/plugin/api/DiffLineKind;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;)Lai/rever/boss/plugin/api/DiffLine;
-	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/DiffLine;Lai/rever/boss/plugin/api/DiffLineKind;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;ILjava/lang/Object;)Lai/rever/boss/plugin/api/DiffLine;
+	public final fun copy (Ljava/lang/String;Lai/rever/boss/plugin/api/DiffLineKind;Ljava/lang/Integer;Ljava/lang/Integer;)Lai/rever/boss/plugin/api/DiffLine;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/DiffLine;Ljava/lang/String;Lai/rever/boss/plugin/api/DiffLineKind;Ljava/lang/Integer;Ljava/lang/Integer;ILjava/lang/Object;)Lai/rever/boss/plugin/api/DiffLine;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getKind ()Lai/rever/boss/plugin/api/DiffLineKind;
 	public final fun getNewLine ()Ljava/lang/Integer;
@@ -1938,11 +1938,11 @@ public abstract interface class ai/rever/boss/plugin/api/EditorTabPluginAPI {
 	public fun LspSettingsPanel (Landroidx/compose/ui/Modifier;Landroidx/compose/runtime/Composer;I)V
 	public fun applyEdit (Ljava/lang/String;IIIILjava/lang/String;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun autoSaveEnabled ()Lkotlinx/coroutines/flow/StateFlow;
-	public fun focusedDocument ()Lai/rever/boss/plugin/api/FocusedDocument;
+	public fun focusedDocument (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun observeChanges (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
-	public fun openEditor (Ljava/lang/String;Ljava/lang/Integer;)Z
-	public static synthetic fun openEditor$default (Lai/rever/boss/plugin/api/EditorTabPluginAPI;Ljava/lang/String;Ljava/lang/Integer;ILjava/lang/Object;)Z
-	public fun openSplit (Ljava/lang/String;)Z
+	public fun openEditor (Ljava/lang/String;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun openEditor$default (Lai/rever/boss/plugin/api/EditorTabPluginAPI;Ljava/lang/String;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public fun openSplit (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun readBuffer (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun setAutoSaveEnabled (Z)V
 }
@@ -1952,11 +1952,11 @@ public final class ai/rever/boss/plugin/api/EditorTabPluginAPI$DefaultImpls {
 	public static fun LspSettingsPanel (Lai/rever/boss/plugin/api/EditorTabPluginAPI;Landroidx/compose/ui/Modifier;Landroidx/compose/runtime/Composer;I)V
 	public static fun applyEdit (Lai/rever/boss/plugin/api/EditorTabPluginAPI;Ljava/lang/String;IIIILjava/lang/String;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static fun autoSaveEnabled (Lai/rever/boss/plugin/api/EditorTabPluginAPI;)Lkotlinx/coroutines/flow/StateFlow;
-	public static fun focusedDocument (Lai/rever/boss/plugin/api/EditorTabPluginAPI;)Lai/rever/boss/plugin/api/FocusedDocument;
+	public static fun focusedDocument (Lai/rever/boss/plugin/api/EditorTabPluginAPI;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static fun observeChanges (Lai/rever/boss/plugin/api/EditorTabPluginAPI;Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
-	public static fun openEditor (Lai/rever/boss/plugin/api/EditorTabPluginAPI;Ljava/lang/String;Ljava/lang/Integer;)Z
-	public static synthetic fun openEditor$default (Lai/rever/boss/plugin/api/EditorTabPluginAPI;Ljava/lang/String;Ljava/lang/Integer;ILjava/lang/Object;)Z
-	public static fun openSplit (Lai/rever/boss/plugin/api/EditorTabPluginAPI;Ljava/lang/String;)Z
+	public static fun openEditor (Lai/rever/boss/plugin/api/EditorTabPluginAPI;Ljava/lang/String;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun openEditor$default (Lai/rever/boss/plugin/api/EditorTabPluginAPI;Ljava/lang/String;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static fun openSplit (Lai/rever/boss/plugin/api/EditorTabPluginAPI;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static fun readBuffer (Lai/rever/boss/plugin/api/EditorTabPluginAPI;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static fun setAutoSaveEnabled (Lai/rever/boss/plugin/api/EditorTabPluginAPI;Z)V
 }

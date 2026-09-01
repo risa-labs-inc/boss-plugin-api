@@ -39,6 +39,7 @@ interface PluginSandboxRef {
  * This interface abstracts the host application's services that plugins need.
  * Plugins should depend on this interface rather than concrete implementations.
  */
+@HostImplemented
 interface PluginContext {
     /**
      * Registry for panel registration.
@@ -173,6 +174,25 @@ interface PluginContext {
      * Dynamic plugins can use this to access commit log, file status, etc.
      */
     val gitDataProvider: GitDataProvider?
+        get() = null
+
+    /**
+     * Optional project content search/replace provider (1.0.87).
+     *
+     * Returns null on hosts that predate it - a search tab must hide itself
+     * rather than offer a dead field.
+     *
+     * Both floors apply, and naming only one of them ships a plugin that the
+     * validator rejects. This is a host-compiled member of [PluginContext]
+     * (parent-first), so consuming plugins gate on the first minBossVersion
+     * that implements it - below that, the validator rejects the whole
+     * plugin. AND the [ProjectSearchProvider] type itself resolves from the
+     * installed api jar, so minApiVersion 1.0.87 as well: the ApiClassLoader
+     * loads the newest INSTALLED jar, which is not pinned to the host release,
+     * so minBossVersion alone can still yield class-not-found. See the
+     * [downloadCenterProvider] note for the shape of both floors.
+     */
+    val projectSearchProvider: ProjectSearchProvider?
         get() = null
 
     /**

@@ -35,6 +35,7 @@ import kotlinx.coroutines.flow.Flow
  * unreachable, unconfigured or out of quota is an ordinary outcome here, and a
  * plugin that treats it as one degrades instead of crashing a panel.
  */
+@HostImplemented
 interface AiGatewayAPI {
 
     /**
@@ -186,7 +187,12 @@ interface AiGatewayAPI {
  * Those are resolved per call from the user's configured providers, so a request
  * built once stays correct when the user switches provider - and a plugin cannot
  * accidentally pin itself to one vendor.
+ *
+ * This type is compiled in, so a member change here (like [modelOverride]) is
+ * a host-contract change: the member resolves from the host's pinned copy and
+ * gates on minBossVersion, per the note on that member.
  */
+@HostImplemented
 data class AiRequest(
     /**
      * Standing instructions for the model. Sent wherever the active provider puts
@@ -246,7 +252,32 @@ data class AiRequest(
      * older gateway instead of failing. Do not put credentials here.
      */
     val extras: Map<String, String> = emptyMap(),
-)
+) {
+    /**
+     * The model id a caller wants for this request, or null to use the active
+     * provider's default. A view over [extras] rather than a constructor
+     * parameter - adding one here would move the synthetic constructor and
+     * `copy$default`, a hard break for every already-compiled caller (see
+     * [extras]). Set it with `copy(extras = extras + (EXTRAS_KEY_MODEL_OVERRIDE to id))`
+     * or build the extras map directly; gateways that predate this getter
+     * simply ignore the key.
+     *
+     * Gating asymmetry worth knowing: [EXTRAS_KEY_MODEL_OVERRIDE] is a
+     * `const val`, so it inlines into the caller's constant pool - no
+     * `Fieldref`, usable below any version floor. This getter emits a
+     * `Methodref`, so a plugin that calls it gets rejected by the validator
+     * on a host that predates it. A plugin that must run below the floor
+     * therefore reads `extras[AiRequest.EXTRAS_KEY_MODEL_OVERRIDE]` (well,
+     * the literal the const inlined) instead of `request.modelOverride`.
+     */
+    val modelOverride: String?
+        get() = extras[EXTRAS_KEY_MODEL_OVERRIDE]
+
+    companion object {
+        /** [extras] key carrying a per-request model id (see [modelOverride]). */
+        const val EXTRAS_KEY_MODEL_OVERRIDE = "modelOverride"
+    }
+}
 
 /**
  * One turn in a conversation.

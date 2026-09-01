@@ -37,21 +37,32 @@ import kotlinx.serialization.Serializable
  * a link INSIDE the project pointing outside resolves outside and is skipped.
  * The walk must not follow symlinks (or must track visited real paths), since
  * a link cycle wedges it.
+ *
+ * GATING: both floors apply, for the reasons spelled out on
+ * [PluginContext.projectSearchProvider]. This TYPE exists in the installed
+ * api jar, so referencing it gates on minApiVersion 1.0.87 - and the
+ * ApiClassLoader takes the newest INSTALLED jar, not the host's pinned one,
+ * so a host at the minBossVersion floor with an older installed api jar still
+ * lacks the type. The members resolve from the host's pinned copy
+ * (parent-first), so they gate on minBossVersion as well.
  */
 @HostImplemented
 interface ProjectSearchProvider {
     /**
      * Search file contents under the current project.
      *
-     * This is the ergonomic entry point, and it is a thin default body over
-     * the seven-argument overload (`excludePattern = null`). Implementors
-     * MUST override the seven-argument overload - the exclude-aware engine -
-     * and normally leave this one alone; overriding only this one leaves the
-     * seven-argument overload returning empty.
+     * [excludePattern] is applied by the ENGINE, not filtered from the
+     * returned list: [maxResults] caps the scan, so a caller that filters the
+     * RETURNED list gets "the first N matches, minus the excluded ones" -
+     * fewer results than exist, with nothing to say so. Excluding during the
+     * walk means the cap applies to matches the caller actually wants.
      *
      * @param query Literal text, or a regular expression when [isRegex]
      * @param pathPattern Optional glob filter on the path relative to the
      * project root (e.g. `"**&#47;*.kt"`); null matches all files
+     * @param excludePattern Comma-separated globs; a file matching any of them
+     * is never scanned. Same syntax as [pathPattern]. Null or blank excludes
+     * nothing
      * @param isRegex Treat [query] as a regular expression
      * @param caseSensitive Case-sensitive matching (regex: `(?i)` still
      * applies on top of this)
@@ -73,55 +84,11 @@ interface ProjectSearchProvider {
     suspend fun searchInProject(
         query: String,
         pathPattern: String? = null,
+        excludePattern: String? = null,
         isRegex: Boolean = false,
         caseSensitive: Boolean = false,
         wholeWord: Boolean = false,
         maxResults: Int = 200
-    ): List<FileMatch> =
-        searchInProject(query, pathPattern, null, isRegex, caseSensitive, wholeWord, maxResults)
-
-    /**
-     * Search file contents, with an exclude filter applied by the ENGINE.
-     *
-     * An overload rather than an `excludePattern` parameter on the method
-     * above. This interface has never shipped, so no published implementor
-     * constrains it - the reason is pragmatic: the host's engine
-     * (BossConsole#289) was already written against this exact pair, its
-     * six-argument override delegating to one exclude-aware seven-argument
-     * path. Collapsing to a single method with `excludePattern: String? =
-     * null` would force that override to be rewritten and the host
-     * recompiled for a purely additive parameter - the rebuild the
-     * one-release collapse was supposed to avoid. Consequence to know: with
-     * two overloads, `searchInProject("q", "**&#47;*.kt", "build&#47;**")`
-     * does not compile - three positional args match neither - so
-     * exclude-aware callers pass all seven or use named arguments.
-     *
-     * Excluding here rather than in the caller is the whole point of the overload.
-     * [maxResults] caps the scan, so a caller that filters the RETURNED list gets
-     * "the first N matches, minus the excluded ones" - fewer results than exist,
-     * with nothing to say so. Excluding during the walk means the cap applies to
-     * matches the caller actually wants.
-     *
-     * @param excludePattern Comma-separated globs; a file matching any of them is
-     * never scanned. Same syntax as [pathPattern]. Null or blank excludes nothing.
-     *
-     * This overload is the PRIMARY one - the one implementors override. The
-     * six-argument overload's default body delegates HERE with
-     * `excludePattern = null`, so a host that builds the one exclude-aware
-     * engine serves both entry points; the delegation deliberately does not
-     * run the other way, because an engine implemented only here would have
-     * left the ergonomic six-argument entry silently returning empty. The
-     * `emptyList()` default protects implementors compiled against an
-     * intermediate snapshot that predates the overload, nothing more.
-     */
-    suspend fun searchInProject(
-        query: String,
-        pathPattern: String?,
-        excludePattern: String?,
-        isRegex: Boolean,
-        caseSensitive: Boolean,
-        wholeWord: Boolean,
-        maxResults: Int
     ): List<FileMatch> = emptyList()
 
     /**
@@ -129,6 +96,16 @@ interface ProjectSearchProvider {
      * default. Open buffers are routed through the editor's version-guarded
      * apply path (undoable); closed files are written to disk.
      *
+     * The write side carries the same contract as the read side: closed files
+     * are written ATOMICALLY (temp file in the same directory, then rename),
+     * so an interrupted or failing batch never leaves a truncated source
+     * file; and the write preserves what the file had before - line endings
+     * (a CRLF file comes back CRLF), encoding and BOM, and file mode. A batch
+     * replace that rewrites CRLF as LF or drops the executable bit is a
+     * corruption, not a fix, and this interface is the only place that
+     * contract can live.
+     *
+     * @param query Same semantics as [searchInProject.query]
      * @param replacement For [isRegex] queries this supports `$1`..`$9`
      * capture-group references, Kotlin `Regex.replace` semantics (an
      * implementation built on it therefore also inherits `$0` and
@@ -140,6 +117,9 @@ interface ProjectSearchProvider {
      * @param files Explicit paths to touch, confined to the project root
      * (see the interface note); a path outside it fails that file, never
      * writes
+     * @param isRegex, caseSensitive, wholeWord Same semantics as on
+     * [searchInProject], including the literal-escape and word-boundary edge
+     * cases documented there
      * @param dryRun Count what WOULD be replaced without writing anything. For
      * zero-length regex matches the count is the number of insertion points,
      * and the engine must advance at least one position after an empty match
@@ -154,27 +134,30 @@ interface ProjectSearchProvider {
         caseSensitive: Boolean = false,
         wholeWord: Boolean = false,
         dryRun: Boolean = true
-    ): ReplaceSummary = ReplaceSummary(filesReplaced = 0, totalReplacements = 0)
+    ): ReplaceSummary = ReplaceSummary(filesReplaced = 0, totalReplacements = 0, dryRun = dryRun)
 }
 
 /**
  * One content match (1.0.87). 1-based [line]/[column]; [matchLength] is the
  * matched span in characters - together they are the match range a replace
- * engine and a highlighter both need. [contextLine] is the full source line
- * for rendering.
+ * engine and a highlighter both need. [contextLine] is the source line for
+ * rendering.
  *
  * The span always fits on ONE line: matching is strictly per-line (see the
  * scanning rules on [ProjectSearchProvider]), so a highlighter slicing
- * [contextLine] from [column] for [matchLength] has no out-of-bounds path.
- * A [endLine]/[endColumn] pair is deliberately absent because the contract
- * does not need it, not because it would be dropped later.
+ * [contextLine] from [column] - 1 for [matchLength] characters has no
+ * out-of-bounds path. A [endLine]/[endColumn] pair is deliberately absent
+ * because the contract does not need it, not because it would be dropped
+ * later.
  *
- * [contextLine] is otherwise the full source line, but implementations MAY
- * truncate a very long one (a minified bundle is megabytes, repeated up to
- * [ProjectSearchProvider.searchInProject]'s maxResults across an IPC
- * boundary) - with one condition: the slice from [column] - 1 for
- * [matchLength] characters must always be present, or the slicing invariant
- * above breaks.
+ * Truncation is TAIL-ONLY: [contextLine] always starts at the start of the
+ * source line, and only the part AFTER the match end may be cut - the prefix
+ * is exactly what a highlighter indexes [column] against, and cutting it
+ * would silently re-base the column. A match at column 900,000 of a minified
+ * bundle therefore keeps its 900 KB prefix and loses what follows the match.
+ * When even the prefix up to the match end exceeds the implementation's
+ * budget, it returns the full line or skips the file (the match is not
+ * reported); it never truncates the head.
  */
 @Serializable
 data class FileMatch(
@@ -187,12 +170,18 @@ data class FileMatch(
 
 /**
  * Outcome of a [ProjectSearchProvider.replaceInProject] call (1.0.87).
+ *
+ * [dryRun] echoes the request's flag: with it defaulted `true`, a caller that
+ * forgets the flag would otherwise render "42 replacements" for a run that
+ * touched nothing, and a renderer that sees only the summary (an MCP tool
+ * result, a host panel) cannot ask the caller.
  */
 @Serializable
 data class ReplaceSummary(
     val filesReplaced: Int,
     val totalReplacements: Int,
-    val files: List<FileReplaceResult> = emptyList()
+    val files: List<FileReplaceResult> = emptyList(),
+    val dryRun: Boolean = false
 )
 
 /**

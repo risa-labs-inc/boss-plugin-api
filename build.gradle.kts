@@ -441,9 +441,9 @@ group = "ai.rever.boss.plugin.bundled"
 // 2.3's default -jvm-default=enable: the default bodies land as REAL JVM
 // default methods on the interfaces (verified with javap), so an implementor
 // compiled against an earlier version resolves each member at the interface,
-// not through a DefaultImpls bridge. If the Kotlin pin ever moves or
-// jvmDefault is set to disable, that story silently stops holding - keep the
-// pin, or make the flag explicit.
+// not through a DefaultImpls bridge. The flag is therefore EXPLICIT in the
+// kotlin block below, so a Kotlin version bump that changes the default
+// cannot silently invalidate the story - a silent one, repo-wide.
 //
 // The version line stays at the LAST RELEASED version on purpose: the release
 // workflow bump-pushes the version before building, so THIS merge is the one
@@ -462,6 +462,8 @@ java {
 kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_17)
+        // Explicit, not default: see the 1.0.87 note above the version line.
+        freeCompilerArgs.add("-jvm-default=enable")
     }
 }
 

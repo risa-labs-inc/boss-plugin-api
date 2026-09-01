@@ -121,6 +121,8 @@ interface GitDataProvider {
     /**
      * Commit the staged changes with [message] (`git commit -m`).
      *
+     * @param message The commit message, passed verbatim to `git commit -m`
+     * (newlines allowed)
      * @return Operation result. The error default body protects implementors
      * that predate this member; callers gate on minBossVersion (see the
      * gating note on the DIFF block below).
@@ -188,7 +190,10 @@ interface GitDataProvider {
     /**
      * Changed-file listing (`git diff --name-status`), working tree or index
      * depending on [staged]. Reuses [GitFileStatusData] deliberately - a diff
-     * listing is a status listing, and a second status type would drift.
+     * listing is a status listing, and a second status type would drift. The
+     * wire story holds the same way as for [diffFile]: [GitFileStatusData]'s
+     * nullable status kinds are coercible (see its KDoc), so a future kind
+     * degrades to null on an older consumer instead of failing the decode.
      */
     suspend fun diffNames(staged: Boolean = false): List<GitFileStatusData> = emptyList()
 
@@ -313,12 +318,22 @@ data class GitBranchRefData(
 
 /**
  * Git file status data.
+ *
+ * [indexStatus]/[workTreeStatus] are nullable WITH DEFAULTS so they are
+ * coercible on the wire: when git (or this api) adds a status kind an older
+ * consumer does not know, `coerceInputValues` decodes it to the default
+ * (null) instead of throwing and taking the whole status list down - the same
+ * wire story as [DiffLineKind]. The default is deliberate extension room,
+ * because adding an enum const later is a member change on a host-compiled
+ * type, i.e. a minBossVersion bump (the 1.0.70 `LlmApiFormat.GOOGLE_GENERATIVE`
+ * trap): a UI meeting an unknown kind renders "no status on that side", and
+ * the kind arrives with the next host.
  */
 @Serializable
 data class GitFileStatusData(
     val path: String,
-    val indexStatus: GitFileStatusTypeData?,
-    val workTreeStatus: GitFileStatusTypeData?,
+    val indexStatus: GitFileStatusTypeData? = null,
+    val workTreeStatus: GitFileStatusTypeData? = null,
     val isStaged: Boolean,
     val isUnstaged: Boolean
 )

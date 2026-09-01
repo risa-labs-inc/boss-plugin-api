@@ -22,6 +22,12 @@ package ai.rever.boss.plugin.api
  * tab-open time. The implements-clause is host behaviour, so it arrives with
  * a BossConsole release (minBossVersion), not with this jar.
  *
+ * The type itself carries the other floor: it exists in the installed api
+ * jar, so referencing it gates on minApiVersion 1.0.87 - and the
+ * ApiClassLoader takes the newest INSTALLED jar, not the host's pinned one,
+ * so minBossVersion alone can still yield class-not-found and a rejected
+ * plugin.
+ *
  * An interface rather than a data class on purpose: the host owns the tab
  * config (it has to persist and restore it), and this is only the read side
  * of that contract.

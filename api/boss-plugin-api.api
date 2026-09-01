@@ -2556,6 +2556,7 @@ public final class ai/rever/boss/plugin/api/GitFileStatusData {
 	public static final field $stable I
 	public static final field Companion Lai/rever/boss/plugin/api/GitFileStatusData$Companion;
 	public fun <init> (Ljava/lang/String;Lai/rever/boss/plugin/api/GitFileStatusTypeData;Lai/rever/boss/plugin/api/GitFileStatusTypeData;ZZ)V
+	public synthetic fun <init> (Ljava/lang/String;Lai/rever/boss/plugin/api/GitFileStatusTypeData;Lai/rever/boss/plugin/api/GitFileStatusTypeData;ZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Lai/rever/boss/plugin/api/GitFileStatusTypeData;
 	public final fun component3 ()Lai/rever/boss/plugin/api/GitFileStatusTypeData;
@@ -4956,16 +4957,14 @@ public abstract interface class ai/rever/boss/plugin/api/ProjectSearchProvider {
 	public fun replaceInProject (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ZZZZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun replaceInProject$default (Lai/rever/boss/plugin/api/ProjectSearchProvider;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ZZZZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public fun searchInProject (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZZILkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun searchInProject (Ljava/lang/String;Ljava/lang/String;ZZZILkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun searchInProject$default (Lai/rever/boss/plugin/api/ProjectSearchProvider;Ljava/lang/String;Ljava/lang/String;ZZZILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun searchInProject$default (Lai/rever/boss/plugin/api/ProjectSearchProvider;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZZILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class ai/rever/boss/plugin/api/ProjectSearchProvider$DefaultImpls {
 	public static fun replaceInProject (Lai/rever/boss/plugin/api/ProjectSearchProvider;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ZZZZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun replaceInProject$default (Lai/rever/boss/plugin/api/ProjectSearchProvider;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ZZZZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static fun searchInProject (Lai/rever/boss/plugin/api/ProjectSearchProvider;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZZILkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static fun searchInProject (Lai/rever/boss/plugin/api/ProjectSearchProvider;Ljava/lang/String;Ljava/lang/String;ZZZILkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun searchInProject$default (Lai/rever/boss/plugin/api/ProjectSearchProvider;Ljava/lang/String;Ljava/lang/String;ZZZILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun searchInProject$default (Lai/rever/boss/plugin/api/ProjectSearchProvider;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZZILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class ai/rever/boss/plugin/api/QueryFilter {
@@ -5068,14 +5067,16 @@ public final class ai/rever/boss/plugin/api/RepairStrategy$Companion {
 public final class ai/rever/boss/plugin/api/ReplaceSummary {
 	public static final field $stable I
 	public static final field Companion Lai/rever/boss/plugin/api/ReplaceSummary$Companion;
-	public fun <init> (IILjava/util/List;)V
-	public synthetic fun <init> (IILjava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (IILjava/util/List;Z)V
+	public synthetic fun <init> (IILjava/util/List;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()I
 	public final fun component2 ()I
 	public final fun component3 ()Ljava/util/List;
-	public final fun copy (IILjava/util/List;)Lai/rever/boss/plugin/api/ReplaceSummary;
-	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/ReplaceSummary;IILjava/util/List;ILjava/lang/Object;)Lai/rever/boss/plugin/api/ReplaceSummary;
+	public final fun component4 ()Z
+	public final fun copy (IILjava/util/List;Z)Lai/rever/boss/plugin/api/ReplaceSummary;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/ReplaceSummary;IILjava/util/List;ZILjava/lang/Object;)Lai/rever/boss/plugin/api/ReplaceSummary;
 	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDryRun ()Z
 	public final fun getFiles ()Ljava/util/List;
 	public final fun getFilesReplaced ()I
 	public final fun getTotalReplacements ()I

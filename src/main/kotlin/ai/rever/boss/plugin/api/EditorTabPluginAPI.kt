@@ -223,9 +223,9 @@ data class FocusedDocument(
  * literals, for the same reason [AiRequest.EXTRAS_KEY_MODEL_OVERRIDE] is: a
  * later rewording would silently kill every retry loop or availability check.
  * Exactly two values are stable enough to pattern-match on: [REASON_STALE]
- * (re-read the buffer and retry) and [REASON_UNSUPPORTED] (the host predates
- * this member - hide the feature, do not retry). Every other value is
- * human-readable prose and must not drive control flow.
+ * (re-read the buffer and retry) and [REASON_UNSUPPORTED] (the installed
+ * editor-tab plugin predates this member - hide the feature, do not retry).
+ * Every other value is human-readable prose and must not drive control flow.
  */
 @Serializable
 data class EditResult(
@@ -237,7 +237,7 @@ data class EditResult(
         /** [reason] for a version mismatch: re-read the buffer and retry. */
         const val REASON_STALE = "stale"
 
-        /** [reason] for the default body: the host predates this member. */
+        /** [reason] for the default body: the installed editor-tab plugin predates this member. */
         const val REASON_UNSUPPORTED = "unsupported"
     }
 }

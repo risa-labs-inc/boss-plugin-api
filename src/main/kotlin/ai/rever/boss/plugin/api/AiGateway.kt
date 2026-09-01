@@ -35,6 +35,7 @@ import kotlinx.coroutines.flow.Flow
  * unreachable, unconfigured or out of quota is an ordinary outcome here, and a
  * plugin that treats it as one degrades instead of crashing a panel.
  */
+@HostImplemented
 interface AiGatewayAPI {
 
     /**
@@ -186,7 +187,12 @@ interface AiGatewayAPI {
  * Those are resolved per call from the user's configured providers, so a request
  * built once stays correct when the user switches provider - and a plugin cannot
  * accidentally pin itself to one vendor.
+ *
+ * This type is compiled in, so a member change here (like [modelOverride]) is
+ * a host-contract change: the member resolves from the host's pinned copy and
+ * gates on minBossVersion, per the note on that member.
  */
+@HostImplemented
 data class AiRequest(
     /**
      * Standing instructions for the model. Sent wherever the active provider puts

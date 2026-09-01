@@ -20,6 +20,7 @@ import kotlinx.serialization.Serializable
  * API versions keep loading, and hosts degrade gracefully when the installed
  * plugin predates a method.
  */
+@HostImplemented
 interface EditorTabPluginAPI {
 
     // ============================================================
@@ -66,13 +67,25 @@ interface EditorTabPluginAPI {
     // ============================================================
     // LIVE BUFFER MODEL (1.0.87, IDE scope decision D3)
     //
+    // GATING, for every 1.0.87 member below: [EditorTabPluginAPI] is
+    // @HostImplemented - the host compiles this interface in (EditorAPIAccess),
+    // so these members resolve from the host's pinned copy, parent-first. A
+    // plugin that references any of them gates on minBossVersion, not
+    // minApiVersion - below the floor the validator rejects the WHOLE plugin
+    // at load; it does not hand the caller a null to check. The "null when the
+    // installed plugin predates this method" notes below are the OTHER axis:
+    // member EXISTENCE tracks the host floor, member BEHAVIOUR tracks the
+    // installed editor-tab plugin's version. A null above the floor means the
+    // plugin is old, never that the call is unsupported.
+    //
     // Invariants every implementation must hold:
     // - ONE BUFFER PER PATH: split panes and multiple tabs on the same path are
     //   viewports over one shared editor state, never copies.
     // - MONOTONIC VERSION: every buffer has a `version: Long` bumped on each
     //   document change; [readBuffer] and [focusedDocument] report it, and
-    //   [applyEdit] takes expectedVersion and fails with reason "stale" on
-    //   mismatch rather than mis-applying over newer content.
+    //   [applyEdit] takes expectedVersion and fails with reason
+    //   [EditResult.REASON_STALE] on mismatch rather than mis-applying over
+    //   newer content.
     // - UNDOABLE WRITES: [applyEdit] routes through the editor's undo manager, so
     //   an applied edit is one undo step. It operates on OPEN BUFFERS ONLY: a path
     //   with no buffer fails with applied=false, and writing that file is the
@@ -96,7 +109,9 @@ interface EditorTabPluginAPI {
      * ([startLine], [startCol])..([endLine], [endCol]) with [newText]. Line and
      * column are 1-based. Fails (applied=false) when the buffer is gone or
      * [expectedVersion] no longer matches; [EditResult.reason] names why
-     * ("stale" is the version-mismatch case).
+     * ([EditResult.REASON_STALE] is the version-mismatch case - the one a
+     * caller retries after re-reading, as opposed to every other value,
+     * which means give up).
      */
     suspend fun applyEdit(
         path: String,
@@ -106,11 +121,13 @@ interface EditorTabPluginAPI {
         endCol: Int,
         newText: String,
         expectedVersion: Long
-    ): EditResult = EditResult(applied = false, reason = "unsupported")
+    ): EditResult = EditResult(applied = false, reason = EditResult.REASON_UNSUPPORTED)
 
     /**
      * Observe buffer changes for [path] (one emission per document change), or
-     * null when the plugin predates this method.
+     * null when the installed editor-tab plugin predates this method - the
+     * behaviour axis from the block above; the call itself is minBossVersion
+     * gated, so a null here is never "this host is too old".
      *
      * A hot stream that does NOT complete on its own - collect it within a scope you
      * cancel when done, rather than waiting for completion. Emissions may be dropped
@@ -182,15 +199,30 @@ data class FocusedDocument(
  * [newVersion] is the buffer's version after an APPLIED edit, so it is non-null
  * whenever [applied] is true - applyEdit operates on open buffers only (see the LIVE
  * BUFFER MODEL block above); there is no closed-file disk-write path that reports a
- * null version on success. [reason] is "stale" for a version mismatch, otherwise a
- * short human-readable failure.
+ * null version on success. [reason] is [REASON_STALE] for a version mismatch (the
+ * retry-after-re-read case), otherwise a short human-readable failure.
+ *
+ * [reason] values cross this boundary as free strings, so the ONE that carries
+ * control flow - [REASON_STALE] - is pinned as a const on the companion and a
+ * test pins the literal, for the same reason
+ * [AiRequest.EXTRAS_KEY_MODEL_OVERRIDE] is: a later rewording would silently
+ * kill every `reason == REASON_STALE` retry loop. Callers must not
+ * pattern-match on any other value.
  */
 @Serializable
 data class EditResult(
     val applied: Boolean,
     val newVersion: Long? = null,
     val reason: String? = null
-)
+) {
+    companion object {
+        /** [reason] for a version mismatch: re-read the buffer and retry. */
+        const val REASON_STALE = "stale"
+
+        /** [reason] for the default body: the host predates this member. */
+        const val REASON_UNSUPPORTED = "unsupported"
+    }
+}
 
 /**
  * One buffer change emission (1.0.87): the buffer's new [version]. The change

@@ -78,4 +78,17 @@ class GitDataProviderDefaultsTest {
             assertTrue(provider.logGraphFor("main").isEmpty())
         }
     }
+
+    @Test
+    fun `the write-side defaults refuse with Error, never a silent Success`() {
+        // A UI `when`ing over GitOperationResultData renders Success as "done";
+        // below the floor the honest answer is Error, and a flip to Success()
+        // would tell the user a commit/fetch/pull/push happened that did not.
+        runBlocking {
+            assertTrue(provider.commit("message") is GitOperationResultData.Error)
+            assertTrue(provider.fetch() is GitOperationResultData.Error)
+            assertTrue(provider.pull() is GitOperationResultData.Error)
+            assertTrue(provider.push() is GitOperationResultData.Error)
+        }
+    }
 }

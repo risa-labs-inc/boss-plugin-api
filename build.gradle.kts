@@ -436,7 +436,14 @@ group = "ai.rever.boss.plugin.bundled"
 // diff RENDERER can live in the editor-tab plugin (where BossEditor is) rather
 // than in the host, which had no access to it and drew every line as plain Text.
 // All default-bodied; purely additive; apiCheck clean.
-version = "1.0.87"
+//
+// The version line stays at the LAST RELEASED version on purpose: the release
+// workflow bump-pushes the version before building, so THIS merge is the one
+// that publishes 1.0.87. Bumping it here too would double-bump and ship
+// 1.0.88, 404ing the fetchApiPluginJar pin in the host PR this exists to
+// unblock (BossConsole#289). Precedent: the 1.0.85 and 1.0.86 PRs edited this
+// comment block and left the line at 1.0.84 / 1.0.85.
+version = "1.0.86"
 
 java {
     toolchain {

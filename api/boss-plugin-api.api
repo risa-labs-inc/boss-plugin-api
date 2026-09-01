@@ -1740,6 +1740,8 @@ public final class ai/rever/boss/plugin/api/DynamicPluginListener$DefaultImpls {
 public final class ai/rever/boss/plugin/api/EditResult {
 	public static final field $stable I
 	public static final field Companion Lai/rever/boss/plugin/api/EditResult$Companion;
+	public static final field REASON_STALE Ljava/lang/String;
+	public static final field REASON_UNSUPPORTED Ljava/lang/String;
 	public fun <init> (ZLjava/lang/Long;Ljava/lang/String;)V
 	public synthetic fun <init> (ZLjava/lang/Long;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Z

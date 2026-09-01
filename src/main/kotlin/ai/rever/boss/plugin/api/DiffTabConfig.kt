@@ -26,6 +26,7 @@ package ai.rever.boss.plugin.api
  * config (it has to persist and restore it), and this is only the read side
  * of that contract.
  */
+@HostImplemented
 interface DiffTabConfig {
     /** Project-relative path, or empty for a whole-commit / ref-range diff. */
     val filePath: String

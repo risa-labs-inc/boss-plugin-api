@@ -40,4 +40,44 @@ class ProjectSearchProviderDefaultsTest {
         // The delegation passes "no excludes", not "" or a stale pattern.
         assertNull(seenExclude)
     }
+
+    @Test
+    fun `replaceInProject defaults to dryRun = true - a later tidy-up must not write to disk`() {
+        // dryRun is the one default where a flip changes what hits disk, not
+        // what is returned: the caller omitted the argument, so the value the
+        // engine sees is exactly the default body's contract.
+        var seenDryRun: Boolean? = null
+        var seenFiles: List<String>? = null
+        val counting =
+            object : ProjectSearchProvider {
+                override suspend fun searchInProject(
+                    query: String,
+                    pathPattern: String?,
+                    excludePattern: String?,
+                    isRegex: Boolean,
+                    caseSensitive: Boolean,
+                    wholeWord: Boolean,
+                    maxResults: Int,
+                ): List<FileMatch> = emptyList()
+
+                override suspend fun replaceInProject(
+                    query: String,
+                    replacement: String,
+                    files: List<String>,
+                    isRegex: Boolean,
+                    caseSensitive: Boolean,
+                    wholeWord: Boolean,
+                    dryRun: Boolean,
+                ): ReplaceSummary {
+                    seenDryRun = dryRun
+                    seenFiles = files
+                    return ReplaceSummary(filesReplaced = 0, totalReplacements = 0)
+                }
+            }
+
+        runBlocking { counting.replaceInProject("a", "b", listOf("a.kt")) }
+
+        assertEquals(true, seenDryRun)
+        assertEquals(listOf("a.kt"), seenFiles)
+    }
 }

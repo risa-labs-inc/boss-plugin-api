@@ -397,8 +397,8 @@ sealed class GitOperationResultData {
 data class GitDiffData(
     val path: String,
     val oldPath: String? = null,
-    val additions: Int,
-    val deletions: Int,
+    val additions: Int = 0,
+    val deletions: Int = 0,
     val isBinary: Boolean = false,
     val hunks: List<DiffHunk> = emptyList(),
     val rawUnified: String = ""

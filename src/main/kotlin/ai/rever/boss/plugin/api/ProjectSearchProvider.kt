@@ -20,12 +20,17 @@ import kotlinx.serialization.Serializable
  * dispatcher thread - so implementations must also match under a per-file
  * time budget and treat exceeding it as a skipped file.
  *
+ * Matching is strictly PER-LINE: the engine matches each line on its own, and
+ * a regex never spans a newline. A pattern containing one matches nothing
+ * rather than producing a multi-line range, which [FileMatch] cannot name.
+ *
  * Path confinement: every path in this interface is confined to the current
  * project root. Relative paths resolve against it; a path that escapes it
  * (absolute or via `..`) is never scanned, and on the write path it fails
  * that file with a [FileReplaceResult.error] rather than touching disk
  * outside the project.
  */
+@HostImplemented
 interface ProjectSearchProvider {
     /**
      * Search file contents under the current project.
@@ -42,7 +47,13 @@ interface ProjectSearchProvider {
      * @param isRegex Treat [query] as a regular expression
      * @param caseSensitive Case-sensitive matching (regex: `(?i)` still
      * applies on top of this)
-     * @param wholeWord Match whole words only (boundaries `\b` for regex)
+     * @param wholeWord Match whole words only. A regex engine applies it as a
+     * NON-capturing wrap of the query, `\b(?:query)\b`, preserving the
+     * caller's group numbering exactly: a bare `\b` + query + `\b` mis-parses
+     * on alternation (`\bfoo|bar\b` matches bounded `foo` OR unbounded `bar`,
+     * alternation binding looser than concatenation), and a CAPTURING wrap
+     * shifts every `$1..$9` reference in [replaceInProject] by one, silently
+     * substituting the wrong capture
      * @param maxResults Hard cap on returned matches
      * @return Matches in scan order, capped; empty when nothing matches
      */
@@ -59,11 +70,18 @@ interface ProjectSearchProvider {
     /**
      * Search file contents, with an exclude filter applied by the ENGINE.
      *
-     * An overload rather than an `excludePattern` parameter on the method above:
-     * adding a parameter changes that method's JVM descriptor, and every
-     * implementor compiled against the old one - the host and the 19 IPC proxies
-     * among them - would silently stop overriding it. A new method is additive;
-     * a changed signature is not. `apiCheck` enforces exactly this.
+     * An overload rather than an `excludePattern` parameter on the method
+     * above. This interface has never shipped, so no published implementor
+     * constrains it - the reason is pragmatic: the host's engine
+     * (BossConsole#289) was already written against this exact pair, its
+     * six-argument override delegating to one exclude-aware seven-argument
+     * path. Collapsing to a single method with `excludePattern: String? =
+     * null` would force that override to be rewritten and the host
+     * recompiled for a purely additive parameter - the rebuild the
+     * one-release collapse was supposed to avoid. Consequence to know: with
+     * two overloads, `searchInProject("q", "**&#47;*.kt", "build&#47;**")`
+     * does not compile - three positional args match neither - so
+     * exclude-aware callers pass all seven or use named arguments.
      *
      * Excluding here rather than in the caller is the whole point of the overload.
      * [maxResults] caps the scan, so a caller that filters the RETURNED list gets
@@ -99,7 +117,13 @@ interface ProjectSearchProvider {
      * apply path (undoable); closed files are written to disk.
      *
      * @param replacement For [isRegex] queries this supports `$1`..`$9`
-     * capture-group references, Kotlin `Regex.replace` semantics
+     * capture-group references, Kotlin `Regex.replace` semantics (an
+     * implementation built on it therefore also inherits `$0` and
+     * `${name}`; callers should not rely on those). For LITERAL queries
+     * the string is inserted VERBATIM - `$` and `\` are not special - so an
+     * implementation that funnels both paths through `Regex.replace` must
+     * escape the replacement first (`\` → `\\`, `$` → `\$`), or a literal
+     * like `USD$5` would mangle the output or throw
      * @param files Explicit paths to touch, confined to the project root
      * (see the interface note); a path outside it fails that file, never
      * writes
@@ -122,6 +146,12 @@ interface ProjectSearchProvider {
  * matched span in characters - together they are the match range a replace
  * engine and a highlighter both need. [contextLine] is the full source line
  * for rendering.
+ *
+ * The span always fits on ONE line: matching is strictly per-line (see the
+ * scanning rules on [ProjectSearchProvider]), so a highlighter slicing
+ * [contextLine] from [column] for [matchLength] has no out-of-bounds path.
+ * A [endLine]/[endColumn] pair is deliberately absent because the contract
+ * does not need it, not because it would be dropped later.
  */
 @Serializable
 data class FileMatch(

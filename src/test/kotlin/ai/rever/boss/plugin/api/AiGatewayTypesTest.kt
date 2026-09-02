@@ -160,4 +160,32 @@ class AiGatewayTypesTest {
         assertTrue(withTools.isFailure)
         assertEquals("considered", withoutTools.getOrNull()?.text)
     }
+
+    // ==================== availableModels defaults ====================
+
+    @Test
+    fun `an older AiGatewayAPI implementor reports no models rather than throwing`() {
+        val older =
+            object : AiGatewayAPI {
+                override suspend fun complete(request: AiRequest) = Result.success(AiReply(""))
+
+                override fun stream(request: AiRequest) = kotlinx.coroutines.flow.emptyFlow<AiChunk>()
+
+                override suspend fun runAgent(
+                    request: AiRequest,
+                    tools: List<AiToolSpec>,
+                    budget: AiBudget,
+                    invoke: suspend (AiToolCall) -> AiToolOutcome,
+                ) = Result.failure<AiAgentResult>(UnsupportedOperationException())
+            }
+
+        assertEquals(emptyList(), older.availableModels())
+    }
+
+    @Test
+    fun `an older LlmProvider implementor reports no models rather than throwing`() {
+        val older = object : LlmProvider { override fun activeConfig(): LlmConfig? = null }
+
+        assertEquals(emptyList(), older.availableModels())
+    }
 }

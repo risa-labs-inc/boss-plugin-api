@@ -30,7 +30,53 @@ interface LlmProvider {
      * Useful for building a picker; most plugins only need [activeConfig].
      */
     fun configuredProviders(): List<LlmConfig> = emptyList()
+
+    /**
+     * Every configured provider's available models, grouped by provider.
+     *
+     * Deliberately not built from [configuredProviders]: that returns [LlmConfig], which
+     * carries a live API key, so a caller that only wants to list what it could ask for
+     * would have to be handed every provider's credential just to read a model id off the
+     * side. [AiProviderModels] carries none — plain id/name/context-length data, safe for
+     * a picker that has no business holding a key.
+     *
+     * A provider whose model list has never been fetched (never configured, or a fetch
+     * that has not landed yet) is simply absent from the result rather than reported with
+     * an empty list — the two mean different things, and collapsing them would make "no
+     * models" indistinguishable from "haven't looked yet".
+     *
+     * Default empty, the same reason [configuredProviders] degrades rather than throws:
+     * an implementor older than this method has nothing to report, not a
+     * `NoSuchMethodError` waiting for whoever calls it.
+     */
+    fun availableModels(): List<AiProviderModels> = emptyList()
 }
+
+/**
+ * One provider's available models, as [LlmProvider.availableModels] groups them.
+ *
+ * Credential-free by construction — see [LlmProvider.availableModels] for why this
+ * exists separately from [LlmConfig].
+ */
+@HostImplemented
+data class AiProviderModels(
+    /** Stable provider id, matching [LlmConfig.providerId]. Treat as an open set. */
+    val providerId: String,
+    /** Human-readable provider name, e.g. "Anthropic". */
+    val providerName: String,
+    val models: List<AiAvailableModel>,
+)
+
+/** One model a provider currently offers, without a credential attached. */
+@HostImplemented
+data class AiAvailableModel(
+    /** Model id to send in a request, e.g. "claude-opus-5". */
+    val id: String,
+    /** Display name, falling back to [id] when the provider reports nothing better. */
+    val displayName: String,
+    /** Maximum input tokens, when the provider reports it. */
+    val contextLength: Int? = null,
+)
 
 /**
  * A resolved LLM configuration: which provider, its credential and endpoint, plus

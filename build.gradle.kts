@@ -496,6 +496,12 @@ group = "ai.rever.boss.plugin.bundled"
 // compiled earlier - the same rule the Ai* note below records. Defaulted interface members are
 // additive. Same minBossVersion gate as the rest of 1.0.88.
 //
+// Also adds BossColors.accentText - the accent drawn as TEXT, where darkAccent is the FILL. A
+// plugin tinting an accent-coloured label had only darkAccent (= signal), which is chosen to sit
+// behind content and lands under 4.5:1 as text; the tab bar uses signalText for exactly this and
+// no plugin could reach it. Additive, and it needs the matching property in the host's
+// plugin-ui-core copy, which is what is served parent-first at runtime.
+//
 // selectedTabId takes the WORKSPACE as well as the panel, and that is not redundant: a panel id is
 // unique only within one workspace's tree - every workspace's first pane is called `main` - so a
 // lookup by panel id alone answers from whichever running workspace is searched first and marks the

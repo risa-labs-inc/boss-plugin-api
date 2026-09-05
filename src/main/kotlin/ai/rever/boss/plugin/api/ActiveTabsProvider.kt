@@ -210,6 +210,34 @@ interface ActiveTabsProvider {
      * tab.
      */
     fun selectedTabId(workspaceId: String, panelId: String): String? = null
+
+    /**
+     * Every tab in EVERY open window, where [activeTabs] is this window's alone.
+     *
+     * A separate member rather than widening [activeTabs], because the two answer different
+     * questions and a panel needs both. A sidebar listing "what is running here" is scoped to its
+     * own window - grouping another window's tabs under this one's workspaces would be wrong - but
+     * a quick switcher is not: the tab you are reaching for may be in the window behind this one,
+     * and a switcher that cannot see it is a switcher you stop trusting.
+     *
+     * Use [ActiveTabData.windowId] to tell them apart; it is populated for every entry.
+     *
+     * **The default is [activeTabs], not an empty list.** A host that cannot see other windows
+     * then degrades to this window's tabs - narrower, but every entry still true - where an empty
+     * default would make a switcher look broken. Compare against [activeTabs] if you need to know
+     * whether a host really answered.
+     */
+    val allWindowTabs: StateFlow<List<ActiveTabData>> get() = activeTabs
+
+    /**
+     * Refresh [allWindowTabs] before reading it.
+     *
+     * [refreshTabs] covers this window only. Cross-window state is collected on demand rather than
+     * pushed, so a caller opening a switcher should ask first instead of showing whatever the last
+     * window to publish happened to leave behind.
+     */
+    suspend fun refreshAllWindowTabs() {
+    }
 }
 
 /**

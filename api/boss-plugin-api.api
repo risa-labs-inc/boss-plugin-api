@@ -7451,6 +7451,7 @@ public final class ai/rever/boss/plugin/tab/terminal/TerminalTabType : ai/rever/
 public final class ai/rever/boss/plugin/ui/BossColors {
 	public static final field $stable I
 	public static final field INSTANCE Lai/rever/boss/plugin/ui/BossColors;
+	public final fun getAccentText-0d7_KjU ()J
 	public final fun getContextMenuBackground-0d7_KjU ()J
 	public final fun getContextMenuBorder-0d7_KjU ()J
 	public final fun getContextMenuHover-0d7_KjU ()J

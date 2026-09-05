@@ -482,6 +482,19 @@ group = "ai.rever.boss.plugin.bundled"
 // copy has none of these members and a call is a NoSuchMethodError, not the defaulted no-op. Gate on
 // the minBossVersion of the release that pins 1.0.88, same shape as 1.0.77 openPanelAsTab. The
 // annotation is added to say so at the declaration site; it is documentation-only. Additive.
+//
+// Also adds ActiveTabsProvider.activePanelId + selectedTabId(panelId) - which pane the user is
+// working in, and which tab each pane is showing. Neither is derivable from activeTabs: that is a
+// flat list of what EXISTS, and every pane has exactly one tab on top of it that the list does not
+// mark. Without them a panel listing tabs can only guess at the tab bar's two-strength selected
+// marker (full accent for the focused pane's selected tab, a quieter one for every other pane's)
+// or draw nothing, which is what Top of Mind did.
+//
+// Members on the interface rather than fields on ActiveTabData, and that is forced rather than
+// chosen: ActiveTabData is a data class crossing this boundary, so a new constructor parameter
+// moves the synthetic constructor descriptor and copy$default and is a HARD break for every plugin
+// compiled earlier - the same rule the Ai* note below records. Defaulted interface members are
+// additive. Same minBossVersion gate as the rest of 1.0.88.
 version = "1.0.87"
 
 java {

@@ -182,6 +182,28 @@ interface ActiveTabsProvider {
      * @return true if the tab was moved.
      */
     suspend fun moveTabToWorkspace(tabId: String, targetWorkspaceId: String): Boolean = false
+
+    /**
+     * The panel the user is working in, in this window, or null if the host cannot say.
+     *
+     * "Focused" in the tab-bar sense: of several panes on screen, the one a new tab would open in
+     * and the one whose selected tab wears the accent marker. A pane in a workspace that is not on
+     * screen is never this, however recently it was.
+     */
+    val activePanelId: String? get() = null
+
+    /**
+     * The tab currently selected in [panelId] - the one that pane is SHOWING - or null.
+     *
+     * Not derivable from [activeTabs]: that is a flat list of what exists, and every pane has
+     * exactly one tab on top of it that the list does not mark. A panel in a workspace running
+     * behind this one still answers, because it still has a selected tab; it just is not visible.
+     *
+     * Together with [activePanelId] this is what lets a caller draw the tab bar's two-strength
+     * marker - full accent for the selected tab of the FOCUSED pane, a quieter one for the
+     * selected tab of every other pane - rather than guessing or marking nothing.
+     */
+    fun selectedTabId(panelId: String): String? = null
 }
 
 /**

@@ -193,17 +193,23 @@ interface ActiveTabsProvider {
     val activePanelId: String? get() = null
 
     /**
-     * The tab currently selected in [panelId] - the one that pane is SHOWING - or null.
+     * The tab currently selected in a pane - the one that pane is SHOWING - or null.
      *
      * Not derivable from [activeTabs]: that is a flat list of what exists, and every pane has
-     * exactly one tab on top of it that the list does not mark. A panel in a workspace running
+     * exactly one tab on top of it that the list does not mark. A pane in a workspace running
      * behind this one still answers, because it still has a selected tab; it just is not visible.
      *
      * Together with [activePanelId] this is what lets a caller draw the tab bar's two-strength
      * marker - full accent for the selected tab of the FOCUSED pane, a quieter one for the
      * selected tab of every other pane - rather than guessing or marking nothing.
+     *
+     * **[workspaceId] is required, and is not redundant.** A panel id is unique only WITHIN one
+     * workspace's tree: every workspace's first pane is called `main`, so a lookup by panel id
+     * alone would answer from whichever running workspace happened to be searched first and mark
+     * the wrong row. Pass [ActiveTabData.workspaceId] and [ActiveTabData.panelId] from the same
+     * tab.
      */
-    fun selectedTabId(panelId: String): String? = null
+    fun selectedTabId(workspaceId: String, panelId: String): String? = null
 }
 
 /**

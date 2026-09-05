@@ -62,7 +62,7 @@ public abstract interface class ai/rever/boss/plugin/api/ActiveTabsProvider {
 	public fun moveTabToWorkspace (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun refreshTabs (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun selectTab (Ljava/lang/String;Ljava/lang/String;)V
-	public fun selectedTabId (Ljava/lang/String;)Ljava/lang/String;
+	public fun selectedTabId (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
 }
 
 public final class ai/rever/boss/plugin/api/ActiveTabsProvider$DefaultImpls {
@@ -71,7 +71,7 @@ public final class ai/rever/boss/plugin/api/ActiveTabsProvider$DefaultImpls {
 	public static fun getLiveWorkspaceIds (Lai/rever/boss/plugin/api/ActiveTabsProvider;)Ljava/util/Set;
 	public static fun getSupportsTabTransfer (Lai/rever/boss/plugin/api/ActiveTabsProvider;)Z
 	public static fun moveTabToWorkspace (Lai/rever/boss/plugin/api/ActiveTabsProvider;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static fun selectedTabId (Lai/rever/boss/plugin/api/ActiveTabsProvider;Ljava/lang/String;)Ljava/lang/String;
+	public static fun selectedTabId (Lai/rever/boss/plugin/api/ActiveTabsProvider;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
 }
 
 public final class ai/rever/boss/plugin/api/AiAgentResult {

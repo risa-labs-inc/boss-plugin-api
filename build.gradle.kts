@@ -483,7 +483,7 @@ group = "ai.rever.boss.plugin.bundled"
 // the minBossVersion of the release that pins 1.0.88, same shape as 1.0.77 openPanelAsTab. The
 // annotation is added to say so at the declaration site; it is documentation-only. Additive.
 //
-// Also adds ActiveTabsProvider.activePanelId + selectedTabId(panelId) - which pane the user is
+// Also adds ActiveTabsProvider.activePanelId + selectedTabId(workspaceId, panelId) - which pane the user is
 // working in, and which tab each pane is showing. Neither is derivable from activeTabs: that is a
 // flat list of what EXISTS, and every pane has exactly one tab on top of it that the list does not
 // mark. Without them a panel listing tabs can only guess at the tab bar's two-strength selected
@@ -495,6 +495,11 @@ group = "ai.rever.boss.plugin.bundled"
 // moves the synthetic constructor descriptor and copy$default and is a HARD break for every plugin
 // compiled earlier - the same rule the Ai* note below records. Defaulted interface members are
 // additive. Same minBossVersion gate as the rest of 1.0.88.
+//
+// selectedTabId takes the WORKSPACE as well as the panel, and that is not redundant: a panel id is
+// unique only within one workspace's tree - every workspace's first pane is called `main` - so a
+// lookup by panel id alone answers from whichever running workspace is searched first and marks the
+// wrong row.
 version = "1.0.87"
 
 java {

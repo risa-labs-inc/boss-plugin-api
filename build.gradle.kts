@@ -496,6 +496,14 @@ group = "ai.rever.boss.plugin.bundled"
 // compiled earlier - the same rule the Ai* note below records. Defaulted interface members are
 // additive. Same minBossVersion gate as the rest of 1.0.88.
 //
+// Also adds ActiveTabsProvider.allWindowTabs + refreshAllWindowTabs - every tab in every open
+// window, where activeTabs is the caller's own window alone. A separate member rather than
+// widening activeTabs: a sidebar listing "what is running here" is window-scoped and grouping
+// another window's tabs under this one's workspaces would be wrong, but a quick switcher is not -
+// the tab being reached for may be in the window behind, and a switcher that cannot see it is one
+// you stop trusting. Defaults to activeTabs rather than an empty list, so a host that cannot see
+// other windows degrades to a narrower answer instead of one that looks broken.
+//
 // Also adds BossColors.accentText - the accent drawn as TEXT, where darkAccent is the FILL. A
 // plugin tinting an accent-coloured label had only darkAccent (= signal), which is chosen to sit
 // behind content and lands under 4.5:1 as text; the tab bar uses signalText for exactly this and

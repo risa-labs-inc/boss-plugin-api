@@ -184,6 +184,40 @@ interface ActiveTabsProvider {
     suspend fun moveTabToWorkspace(tabId: String, targetWorkspaceId: String): Boolean = false
 
     /**
+     * Move a tab into a NAMED pane, of any workspace running in this window - including its own.
+     *
+     * [moveTabToWorkspace] lets the host pick the pane, which is right for a drop onto a workspace
+     * and useless for a drop onto a pane: a panel listing every pane of every running workspace can
+     * be pointed at one, and had no way to say so. It also could not express a move between two
+     * panes of ONE workspace at all, because a workspace-only verb cannot tell that from a move to
+     * where the tab already is.
+     *
+     * Everything [moveTabToWorkspace] says still holds: the live component and its lifecycle
+     * transfer, so a browser tab keeps its page and a terminal its session; destinations are
+     * limited to [liveWorkspaceIds]; the tab is NOT selected in its new pane; and the current
+     * workspace stays on screen.
+     *
+     * **[targetPanelId] must be a pane of [targetWorkspaceId]**, as reported by
+     * [ActiveTabData.panelId] for a tab already in it. A pane that workspace does not have is
+     * refused rather than quietly redirected - landing the tab somewhere else would hide a caller's
+     * wrong idea of the layout from the caller and from the user watching the tab move. So is the
+     * pane the tab is already in.
+     *
+     * Note what this cannot name: a pane with NO tabs in it. `ActiveTabData` is a tab, so a pane
+     * with none contributes no id anywhere, and there is nothing to pass. Use [moveTabToWorkspace]
+     * for that case and let the host choose.
+     *
+     * Gated by [supportsTabTransfer] and by the same `minBossVersion` as [moveTabToWorkspace] -
+     * they ship together, so a host that has one has the other.
+     *
+     * @param tabId The tab to move, from [activeTabs].
+     * @param targetWorkspaceId A workspace id from [liveWorkspaceIds].
+     * @param targetPanelId A pane of that workspace, from [ActiveTabData.panelId].
+     * @return true if the tab was moved.
+     */
+    suspend fun moveTabToPane(tabId: String, targetWorkspaceId: String, targetPanelId: String): Boolean = false
+
+    /**
      * The panel the user is working in, in this window, or null if the host cannot say.
      *
      * "Focused" in the tab-bar sense: of several panes on screen, the one a new tab would open in

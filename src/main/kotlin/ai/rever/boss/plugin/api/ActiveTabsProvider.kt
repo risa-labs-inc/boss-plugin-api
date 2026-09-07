@@ -203,6 +203,13 @@ interface ActiveTabsProvider {
      * wrong idea of the layout from the caller and from the user watching the tab move. So is the
      * pane the tab is already in.
      *
+     * **[targetIndex] is where in that pane's list the tab should sit**, or null to append. It is
+     * what makes dropping ABOVE or BELOW a particular tab expressible, and what makes a move within
+     * the pane a tab is already in a real request - a reorder - where without it there is nothing to
+     * do. The index is CLAMPED, not rejected: a caller computes it from a list it read a frame ago
+     * and a tab can close in between, so "as near as asked" is the better answer to a drop the user
+     * has already committed to.
+     *
      * Note what this cannot name: a pane with NO tabs in it. `ActiveTabData` is a tab, so a pane
      * with none contributes no id anywhere, and there is nothing to pass. Use [moveTabToWorkspace]
      * for that case and let the host choose.
@@ -213,9 +220,15 @@ interface ActiveTabsProvider {
      * @param tabId The tab to move, from [activeTabs].
      * @param targetWorkspaceId A workspace id from [liveWorkspaceIds].
      * @param targetPanelId A pane of that workspace, from [ActiveTabData.panelId].
+     * @param targetIndex Position in that pane's tab list, or null to append.
      * @return true if the tab was moved.
      */
-    suspend fun moveTabToPane(tabId: String, targetWorkspaceId: String, targetPanelId: String): Boolean = false
+    suspend fun moveTabToPane(
+        tabId: String,
+        targetWorkspaceId: String,
+        targetPanelId: String,
+        targetIndex: Int? = null
+    ): Boolean = false
 
     /**
      * The panel the user is working in, in this window, or null if the host cannot say.

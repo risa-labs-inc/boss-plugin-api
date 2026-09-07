@@ -6119,6 +6119,7 @@ public abstract interface class ai/rever/boss/plugin/api/TerminalTabPluginAPI {
 	public abstract fun removeAllForWindow (Ljava/lang/String;)I
 	public abstract fun removeSidebarConfigTracking (Ljava/lang/String;Ljava/lang/String;)V
 	public abstract fun removeTerminalState (Ljava/lang/String;Ljava/lang/String;)V
+	public fun renameTab (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z
 	public abstract fun resetAllTerminals ()I
 	public abstract fun sendCommand (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z
 	public abstract fun sendInput (Ljava/lang/String;Ljava/lang/String;[B)Z
@@ -6167,6 +6168,7 @@ public final class ai/rever/boss/plugin/api/TerminalTabPluginAPI$DefaultImpls {
 	public static fun isWindows (Lai/rever/boss/plugin/api/TerminalTabPluginAPI;)Z
 	public static fun listTabs (Lai/rever/boss/plugin/api/TerminalTabPluginAPI;Ljava/lang/String;Ljava/lang/String;)Ljava/util/List;
 	public static synthetic fun newSidebarTab$default (Lai/rever/boss/plugin/api/TerminalTabPluginAPI;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZILjava/lang/Object;)Z
+	public static fun renameTab (Lai/rever/boss/plugin/api/TerminalTabPluginAPI;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z
 	public static synthetic fun setPendingSidebarCommand$default (Lai/rever/boss/plugin/api/TerminalTabPluginAPI;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
 	public static fun setTerminalFontFamily (Lai/rever/boss/plugin/api/TerminalTabPluginAPI;Ljava/lang/String;)Z
 	public static fun setTerminalFontSize (Lai/rever/boss/plugin/api/TerminalTabPluginAPI;F)Z

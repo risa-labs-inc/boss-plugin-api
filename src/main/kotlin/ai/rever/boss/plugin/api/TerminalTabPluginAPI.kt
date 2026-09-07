@@ -382,6 +382,38 @@ interface TerminalTabPluginAPI {
      * @param tabId Optional tab ID (null = active tab)
      * @return Session ID of the new pane, or null if split failed
      */
+    /**
+     * Give the terminal tab [tabId] the label [title], or clear a previously set one with a blank
+     * [title] so the tab goes back to naming itself.
+     *
+     * `createTab` takes no title and BossTerm derives one from the working directory, so a tab a
+     * plugin owns is indistinguishable from one the user opened. That is not only cosmetic. A
+     * plugin that reuses one tab delivers commands by typing into its pty, which is safe exactly
+     * as long as the tab holds nothing else - and nothing currently tells the user that, so
+     * nothing stops them starting an `ssh` session or a REPL in it, after which the next delivery
+     * is typed as input to THAT process instead of as a shell command.
+     *
+     * A name like `docker (plugin)` restores per-command labelling and warns people off the tab in
+     * one move.
+     *
+     * A new method rather than a title parameter on [createTab]: that would widen a defaulted
+     * signature, which changes its synthetic `$default` bridge and breaks every already-compiled
+     * caller. It is also the more capable half - a title can be set again per command, which a
+     * creation-time parameter cannot do.
+     *
+     * @param windowId The window ID
+     * @param terminalId The terminal ID
+     * @param tabId The tab to rename
+     * @param title The label to show, or blank to restore the derived name
+     * @return true if the tab was found and renamed
+     */
+    fun renameTab(
+        windowId: String,
+        terminalId: String,
+        tabId: String,
+        title: String,
+    ): Boolean = false
+
     fun splitVertical(windowId: String, terminalId: String, tabId: String? = null): String? = null
 
     /**

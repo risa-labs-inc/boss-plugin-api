@@ -385,6 +385,41 @@ interface TerminalTabPluginAPI {
     fun splitVertical(windowId: String, terminalId: String, tabId: String? = null): String? = null
 
     /**
+     * Split the focused pane vertically and run [initialCommand] in the new pane.
+     *
+     * Prefer this over splitting and then writing: [writeToFocusedPane] races the PTY spawn. The
+     * session is still connecting when the write lands, the write reports true anyway, and the
+     * command is silently lost - no output, no error, nothing for the caller to retry on.
+     * [initialCommand] is held until the shell signals readiness (OSC 133;A, or a fallback delay),
+     * the same contract [createTab] already offers.
+     *
+     * An OVERLOAD rather than a parameter on the three-argument form, which is what this reads
+     * like it should be. Kotlin compiles a defaulted parameter into a synthetic `$default` bridge
+     * whose signature includes every parameter, so widening that form would change
+     * `splitVertical$default` and every already-compiled plugin calling it would meet a
+     * `NoSuchMethodError`. The host's `BinaryCompatibilityValidator` member-checks every
+     * `ai.rever.boss.plugin.*` class in a plugin jar, so that miss disables the WHOLE plugin
+     * rather than the one call.
+     *
+     * Defaults to null rather than delegating to the three-argument form on purpose: an
+     * implementation that has not adopted this yet reports "not supported" and lets the caller
+     * decide, instead of splitting and dropping the command, which is the failure this exists to
+     * remove.
+     *
+     * @param windowId The window ID
+     * @param terminalId The terminal ID
+     * @param tabId Optional tab ID (null = active tab)
+     * @param initialCommand Command to run once the new pane's shell is ready
+     * @return Session ID of the new pane, or null if the split failed or is unsupported
+     */
+    fun splitVertical(
+        windowId: String,
+        terminalId: String,
+        tabId: String?,
+        initialCommand: String?,
+    ): String? = null
+
+    /**
      * Split the focused pane horizontally (top/bottom) in the specified tab.
      *
      * @param windowId The window ID
@@ -393,6 +428,25 @@ interface TerminalTabPluginAPI {
      * @return Session ID of the new pane, or null if split failed
      */
     fun splitHorizontal(windowId: String, terminalId: String, tabId: String? = null): String? = null
+
+    /**
+     * Split the focused pane horizontally and run [initialCommand] in the new pane.
+     *
+     * See [splitVertical] with the same arity for why this is an overload and why it defaults to
+     * null; the reasoning is identical and is written out once there.
+     *
+     * @param windowId The window ID
+     * @param terminalId The terminal ID
+     * @param tabId Optional tab ID (null = active tab)
+     * @param initialCommand Command to run once the new pane's shell is ready
+     * @return Session ID of the new pane, or null if the split failed or is unsupported
+     */
+    fun splitHorizontal(
+        windowId: String,
+        terminalId: String,
+        tabId: String?,
+        initialCommand: String?,
+    ): String? = null
 
     /**
      * Close the focused pane in the specified tab.

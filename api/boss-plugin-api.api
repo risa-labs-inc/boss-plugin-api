@@ -6055,6 +6055,15 @@ public final class ai/rever/boss/plugin/api/TerminalSessionEventType : java/lang
 	public static fun values ()[Lai/rever/boss/plugin/api/TerminalSessionEventType;
 }
 
+public final class ai/rever/boss/plugin/api/TerminalTabActivity : java/lang/Enum {
+	public static final field BUSY Lai/rever/boss/plugin/api/TerminalTabActivity;
+	public static final field IDLE Lai/rever/boss/plugin/api/TerminalTabActivity;
+	public static final field UNKNOWN Lai/rever/boss/plugin/api/TerminalTabActivity;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lai/rever/boss/plugin/api/TerminalTabActivity;
+	public static fun values ()[Lai/rever/boss/plugin/api/TerminalTabActivity;
+}
+
 public final class ai/rever/boss/plugin/api/TerminalTabInfo {
 	public static final field $stable I
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;ZI)V
@@ -6121,8 +6130,10 @@ public abstract interface class ai/rever/boss/plugin/api/TerminalTabPluginAPI {
 	public abstract fun removeTerminalState (Ljava/lang/String;Ljava/lang/String;)V
 	public abstract fun resetAllTerminals ()I
 	public abstract fun sendCommand (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z
+	public fun sendCommand (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z
 	public abstract fun sendInput (Ljava/lang/String;Ljava/lang/String;[B)Z
 	public abstract fun sendInterrupt (Ljava/lang/String;Ljava/lang/String;)Z
+	public fun sendInterrupt (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z
 	public abstract fun setPendingSidebarCommand (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 	public static synthetic fun setPendingSidebarCommand$default (Lai/rever/boss/plugin/api/TerminalTabPluginAPI;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
 	public fun setTerminalFontFamily (Ljava/lang/String;)Z
@@ -6132,6 +6143,10 @@ public abstract interface class ai/rever/boss/plugin/api/TerminalTabPluginAPI {
 	public fun splitVertical (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
 	public static synthetic fun splitVertical$default (Lai/rever/boss/plugin/api/TerminalTabPluginAPI;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ljava/lang/String;
 	public fun switchToTab (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z
+	public fun tabActivity (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lai/rever/boss/plugin/api/TerminalTabActivity;
+	public static synthetic fun tabActivity$default (Lai/rever/boss/plugin/api/TerminalTabPluginAPI;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lai/rever/boss/plugin/api/TerminalTabActivity;
+	public fun tabActivityFlow (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun tabActivityFlow$default (Lai/rever/boss/plugin/api/TerminalTabPluginAPI;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
 	public fun writeToFocusedPane (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z
 	public static synthetic fun writeToFocusedPane$default (Lai/rever/boss/plugin/api/TerminalTabPluginAPI;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Z
 }
@@ -6165,6 +6180,8 @@ public final class ai/rever/boss/plugin/api/TerminalTabPluginAPI$DefaultImpls {
 	public static fun isWindows (Lai/rever/boss/plugin/api/TerminalTabPluginAPI;)Z
 	public static fun listTabs (Lai/rever/boss/plugin/api/TerminalTabPluginAPI;Ljava/lang/String;Ljava/lang/String;)Ljava/util/List;
 	public static synthetic fun newSidebarTab$default (Lai/rever/boss/plugin/api/TerminalTabPluginAPI;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZILjava/lang/Object;)Z
+	public static fun sendCommand (Lai/rever/boss/plugin/api/TerminalTabPluginAPI;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z
+	public static fun sendInterrupt (Lai/rever/boss/plugin/api/TerminalTabPluginAPI;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z
 	public static synthetic fun setPendingSidebarCommand$default (Lai/rever/boss/plugin/api/TerminalTabPluginAPI;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
 	public static fun setTerminalFontFamily (Lai/rever/boss/plugin/api/TerminalTabPluginAPI;Ljava/lang/String;)Z
 	public static fun setTerminalFontSize (Lai/rever/boss/plugin/api/TerminalTabPluginAPI;F)Z
@@ -6173,6 +6190,10 @@ public final class ai/rever/boss/plugin/api/TerminalTabPluginAPI$DefaultImpls {
 	public static fun splitVertical (Lai/rever/boss/plugin/api/TerminalTabPluginAPI;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
 	public static synthetic fun splitVertical$default (Lai/rever/boss/plugin/api/TerminalTabPluginAPI;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ljava/lang/String;
 	public static fun switchToTab (Lai/rever/boss/plugin/api/TerminalTabPluginAPI;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z
+	public static fun tabActivity (Lai/rever/boss/plugin/api/TerminalTabPluginAPI;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lai/rever/boss/plugin/api/TerminalTabActivity;
+	public static synthetic fun tabActivity$default (Lai/rever/boss/plugin/api/TerminalTabPluginAPI;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lai/rever/boss/plugin/api/TerminalTabActivity;
+	public static fun tabActivityFlow (Lai/rever/boss/plugin/api/TerminalTabPluginAPI;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun tabActivityFlow$default (Lai/rever/boss/plugin/api/TerminalTabPluginAPI;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
 	public static fun writeToFocusedPane (Lai/rever/boss/plugin/api/TerminalTabPluginAPI;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z
 	public static synthetic fun writeToFocusedPane$default (Lai/rever/boss/plugin/api/TerminalTabPluginAPI;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Z
 }

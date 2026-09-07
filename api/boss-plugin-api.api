@@ -6128,8 +6128,10 @@ public abstract interface class ai/rever/boss/plugin/api/TerminalTabPluginAPI {
 	public fun setTerminalFontFamily (Ljava/lang/String;)Z
 	public fun setTerminalFontSize (F)Z
 	public fun splitHorizontal (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+	public fun splitHorizontal (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
 	public static synthetic fun splitHorizontal$default (Lai/rever/boss/plugin/api/TerminalTabPluginAPI;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ljava/lang/String;
 	public fun splitVertical (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+	public fun splitVertical (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
 	public static synthetic fun splitVertical$default (Lai/rever/boss/plugin/api/TerminalTabPluginAPI;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ljava/lang/String;
 	public fun switchToTab (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z
 	public fun writeToFocusedPane (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z
@@ -6169,8 +6171,10 @@ public final class ai/rever/boss/plugin/api/TerminalTabPluginAPI$DefaultImpls {
 	public static fun setTerminalFontFamily (Lai/rever/boss/plugin/api/TerminalTabPluginAPI;Ljava/lang/String;)Z
 	public static fun setTerminalFontSize (Lai/rever/boss/plugin/api/TerminalTabPluginAPI;F)Z
 	public static fun splitHorizontal (Lai/rever/boss/plugin/api/TerminalTabPluginAPI;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+	public static fun splitHorizontal (Lai/rever/boss/plugin/api/TerminalTabPluginAPI;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
 	public static synthetic fun splitHorizontal$default (Lai/rever/boss/plugin/api/TerminalTabPluginAPI;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ljava/lang/String;
 	public static fun splitVertical (Lai/rever/boss/plugin/api/TerminalTabPluginAPI;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+	public static fun splitVertical (Lai/rever/boss/plugin/api/TerminalTabPluginAPI;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
 	public static synthetic fun splitVertical$default (Lai/rever/boss/plugin/api/TerminalTabPluginAPI;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ljava/lang/String;
 	public static fun switchToTab (Lai/rever/boss/plugin/api/TerminalTabPluginAPI;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z
 	public static fun writeToFocusedPane (Lai/rever/boss/plugin/api/TerminalTabPluginAPI;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z

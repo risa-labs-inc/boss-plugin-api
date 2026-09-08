@@ -1281,6 +1281,26 @@ public abstract interface class ai/rever/boss/plugin/api/CoBrowseRtcProvider {
 	public abstract fun createPeer (Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Lai/rever/boss/plugin/api/CoBrowseRtcPeer;
 }
 
+public final class ai/rever/boss/plugin/api/CoMember {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)Lai/rever/boss/plugin/api/CoMember;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/CoMember;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ILjava/lang/Object;)Lai/rever/boss/plugin/api/CoMember;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAvatarUrl ()Ljava/lang/String;
+	public final fun getDisplayName ()Ljava/lang/String;
+	public final fun getEmail ()Ljava/lang/String;
+	public final fun getOrganisationIds ()Ljava/util/List;
+	public final fun getUserId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public abstract interface class ai/rever/boss/plugin/api/ConsoleLogsAPI {
 	public abstract fun getPluginFilter ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun logsForPlugin (Ljava/lang/String;Ljava/lang/String;)Lkotlinx/coroutines/flow/StateFlow;
@@ -3471,6 +3491,21 @@ public final class ai/rever/boss/plugin/api/NotificationType : java/lang/Enum {
 	public static fun values ()[Lai/rever/boss/plugin/api/NotificationType;
 }
 
+public abstract interface class ai/rever/boss/plugin/api/OrganisationMembersProvider {
+	public static final field Companion Lai/rever/boss/plugin/api/OrganisationMembersProvider$Companion;
+	public static final field DEFAULT_LIMIT I
+	public abstract fun listCoMembers-0E7RQCE (Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun listCoMembers-0E7RQCE$default (Lai/rever/boss/plugin/api/OrganisationMembersProvider;Ljava/lang/String;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class ai/rever/boss/plugin/api/OrganisationMembersProvider$Companion {
+	public static final field DEFAULT_LIMIT I
+}
+
+public final class ai/rever/boss/plugin/api/OrganisationMembersProvider$DefaultImpls {
+	public static synthetic fun listCoMembers-0E7RQCE$default (Lai/rever/boss/plugin/api/OrganisationMembersProvider;Ljava/lang/String;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
 public final class ai/rever/boss/plugin/api/PaginatedSecretsData {
 	public static final field $stable I
 	public fun <init> (Ljava/util/List;Z)V
@@ -4133,6 +4168,7 @@ public abstract interface class ai/rever/boss/plugin/api/PluginContext {
 	public fun getNavigationResolverProvider ()Lai/rever/boss/plugin/api/NavigationResolverProvider;
 	public fun getNavigationTargetProvider ()Lai/rever/boss/plugin/api/NavigationTargetProvider;
 	public fun getNotificationProvider ()Lai/rever/boss/plugin/api/NotificationProvider;
+	public fun getOrganisationMembersProvider ()Lai/rever/boss/plugin/api/OrganisationMembersProvider;
 	public fun getPanelEventProvider ()Lai/rever/boss/plugin/api/PanelEventProvider;
 	public abstract fun getPanelRegistry ()Lai/rever/boss/plugin/api/PanelRegistry;
 	public fun getPerformanceDataProvider ()Lai/rever/boss/plugin/api/PerformanceDataProvider;
@@ -4206,6 +4242,7 @@ public final class ai/rever/boss/plugin/api/PluginContext$DefaultImpls {
 	public static fun getNavigationResolverProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/NavigationResolverProvider;
 	public static fun getNavigationTargetProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/NavigationTargetProvider;
 	public static fun getNotificationProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/NotificationProvider;
+	public static fun getOrganisationMembersProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/OrganisationMembersProvider;
 	public static fun getPanelEventProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/PanelEventProvider;
 	public static fun getPerformanceDataProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/PerformanceDataProvider;
 	public static fun getPluginAPI (Lai/rever/boss/plugin/api/PluginContext;Ljava/lang/Class;)Ljava/lang/Object;

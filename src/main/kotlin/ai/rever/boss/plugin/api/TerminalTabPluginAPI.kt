@@ -5,6 +5,7 @@ import androidx.compose.ui.Modifier
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flowOf
 
 /**
  * Plugin API exposed by the terminal-tab plugin for other plugins and the host to consume.
@@ -115,6 +116,56 @@ interface TerminalTabPluginAPI {
      * @param command The command to execute (will be followed by newline)
      * @return true if the command was sent successfully
      */
+    /**
+     * Whether the shell in a terminal tab is free to receive a command.
+     *
+     * The gap this closes: [sendCommand] writes to the tab's pty, so with a foreground process
+     * running the text becomes that process's stdin - not queued, never executed - and
+     * [sendCommand] still returns true. With nothing to ask, a consumer can only interrupt and
+     * sleep before typing, and no delay is long enough for a process that traps SIGINT
+     * (`docker build` under BuildKit, `helm install --wait`, `kubectl apply` on a slow cluster).
+     * Lengthening the wait shrinks the window; it cannot close it, and retrying the command risks
+     * running it twice with no way to tell which happened.
+     *
+     * Read [TerminalTabActivity.UNKNOWN] before relying on this: it is not idle, and a caller that
+     * treats it as idle has reintroduced the bug on every shell without integration.
+     *
+     * @param windowId The window ID
+     * @param terminalId The terminal ID
+     * @param tabId Optional tab ID (null = active tab)
+     * @return whether the tab is idle, busy, or cannot be determined
+     */
+    fun tabActivity(
+        windowId: String,
+        terminalId: String,
+        tabId: String? = null,
+    ): TerminalTabActivity = TerminalTabActivity.UNKNOWN
+
+    /**
+     * [tabActivity] as a stream, so delivery can await an idle shell instead of polling one.
+     *
+     * This is what removes the timer rather than shortening it. With only the snapshot, a consumer
+     * waiting for a long build still loops on a delay; collecting until [TerminalTabActivity.IDLE]
+     * has no delay in it at all.
+     *
+     * Emits the current value immediately, then on each change BOSS observes. Two honest limits:
+     * a tab that never gains shell integration emits [TerminalTabActivity.UNKNOWN] and then
+     * nothing, so **a collector must handle UNKNOWN rather than wait through it**; and the stream
+     * ends when the tab does, so awaiting idle on a closed tab completes without ever reporting
+     * idle.
+     *
+     * @param windowId The window ID
+     * @param terminalId The terminal ID
+     * @param tabId Optional tab ID (null = active tab)
+     * @return the tab's activity over time, or a single [TerminalTabActivity.UNKNOWN] when it
+     *   cannot be observed
+     */
+    fun tabActivityFlow(
+        windowId: String,
+        terminalId: String,
+        tabId: String? = null,
+    ): Flow<TerminalTabActivity> = flowOf(TerminalTabActivity.UNKNOWN)
+
     fun sendCommand(windowId: String, terminalId: String, command: String): Boolean
 
     /**
@@ -125,6 +176,41 @@ interface TerminalTabPluginAPI {
      * @return true if the interrupt was sent successfully
      */
     fun sendInterrupt(windowId: String, terminalId: String): Boolean
+
+    /**
+     * Send [command] to a specific tab, without switching to it first.
+     *
+     * The three-argument form writes to whichever tab is active, so a consumer targeting another
+     * one has to `switchToTab` before every call. That is visible (the user's view jumps) and it
+     * is load-bearing: if the switch fails, the command lands in whatever tab the user was in.
+     *
+     * This does NOT make the write safe on its own - see [tabActivity] for the pty problem, which
+     * is a different question from which tab is addressed.
+     *
+     * @param tabId The tab to write to (null = active tab, i.e. the three-argument behaviour)
+     * @return true if the command was written
+     */
+    fun sendCommand(
+        windowId: String,
+        terminalId: String,
+        command: String,
+        tabId: String?,
+    ): Boolean = false
+
+    /**
+     * Send an interrupt to a specific tab, without switching to it first.
+     *
+     * The same reasoning as the [sendCommand] overload above, and the sharper case of it: a Ctrl-C
+     * that lands on the wrong tab because a switch failed kills whatever the user was running.
+     *
+     * @param tabId The tab to interrupt (null = active tab)
+     * @return true if the interrupt was sent
+     */
+    fun sendInterrupt(
+        windowId: String,
+        terminalId: String,
+        tabId: String?,
+    ): Boolean = false
 
     /**
      * Send raw input bytes to a terminal.
@@ -382,7 +468,74 @@ interface TerminalTabPluginAPI {
      * @param tabId Optional tab ID (null = active tab)
      * @return Session ID of the new pane, or null if split failed
      */
+    /**
+     * Give the terminal tab [tabId] the label [title], or clear a previously set one with a blank
+     * [title] so the tab goes back to naming itself.
+     *
+     * `createTab` takes no title and BossTerm derives one from the working directory, so a tab a
+     * plugin owns is indistinguishable from one the user opened. That is not only cosmetic. A
+     * plugin that reuses one tab delivers commands by typing into its pty, which is safe exactly
+     * as long as the tab holds nothing else - and nothing currently tells the user that, so
+     * nothing stops them starting an `ssh` session or a REPL in it, after which the next delivery
+     * is typed as input to THAT process instead of as a shell command.
+     *
+     * A name like `docker (plugin)` restores per-command labelling and warns people off the tab in
+     * one move.
+     *
+     * A new method rather than a title parameter on [createTab]: that would widen a defaulted
+     * signature, which changes its synthetic `$default` bridge and breaks every already-compiled
+     * caller. It is also the more capable half - a title can be set again per command, which a
+     * creation-time parameter cannot do.
+     *
+     * @param windowId The window ID
+     * @param terminalId The terminal ID
+     * @param tabId The tab to rename
+     * @param title The label to show, or blank to restore the derived name
+     * @return true if the tab was found and renamed
+     */
+    fun renameTab(
+        windowId: String,
+        terminalId: String,
+        tabId: String,
+        title: String,
+    ): Boolean = false
+
     fun splitVertical(windowId: String, terminalId: String, tabId: String? = null): String? = null
+
+    /**
+     * Split the focused pane vertically and run [initialCommand] in the new pane.
+     *
+     * Prefer this over splitting and then writing: [writeToFocusedPane] races the PTY spawn. The
+     * session is still connecting when the write lands, the write reports true anyway, and the
+     * command is silently lost - no output, no error, nothing for the caller to retry on.
+     * [initialCommand] is held until the shell signals readiness (OSC 133;A, or a fallback delay),
+     * the same contract [createTab] already offers.
+     *
+     * An OVERLOAD rather than a parameter on the three-argument form, which is what this reads
+     * like it should be. Kotlin compiles a defaulted parameter into a synthetic `$default` bridge
+     * whose signature includes every parameter, so widening that form would change
+     * `splitVertical$default` and every already-compiled plugin calling it would meet a
+     * `NoSuchMethodError`. The host's `BinaryCompatibilityValidator` member-checks every
+     * `ai.rever.boss.plugin.*` class in a plugin jar, so that miss disables the WHOLE plugin
+     * rather than the one call.
+     *
+     * Defaults to null rather than delegating to the three-argument form on purpose: an
+     * implementation that has not adopted this yet reports "not supported" and lets the caller
+     * decide, instead of splitting and dropping the command, which is the failure this exists to
+     * remove.
+     *
+     * @param windowId The window ID
+     * @param terminalId The terminal ID
+     * @param tabId Optional tab ID (null = active tab)
+     * @param initialCommand Command to run once the new pane's shell is ready
+     * @return Session ID of the new pane, or null if the split failed or is unsupported
+     */
+    fun splitVertical(
+        windowId: String,
+        terminalId: String,
+        tabId: String?,
+        initialCommand: String?,
+    ): String? = null
 
     /**
      * Split the focused pane horizontally (top/bottom) in the specified tab.
@@ -393,6 +546,25 @@ interface TerminalTabPluginAPI {
      * @return Session ID of the new pane, or null if split failed
      */
     fun splitHorizontal(windowId: String, terminalId: String, tabId: String? = null): String? = null
+
+    /**
+     * Split the focused pane horizontally and run [initialCommand] in the new pane.
+     *
+     * See [splitVertical] with the same arity for why this is an overload and why it defaults to
+     * null; the reasoning is identical and is written out once there.
+     *
+     * @param windowId The window ID
+     * @param terminalId The terminal ID
+     * @param tabId Optional tab ID (null = active tab)
+     * @param initialCommand Command to run once the new pane's shell is ready
+     * @return Session ID of the new pane, or null if the split failed or is unsupported
+     */
+    fun splitHorizontal(
+        windowId: String,
+        terminalId: String,
+        tabId: String?,
+        initialCommand: String?,
+    ): String? = null
 
     /**
      * Close the focused pane in the specified tab.
@@ -495,6 +667,37 @@ data class TerminalHyperlinkInfo(
 /**
  * Type of terminal hyperlink.
  */
+/**
+ * Whether a terminal tab's shell is free to receive a command.
+ *
+ * Deliberately three states and not a `Boolean`. A plugin delivers a command by writing to the
+ * tab's pty, so if a foreground process is running the text becomes THAT process's stdin: not
+ * queued, never executed, and the write still reports success. The answer therefore decides
+ * whether a caller may reuse a tab at all.
+ *
+ * BOSS can only answer it when the shell reports command boundaries (OSC 133, shell integration).
+ * With a `Boolean` the unanswerable case has to be folded into one of the two, and both choices
+ * are wrong in the case that matters: reporting idle sends the command into a running process,
+ * which is the failure this exists to prevent, and reporting busy makes every consumer open a new
+ * tab forever on shells without integration, which defeats the tab reuse it exists to enable.
+ * [UNKNOWN] lets the caller keep its own fallback for exactly the machines that need one.
+ */
+enum class TerminalTabActivity {
+    /** The shell is at a prompt. A command written now is read by the shell. */
+    IDLE,
+
+    /** A foreground process is running. A command written now becomes its stdin. */
+    BUSY,
+
+    /**
+     * Not answerable: no shell integration, or the tab has not reached its first prompt yet.
+     *
+     * Not a synonym for idle. Treat it as "keep whatever guess you had" - the interrupt-and-wait
+     * heuristic, or opening a separate tab.
+     */
+    UNKNOWN,
+}
+
 enum class TerminalHyperlinkType {
     HTTP,
     FILE,

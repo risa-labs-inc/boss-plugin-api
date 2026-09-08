@@ -451,8 +451,10 @@ group = "ai.rever.boss.plugin.bundled"
 // 1.0.88, 404ing the fetchApiPluginJar pin in the host PR this exists to
 // unblock (BossConsole#289). Precedent: the 1.0.85 and 1.0.86 PRs edited this
 // comment block and left the line at 1.0.84 / 1.0.85.
-// 1.0.88: adds ActiveTabsProvider.moveTabToWorkspace + liveWorkspaceIds + supportsTabTransfer, and
-// marks ActiveTabsProvider @HostImplemented.
+// 1.0.89: adds eight defaulted members to ActiveTabsProvider - supportsTabTransfer,
+// liveWorkspaceIds, moveTabToWorkspace, moveTabToPane, activePanelId, selectedTabId,
+// allWindowTabs and refreshAllWindowTabs - plus BossColors.accentText, and marks
+// ActiveTabsProvider @HostImplemented.
 //
 // A BOSS window RUNS several workspaces at once and shows one: switching preserves the whole split
 // tree of the one you leave, and those stay live BossTabsComponents. The read side of that has been
@@ -461,6 +463,12 @@ group = "ai.rever.boss.plugin.bundled"
 // workspaces, and selectTab/closeTab silently did nothing for a tab in a preserved one. The host
 // already has the primitive (detachTab/adoptTab transfer the live component and its lifecycle, so a
 // moved browser tab keeps its page and playing media); nothing crossed a workspace boundary with it.
+//
+// moveTabToPane is the one a drop actually calls. moveTabToWorkspace names a workspace and lets
+// the host choose the pane, which is right for a drop onto a workspace header and useless for a
+// drop onto a pane - and it cannot express a move between two panes of ONE workspace at all,
+// because the workspace is already the current one. The pane form takes the panel and an optional
+// index, so the same call covers a cross-workspace move, a cross-pane move and a reorder.
 //
 // Three members rather than one. supportsTabTransfer is the probe, because a defaulted `false`
 // return cannot separate "no implementation here" from "it ran and refused" - same shape as
@@ -514,7 +522,12 @@ group = "ai.rever.boss.plugin.bundled"
 // unique only within one workspace's tree - every workspace's first pane is called `main` - so a
 // lookup by panel id alone answers from whichever running workspace is searched first and marks the
 // wrong row.
-version = "1.0.87"
+//
+// The number moved once already: this block said 1.0.88 while the branch sat unmerged, and #50
+// (the terminal-tab surface) took 1.0.88 first. Release CI bump-pushes before building, so main's
+// version below is the version already released and this merge cuts the next one. Anything that
+// merges ahead of this moves it again, along with the BossConsole and topofmind pins.
+version = "1.0.88"
 
 java {
     toolchain {

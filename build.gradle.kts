@@ -451,6 +451,16 @@ group = "ai.rever.boss.plugin.bundled"
 // 1.0.88, 404ing the fetchApiPluginJar pin in the host PR this exists to
 // unblock (BossConsole#289). Precedent: the 1.0.85 and 1.0.86 PRs edited this
 // comment block and left the line at 1.0.84 / 1.0.85.
+// 1.0.89: adds BundleApplyProvider + stable apply DTOs (BundleApplyRequest /
+// BundleApplyOutcome / BundleApplyPluginSpec / BundleApplyMcpSpec /
+// BundleApplySource / BundleApplyMode / BundleApplyStatus) so Magnetic Force /
+// Plugin Bundle packs can share one host-backed apply SPI across the ApiClassLoader.
+// Jar-only new types: host registers via registerPluginAPI; plugin resolves via
+// getPluginAPI(BundleApplyProvider::class.java). No PluginContext.bundleApplyProvider
+// member yet (that would be @HostImplemented / minBossVersion). Kind is a wire
+// String (open set). Sync applyBundle for now. Consumers gate with minApiVersion.
+// Additive. See Bundle Magnetic Force gap #1 (BUNDLE_APPLY_HOST_API_GAPS).
+//
 version = "1.0.88"
 
 java {

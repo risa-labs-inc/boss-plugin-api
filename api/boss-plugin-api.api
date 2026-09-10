@@ -1172,6 +1172,128 @@ public final class ai/rever/boss/plugin/api/BufferSnapshot$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
+public final class ai/rever/boss/plugin/api/BundleApplyMcpSpec {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Z
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)Lai/rever/boss/plugin/api/BundleApplyMcpSpec;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/BundleApplyMcpSpec;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZILjava/lang/Object;)Lai/rever/boss/plugin/api/BundleApplyMcpSpec;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getKind ()Ljava/lang/String;
+	public final fun getName ()Ljava/lang/String;
+	public final fun getRequired ()Z
+	public final fun getToolPrefix ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/BundleApplyMode : java/lang/Enum {
+	public static final field Builder Lai/rever/boss/plugin/api/BundleApplyMode;
+	public static final field Organisation Lai/rever/boss/plugin/api/BundleApplyMode;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lai/rever/boss/plugin/api/BundleApplyMode;
+	public static fun values ()[Lai/rever/boss/plugin/api/BundleApplyMode;
+}
+
+public final class ai/rever/boss/plugin/api/BundleApplyOutcome {
+	public static final field $stable I
+	public fun <init> (ZLai/rever/boss/plugin/api/BundleApplyStatus;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;)V
+	public synthetic fun <init> (ZLai/rever/boss/plugin/api/BundleApplyStatus;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Z
+	public final fun component10 ()Ljava/util/List;
+	public final fun component2 ()Lai/rever/boss/plugin/api/BundleApplyStatus;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()Ljava/util/List;
+	public final fun component7 ()Ljava/util/List;
+	public final fun component8 ()Ljava/util/List;
+	public final fun component9 ()Ljava/util/List;
+	public final fun copy (ZLai/rever/boss/plugin/api/BundleApplyStatus;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;)Lai/rever/boss/plugin/api/BundleApplyOutcome;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/BundleApplyOutcome;ZLai/rever/boss/plugin/api/BundleApplyStatus;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)Lai/rever/boss/plugin/api/BundleApplyOutcome;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBundleId ()Ljava/lang/String;
+	public final fun getErrors ()Ljava/util/List;
+	public final fun getMcpsAllowlisted ()Ljava/util/List;
+	public final fun getMcpsRequested ()Ljava/util/List;
+	public final fun getMessage ()Ljava/lang/String;
+	public final fun getOk ()Z
+	public final fun getPluginsEnabled ()Ljava/util/List;
+	public final fun getPluginsRequested ()Ljava/util/List;
+	public final fun getProviderId ()Ljava/lang/String;
+	public final fun getStatus ()Lai/rever/boss/plugin/api/BundleApplyStatus;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/BundleApplyPluginSpec {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Z)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Z
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Z)Lai/rever/boss/plugin/api/BundleApplyPluginSpec;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/BundleApplyPluginSpec;Ljava/lang/String;Ljava/lang/String;ZILjava/lang/Object;)Lai/rever/boss/plugin/api/BundleApplyPluginSpec;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getOptional ()Z
+	public final fun getPluginId ()Ljava/lang/String;
+	public final fun getVersion ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class ai/rever/boss/plugin/api/BundleApplyProvider {
+	public abstract fun applyBundle (Lai/rever/boss/plugin/api/BundleApplyRequest;)Lai/rever/boss/plugin/api/BundleApplyOutcome;
+	public abstract fun getProviderId ()Ljava/lang/String;
+	public abstract fun isHostBacked ()Z
+}
+
+public final class ai/rever/boss/plugin/api/BundleApplyRequest {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;Lai/rever/boss/plugin/api/BundleApplyMode;Ljava/util/List;Ljava/util/List;ZLai/rever/boss/plugin/api/BundleApplySource;)V
+	public synthetic fun <init> (Ljava/lang/String;Lai/rever/boss/plugin/api/BundleApplyMode;Ljava/util/List;Ljava/util/List;ZLai/rever/boss/plugin/api/BundleApplySource;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lai/rever/boss/plugin/api/BundleApplyMode;
+	public final fun component3 ()Ljava/util/List;
+	public final fun component4 ()Ljava/util/List;
+	public final fun component5 ()Z
+	public final fun component6 ()Lai/rever/boss/plugin/api/BundleApplySource;
+	public final fun copy (Ljava/lang/String;Lai/rever/boss/plugin/api/BundleApplyMode;Ljava/util/List;Ljava/util/List;ZLai/rever/boss/plugin/api/BundleApplySource;)Lai/rever/boss/plugin/api/BundleApplyRequest;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/BundleApplyRequest;Ljava/lang/String;Lai/rever/boss/plugin/api/BundleApplyMode;Ljava/util/List;Ljava/util/List;ZLai/rever/boss/plugin/api/BundleApplySource;ILjava/lang/Object;)Lai/rever/boss/plugin/api/BundleApplyRequest;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBundleId ()Ljava/lang/String;
+	public final fun getLiteracyAcknowledged ()Z
+	public final fun getMcps ()Ljava/util/List;
+	public final fun getMode ()Lai/rever/boss/plugin/api/BundleApplyMode;
+	public final fun getPlugins ()Ljava/util/List;
+	public final fun getSource ()Lai/rever/boss/plugin/api/BundleApplySource;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/BundleApplySource : java/lang/Enum {
+	public static final field Mcp Lai/rever/boss/plugin/api/BundleApplySource;
+	public static final field Ui Lai/rever/boss/plugin/api/BundleApplySource;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lai/rever/boss/plugin/api/BundleApplySource;
+	public static fun values ()[Lai/rever/boss/plugin/api/BundleApplySource;
+}
+
+public final class ai/rever/boss/plugin/api/BundleApplyStatus : java/lang/Enum {
+	public static final field Applied Lai/rever/boss/plugin/api/BundleApplyStatus;
+	public static final field Partial Lai/rever/boss/plugin/api/BundleApplyStatus;
+	public static final field Rejected Lai/rever/boss/plugin/api/BundleApplyStatus;
+	public static final field Stubbed Lai/rever/boss/plugin/api/BundleApplyStatus;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lai/rever/boss/plugin/api/BundleApplyStatus;
+	public static fun values ()[Lai/rever/boss/plugin/api/BundleApplyStatus;
+}
+
 public abstract interface class ai/rever/boss/plugin/api/CacheProvider {
 	public abstract fun clearPluginCache (Ljava/lang/String;)Z
 	public abstract fun getPluginCacheDirectory (Ljava/lang/String;)Ljava/lang/String;

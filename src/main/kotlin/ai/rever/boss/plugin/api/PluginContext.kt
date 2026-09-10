@@ -449,6 +449,23 @@ interface PluginContext {
         get() = null
 
     /**
+     * Optional provider for the people the current user shares an organisation
+     * with.
+     *
+     * Returns null when organisation data is not available, which is the normal
+     * state on a host with no organisation plugin loaded, so a recipient picker
+     * must degrade to "no teammates to show" rather than treating null as an
+     * error.
+     *
+     * Prefer this over [userManagementProvider] for anything a regular user
+     * does: that one is the admin directory and carries roles. Prefer it over
+     * [supabaseDataProvider] so each sharing feature stops hand-rolling the same
+     * co-membership join.
+     */
+    val organisationMembersProvider: OrganisationMembersProvider?
+        get() = null
+
+    /**
      * Optional navigation resolver provider for PSI-based code navigation.
      *
      * Returns null if navigation services are not available.

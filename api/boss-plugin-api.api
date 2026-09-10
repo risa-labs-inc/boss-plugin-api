@@ -468,6 +468,16 @@ public final class ai/rever/boss/plugin/api/AiGatewayAPI$DefaultImpls {
 	public static synthetic fun step-BWLJW6A$default (Lai/rever/boss/plugin/api/AiGatewayAPI;Lai/rever/boss/plugin/api/AiRequest;Ljava/util/List;Ljava/util/List;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
+public abstract interface class ai/rever/boss/plugin/api/AiGatewayStreamingAPI {
+	public fun streamStep (Lai/rever/boss/plugin/api/AiRequest;Ljava/util/List;Ljava/util/List;)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun streamStep$default (Lai/rever/boss/plugin/api/AiGatewayStreamingAPI;Lai/rever/boss/plugin/api/AiRequest;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+}
+
+public final class ai/rever/boss/plugin/api/AiGatewayStreamingAPI$DefaultImpls {
+	public static fun streamStep (Lai/rever/boss/plugin/api/AiGatewayStreamingAPI;Lai/rever/boss/plugin/api/AiRequest;Ljava/util/List;Ljava/util/List;)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun streamStep$default (Lai/rever/boss/plugin/api/AiGatewayStreamingAPI;Lai/rever/boss/plugin/api/AiRequest;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+}
+
 public final class ai/rever/boss/plugin/api/AiImage {
 	public static final field $stable I
 	public fun <init> ([BLjava/lang/String;)V
@@ -608,6 +618,33 @@ public final class ai/rever/boss/plugin/api/AiRound {
 	public final fun getTurn ()Lai/rever/boss/plugin/api/AiTurn;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class ai/rever/boss/plugin/api/AiStepEvent {
+}
+
+public final class ai/rever/boss/plugin/api/AiStepEvent$Completed : ai/rever/boss/plugin/api/AiStepEvent {
+	public static final field $stable I
+	public fun <init> (Lai/rever/boss/plugin/api/AiTurn;)V
+	public final fun getTurn ()Lai/rever/boss/plugin/api/AiTurn;
+}
+
+public final class ai/rever/boss/plugin/api/AiStepEvent$Failed : ai/rever/boss/plugin/api/AiStepEvent {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/Throwable;)V
+	public final fun getError ()Ljava/lang/Throwable;
+}
+
+public final class ai/rever/boss/plugin/api/AiStepEvent$Reasoning : ai/rever/boss/plugin/api/AiStepEvent {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;)V
+	public final fun getText ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/AiStepEvent$Text : ai/rever/boss/plugin/api/AiStepEvent {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;)V
+	public final fun getText ()Ljava/lang/String;
 }
 
 public final class ai/rever/boss/plugin/api/AiStopReason : java/lang/Enum {

@@ -92,6 +92,23 @@ public final class ai/rever/boss/plugin/api/AiAvailability {
 	public final fun promptToFix (Lai/rever/boss/plugin/api/PluginContext;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
+public final class ai/rever/boss/plugin/api/AiAvailableModel {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/Integer;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;)Lai/rever/boss/plugin/api/AiAvailableModel;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/AiAvailableModel;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;ILjava/lang/Object;)Lai/rever/boss/plugin/api/AiAvailableModel;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getContextLength ()Ljava/lang/Integer;
+	public final fun getDisplayName ()Ljava/lang/String;
+	public final fun getId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class ai/rever/boss/plugin/api/AiBudget {
 	public static final field $stable I
 	public fun <init> ()V
@@ -426,6 +443,7 @@ public abstract interface class ai/rever/boss/plugin/api/AiGatewayAPI {
 	public static final field CAPABILITY_VISION Ljava/lang/String;
 	public static final field Companion Lai/rever/boss/plugin/api/AiGatewayAPI$Companion;
 	public fun activeModel ()Lai/rever/boss/plugin/api/AiModelInfo;
+	public fun availableModels ()Ljava/util/List;
 	public fun capabilities ()Ljava/util/Set;
 	public abstract fun complete-gIAlu-s (Lai/rever/boss/plugin/api/AiRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun runAgent-yxL6bBk (Lai/rever/boss/plugin/api/AiRequest;Ljava/util/List;Lai/rever/boss/plugin/api/AiBudget;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -443,10 +461,21 @@ public final class ai/rever/boss/plugin/api/AiGatewayAPI$Companion {
 
 public final class ai/rever/boss/plugin/api/AiGatewayAPI$DefaultImpls {
 	public static fun activeModel (Lai/rever/boss/plugin/api/AiGatewayAPI;)Lai/rever/boss/plugin/api/AiModelInfo;
+	public static fun availableModels (Lai/rever/boss/plugin/api/AiGatewayAPI;)Ljava/util/List;
 	public static fun capabilities (Lai/rever/boss/plugin/api/AiGatewayAPI;)Ljava/util/Set;
 	public static synthetic fun runAgent-yxL6bBk$default (Lai/rever/boss/plugin/api/AiGatewayAPI;Lai/rever/boss/plugin/api/AiRequest;Ljava/util/List;Lai/rever/boss/plugin/api/AiBudget;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static fun step-BWLJW6A (Lai/rever/boss/plugin/api/AiGatewayAPI;Lai/rever/boss/plugin/api/AiRequest;Ljava/util/List;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun step-BWLJW6A$default (Lai/rever/boss/plugin/api/AiGatewayAPI;Lai/rever/boss/plugin/api/AiRequest;Ljava/util/List;Ljava/util/List;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public abstract interface class ai/rever/boss/plugin/api/AiGatewayStreamingAPI {
+	public fun streamStep (Lai/rever/boss/plugin/api/AiRequest;Ljava/util/List;Ljava/util/List;)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun streamStep$default (Lai/rever/boss/plugin/api/AiGatewayStreamingAPI;Lai/rever/boss/plugin/api/AiRequest;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+}
+
+public final class ai/rever/boss/plugin/api/AiGatewayStreamingAPI$DefaultImpls {
+	public static fun streamStep (Lai/rever/boss/plugin/api/AiGatewayStreamingAPI;Lai/rever/boss/plugin/api/AiRequest;Ljava/util/List;Ljava/util/List;)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun streamStep$default (Lai/rever/boss/plugin/api/AiGatewayStreamingAPI;Lai/rever/boss/plugin/api/AiRequest;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
 }
 
 public final class ai/rever/boss/plugin/api/AiImage {
@@ -498,6 +527,22 @@ public final class ai/rever/boss/plugin/api/AiModelInfo {
 	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/AiModelInfo;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lai/rever/boss/plugin/api/AiModelInfo;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getModelId ()Ljava/lang/String;
+	public final fun getProviderId ()Ljava/lang/String;
+	public final fun getProviderName ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/AiProviderModels {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)Lai/rever/boss/plugin/api/AiProviderModels;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/AiProviderModels;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ILjava/lang/Object;)Lai/rever/boss/plugin/api/AiProviderModels;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getModels ()Ljava/util/List;
 	public final fun getProviderId ()Ljava/lang/String;
 	public final fun getProviderName ()Ljava/lang/String;
 	public fun hashCode ()I
@@ -573,6 +618,33 @@ public final class ai/rever/boss/plugin/api/AiRound {
 	public final fun getTurn ()Lai/rever/boss/plugin/api/AiTurn;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class ai/rever/boss/plugin/api/AiStepEvent {
+}
+
+public final class ai/rever/boss/plugin/api/AiStepEvent$Completed : ai/rever/boss/plugin/api/AiStepEvent {
+	public static final field $stable I
+	public fun <init> (Lai/rever/boss/plugin/api/AiTurn;)V
+	public final fun getTurn ()Lai/rever/boss/plugin/api/AiTurn;
+}
+
+public final class ai/rever/boss/plugin/api/AiStepEvent$Failed : ai/rever/boss/plugin/api/AiStepEvent {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/Throwable;)V
+	public final fun getError ()Ljava/lang/Throwable;
+}
+
+public final class ai/rever/boss/plugin/api/AiStepEvent$Reasoning : ai/rever/boss/plugin/api/AiStepEvent {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;)V
+	public final fun getText ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/AiStepEvent$Text : ai/rever/boss/plugin/api/AiStepEvent {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;)V
+	public final fun getText ()Ljava/lang/String;
 }
 
 public final class ai/rever/boss/plugin/api/AiStopReason : java/lang/Enum {
@@ -2900,10 +2972,12 @@ public final class ai/rever/boss/plugin/api/LlmConfig {
 
 public abstract interface class ai/rever/boss/plugin/api/LlmProvider {
 	public abstract fun activeConfig ()Lai/rever/boss/plugin/api/LlmConfig;
+	public fun availableModels ()Ljava/util/List;
 	public fun configuredProviders ()Ljava/util/List;
 }
 
 public final class ai/rever/boss/plugin/api/LlmProvider$DefaultImpls {
+	public static fun availableModels (Lai/rever/boss/plugin/api/LlmProvider;)Ljava/util/List;
 	public static fun configuredProviders (Lai/rever/boss/plugin/api/LlmProvider;)Ljava/util/List;
 }
 
@@ -2914,6 +2988,7 @@ public abstract interface class ai/rever/boss/plugin/api/LlmProviderSettingsAPI 
 
 public final class ai/rever/boss/plugin/api/LlmProviderSettingsAPI$DefaultImpls {
 	public static fun LlmProviderSettingsPanel (Lai/rever/boss/plugin/api/LlmProviderSettingsAPI;Landroidx/compose/ui/Modifier;Landroidx/compose/runtime/Composer;I)V
+	public static fun availableModels (Lai/rever/boss/plugin/api/LlmProviderSettingsAPI;)Ljava/util/List;
 	public static fun configuredProviders (Lai/rever/boss/plugin/api/LlmProviderSettingsAPI;)Ljava/util/List;
 	public static fun getSupportsSettingsPanel (Lai/rever/boss/plugin/api/LlmProviderSettingsAPI;)Z
 }

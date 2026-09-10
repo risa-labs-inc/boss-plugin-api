@@ -168,6 +168,23 @@ interface AiGatewayAPI {
      */
     fun activeModel(): AiModelInfo? = null
 
+    /**
+     * Every configured provider's available models, grouped by provider — not just the
+     * active provider's single selected model ([activeModel]).
+     *
+     * For a caller building a picker across everything the user has set up, not only
+     * whichever provider is active right now. This gateway has no model catalog of its
+     * own — it is the transport and the wire formats, not the registry — so an
+     * implementation relays [LlmProvider.availableModels] from whichever plugin owns
+     * provider configuration; a host without that plugin, or older than this method,
+     * reports nothing rather than failing.
+     *
+     * Default empty, the same reason [capabilities] and [activeModel] degrade rather
+     * than throw: a gateway build older than this method has nothing to report, not a
+     * `NoSuchMethodError` waiting for whoever calls it.
+     */
+    fun availableModels(): List<AiProviderModels> = emptyList()
+
     companion object {
         /** [capabilities] entry: [stream] genuinely streams for the active provider. */
         const val CAPABILITY_STREAMING: String = "streaming"

@@ -266,3 +266,78 @@ interface McpToolRegistry {
      */
     suspend fun invoke(toolName: String, arguments: String): McpToolResult
 }
+
+/**
+ * Represents a tracked invocation of an MCP tool.
+ */
+data class McpExecutionRequest(
+    /** The stable correlation ID for the execution across its observation lifecycle. */
+    val executionId: String,
+    /** The stable provider/server identity exposed by the host for correlation/grouping. */
+    val providerId: String,
+    /** The name of the tool being executed. */
+    val toolName: String,
+    /**
+     * Bounded display preview of the tool arguments.
+     *
+     * This is a display preview, NOT a replay input or a raw audit payload.
+     * The host may sanitize, redact, or completely omit data (e.g., oversized,
+     * malformed, or deeply nested content).
+     * Current expected bounds: input <= 16,384 chars, preview <= 4,096 chars, depth <= 8.
+     * Future or stricter hosts may impose smaller effective limits.
+     */
+    val arguments: String,
+    /**
+     * The epoch millisecond timestamp marking the start of the execution.
+     * Plugins can calculate execution duration by comparing this against their
+     * local clock when [McpToolExecutionObserver.onExecutionFinished] is received.
+     */
+    val timestampMillis: Long
+)
+
+/**
+ * Represents a structured execution error from an MCP tool invocation or host limit.
+ */
+data class McpExecutionError(
+    val type: String,
+    val message: String?
+)
+
+/**
+ * The terminal outcome of an MCP execution.
+ */
+sealed interface McpExecutionOutcome {
+    /**
+     * The MCP handler completed normally.
+     * Note: This includes cases where the handler successfully returns an [McpToolResult]
+     * that contains an in-band MCP error (i.e., `isError == true`).
+     */
+    data class Success(val result: McpToolResult) : McpExecutionOutcome
+    /** The execution failed through a thrown/unhandled exception or host-level failure. */
+    data class Failure(val error: McpExecutionError) : McpExecutionOutcome
+    /** The host terminated the execution because the configured execution deadline was exceeded. */
+    data class Timeout(val error: McpExecutionError) : McpExecutionOutcome
+    /** The execution was explicitly cancelled. */
+    data class Cancelled(val error: McpExecutionError) : McpExecutionOutcome
+}
+
+/**
+ * A synchronous observer for MCP tool executions.
+ *
+ * Callbacks are invoked synchronously on the thread processing the outcome, outside
+ * registry synchronization locks. Callbacks must be fast and non-blocking, and may
+ * execute concurrently for different executions.
+ *
+ * Observer exceptions are isolated and swallowed by the host; they must never alter
+ * the underlying tool execution result, cancellation, timeout, or failure state.
+ *
+ * For a given [McpExecutionRequest.executionId], [onExecutionStarted] is guaranteed
+ * to precede [onExecutionFinished].
+ */
+interface McpToolExecutionObserver {
+    /** The unique identifier for this observer instance. */
+    val observerId: String
+    
+    fun onExecutionStarted(request: McpExecutionRequest)
+    fun onExecutionFinished(request: McpExecutionRequest, outcome: McpExecutionOutcome)
+}

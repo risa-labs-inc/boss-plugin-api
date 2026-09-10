@@ -3210,6 +3210,91 @@ public final class ai/rever/boss/plugin/api/McpAttachTargetInfo {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class ai/rever/boss/plugin/api/McpExecutionError {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Lai/rever/boss/plugin/api/McpExecutionError;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/McpExecutionError;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lai/rever/boss/plugin/api/McpExecutionError;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getMessage ()Ljava/lang/String;
+	public final fun getType ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class ai/rever/boss/plugin/api/McpExecutionOutcome {
+}
+
+public final class ai/rever/boss/plugin/api/McpExecutionOutcome$Cancelled : ai/rever/boss/plugin/api/McpExecutionOutcome {
+	public static final field $stable I
+	public fun <init> (Lai/rever/boss/plugin/api/McpExecutionError;)V
+	public final fun component1 ()Lai/rever/boss/plugin/api/McpExecutionError;
+	public final fun copy (Lai/rever/boss/plugin/api/McpExecutionError;)Lai/rever/boss/plugin/api/McpExecutionOutcome$Cancelled;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/McpExecutionOutcome$Cancelled;Lai/rever/boss/plugin/api/McpExecutionError;ILjava/lang/Object;)Lai/rever/boss/plugin/api/McpExecutionOutcome$Cancelled;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getError ()Lai/rever/boss/plugin/api/McpExecutionError;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/McpExecutionOutcome$Failure : ai/rever/boss/plugin/api/McpExecutionOutcome {
+	public static final field $stable I
+	public fun <init> (Lai/rever/boss/plugin/api/McpExecutionError;)V
+	public final fun component1 ()Lai/rever/boss/plugin/api/McpExecutionError;
+	public final fun copy (Lai/rever/boss/plugin/api/McpExecutionError;)Lai/rever/boss/plugin/api/McpExecutionOutcome$Failure;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/McpExecutionOutcome$Failure;Lai/rever/boss/plugin/api/McpExecutionError;ILjava/lang/Object;)Lai/rever/boss/plugin/api/McpExecutionOutcome$Failure;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getError ()Lai/rever/boss/plugin/api/McpExecutionError;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/McpExecutionOutcome$Success : ai/rever/boss/plugin/api/McpExecutionOutcome {
+	public static final field $stable I
+	public fun <init> (Lai/rever/boss/plugin/api/McpToolResult;)V
+	public final fun component1 ()Lai/rever/boss/plugin/api/McpToolResult;
+	public final fun copy (Lai/rever/boss/plugin/api/McpToolResult;)Lai/rever/boss/plugin/api/McpExecutionOutcome$Success;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/McpExecutionOutcome$Success;Lai/rever/boss/plugin/api/McpToolResult;ILjava/lang/Object;)Lai/rever/boss/plugin/api/McpExecutionOutcome$Success;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getResult ()Lai/rever/boss/plugin/api/McpToolResult;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/McpExecutionOutcome$Timeout : ai/rever/boss/plugin/api/McpExecutionOutcome {
+	public static final field $stable I
+	public fun <init> (Lai/rever/boss/plugin/api/McpExecutionError;)V
+	public final fun component1 ()Lai/rever/boss/plugin/api/McpExecutionError;
+	public final fun copy (Lai/rever/boss/plugin/api/McpExecutionError;)Lai/rever/boss/plugin/api/McpExecutionOutcome$Timeout;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/McpExecutionOutcome$Timeout;Lai/rever/boss/plugin/api/McpExecutionError;ILjava/lang/Object;)Lai/rever/boss/plugin/api/McpExecutionOutcome$Timeout;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getError ()Lai/rever/boss/plugin/api/McpExecutionError;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/McpExecutionRequest {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;J)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()J
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;J)Lai/rever/boss/plugin/api/McpExecutionRequest;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/McpExecutionRequest;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JILjava/lang/Object;)Lai/rever/boss/plugin/api/McpExecutionRequest;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getArguments ()Ljava/lang/String;
+	public final fun getExecutionId ()Ljava/lang/String;
+	public final fun getProviderId ()Ljava/lang/String;
+	public final fun getTimestampMillis ()J
+	public final fun getToolName ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public abstract interface class ai/rever/boss/plugin/api/McpServerController {
 	public abstract fun attach (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getAttachTargets ()Lkotlinx/coroutines/flow/StateFlow;
@@ -3277,6 +3362,12 @@ public final class ai/rever/boss/plugin/api/McpToolDefinition {
 public final class ai/rever/boss/plugin/api/McpToolDefinition$Companion {
 	public final fun withRbac (Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/api/McpToolHandler;Ljava/lang/String;ZLjava/util/List;Z)Lai/rever/boss/plugin/api/McpToolDefinition;
 	public static synthetic fun withRbac$default (Lai/rever/boss/plugin/api/McpToolDefinition$Companion;Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/api/McpToolHandler;Ljava/lang/String;ZLjava/util/List;ZILjava/lang/Object;)Lai/rever/boss/plugin/api/McpToolDefinition;
+}
+
+public abstract interface class ai/rever/boss/plugin/api/McpToolExecutionObserver {
+	public abstract fun getObserverId ()Ljava/lang/String;
+	public abstract fun onExecutionFinished (Lai/rever/boss/plugin/api/McpExecutionRequest;Lai/rever/boss/plugin/api/McpExecutionOutcome;)V
+	public abstract fun onExecutionStarted (Lai/rever/boss/plugin/api/McpExecutionRequest;)V
 }
 
 public abstract interface class ai/rever/boss/plugin/api/McpToolHandler {
@@ -4235,6 +4326,7 @@ public abstract interface class ai/rever/boss/plugin/api/PluginContext {
 	public fun getWorkspaceDataProvider ()Lai/rever/boss/plugin/api/WorkspaceDataProvider;
 	public fun getZoomSettingsProvider ()Lai/rever/boss/plugin/api/ZoomSettingsProvider;
 	public fun registerDeepLinkActionHandler (Lai/rever/boss/plugin/api/DeepLinkActionHandler;)V
+	public fun registerMcpToolExecutionObserver (Lai/rever/boss/plugin/api/McpToolExecutionObserver;)Z
 	public fun registerMcpToolProvider (Lai/rever/boss/plugin/api/McpToolProvider;)V
 	public fun registerPanelMenuContribution (Lai/rever/boss/plugin/api/PanelMenuContribution;)V
 	public fun registerPluginAPI (Ljava/lang/Object;)V
@@ -4243,6 +4335,7 @@ public abstract interface class ai/rever/boss/plugin/api/PluginContext {
 	public fun registerShortcutActionProvider (Lai/rever/boss/plugin/api/ShortcutActionProvider;)V
 	public fun registerStatusBarItem (Lai/rever/boss/plugin/api/StatusBarItemProvider;)V
 	public fun unregisterDeepLinkActionHandler (Ljava/lang/String;)V
+	public fun unregisterMcpToolExecutionObserver (Ljava/lang/String;)V
 	public fun unregisterMcpToolProvider (Ljava/lang/String;)V
 	public fun unregisterPanelMenuContribution (Ljava/lang/String;)V
 	public fun unregisterSearchProvider (Ljava/lang/String;)V
@@ -4305,6 +4398,7 @@ public final class ai/rever/boss/plugin/api/PluginContext$DefaultImpls {
 	public static fun getWorkspaceDataProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/WorkspaceDataProvider;
 	public static fun getZoomSettingsProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/ZoomSettingsProvider;
 	public static fun registerDeepLinkActionHandler (Lai/rever/boss/plugin/api/PluginContext;Lai/rever/boss/plugin/api/DeepLinkActionHandler;)V
+	public static fun registerMcpToolExecutionObserver (Lai/rever/boss/plugin/api/PluginContext;Lai/rever/boss/plugin/api/McpToolExecutionObserver;)Z
 	public static fun registerMcpToolProvider (Lai/rever/boss/plugin/api/PluginContext;Lai/rever/boss/plugin/api/McpToolProvider;)V
 	public static fun registerPanelMenuContribution (Lai/rever/boss/plugin/api/PluginContext;Lai/rever/boss/plugin/api/PanelMenuContribution;)V
 	public static fun registerPluginAPI (Lai/rever/boss/plugin/api/PluginContext;Ljava/lang/Object;)V
@@ -4313,6 +4407,7 @@ public final class ai/rever/boss/plugin/api/PluginContext$DefaultImpls {
 	public static fun registerShortcutActionProvider (Lai/rever/boss/plugin/api/PluginContext;Lai/rever/boss/plugin/api/ShortcutActionProvider;)V
 	public static fun registerStatusBarItem (Lai/rever/boss/plugin/api/PluginContext;Lai/rever/boss/plugin/api/StatusBarItemProvider;)V
 	public static fun unregisterDeepLinkActionHandler (Lai/rever/boss/plugin/api/PluginContext;Ljava/lang/String;)V
+	public static fun unregisterMcpToolExecutionObserver (Lai/rever/boss/plugin/api/PluginContext;Ljava/lang/String;)V
 	public static fun unregisterMcpToolProvider (Lai/rever/boss/plugin/api/PluginContext;Ljava/lang/String;)V
 	public static fun unregisterPanelMenuContribution (Lai/rever/boss/plugin/api/PluginContext;Ljava/lang/String;)V
 	public static fun unregisterSearchProvider (Lai/rever/boss/plugin/api/PluginContext;Ljava/lang/String;)V

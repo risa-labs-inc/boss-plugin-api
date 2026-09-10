@@ -659,6 +659,26 @@ interface PluginContext {
     fun unregisterMcpToolProvider(providerId: String) {}
 
     /**
+     * Registers an [McpToolExecutionObserver] to observe tool executions for auditing, tracing, or logging.
+     *
+     * Lifecycle and Identity:
+     * - Plugin-facing observer IDs are host-scoped to the specific [PluginContext] instance.
+     * - Unregistering or unloading the plugin explicitly suppresses future callback admission.
+     * - Callbacks already admitted/in-flight may finish.
+     * - Duplicate registrations with the same observer ID may be ignored or overwritten by the host.
+     * - Disabling/reloading a plugin clears existing registrations and requires re-registration.
+     *
+     * @param observer The observer to register.
+     * @return `true` if the host accepted and registered the observer, or `false` if observation
+     *         capability is unavailable (e.g., on an older host). Plugins should use a `false`
+     *         return to present an informative unsupported-host state.
+     */
+    fun registerMcpToolExecutionObserver(observer: McpToolExecutionObserver): Boolean = false
+
+    /** Unregister an MCP tool execution observer by id. */
+    fun unregisterMcpToolExecutionObserver(observerId: String) {}
+
+    /**
      * Optional read-side registry of all plugin-contributed MCP tools.
      *
      * Returns null if MCP tooling is unavailable. Used by the MCP server bridge

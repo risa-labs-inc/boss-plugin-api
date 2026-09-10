@@ -59,6 +59,8 @@ interface LlmProvider {
      * that has not landed yet) is simply absent from the result rather than reported with
      * an empty list — the two mean different things, and collapsing them would make "no
      * models" indistinguishable from "haven't looked yet".
+     * Conversely, a present [AiProviderModels] with an empty [AiProviderModels.models]
+     * means discovery completed and the provider explicitly reported no available models.
      * A known catalog does not guarantee a callable connection: a model-in-path provider
      * may appear here while [configuredProviders] omits it for lacking a resolved default
      * model. Consumers must check connection availability before offering a model as usable.

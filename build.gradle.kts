@@ -451,8 +451,7 @@ group = "ai.rever.boss.plugin.bundled"
 // 1.0.88, 404ing the fetchApiPluginJar pin in the host PR this exists to
 // unblock (BossConsole#289). Precedent: the 1.0.85 and 1.0.86 PRs edited this
 // comment block and left the line at 1.0.84 / 1.0.85.
-// 1.0.90: optional streaming tool-turn API without changing host-implemented interfaces.
-version = "1.0.90"
+version = "1.0.88"
 
 java {
     toolchain {

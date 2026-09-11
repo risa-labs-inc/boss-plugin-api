@@ -13,14 +13,61 @@ interface SecretDataProvider {
     suspend fun getUserSecrets(limit: Int = 50, offset: Int = 0): Result<PaginatedSecretsData>
 
     /**
+     * Get secrets together with the server-authoritative organisation ownership and
+     * management decision for each row.
+     *
+     * The default is deliberately fail-closed. An older host still returns the rows so
+     * a consumer can render and copy them, but it must not infer an edit permission the
+     * server did not publish. Hosts that support organisation secrets override this.
+     */
+    suspend fun getUserSecretsWithAccess(
+        limit: Int = 50,
+        offset: Int = 0
+    ): Result<PaginatedSecretsWithAccessData> =
+        getUserSecrets(limit, offset).map { page ->
+            PaginatedSecretsWithAccessData(
+                data = page.data.map(::SecretEntryWithAccessData),
+                hasMore = page.hasMore
+            )
+        }
+
+    /**
      * Get secrets with sharing information (for read-only panels like UserSecretList).
      */
     suspend fun getUserSecretsWithSharingInfo(limit: Int = 50, offset: Int = 0): Result<PaginatedSecretsWithSharingData>
 
     /**
+     * Sharing rows plus organisation ownership. Kept additive so the published
+     * [SecretEntryWithSharingData] constructor remains binary compatible.
+     */
+    suspend fun getUserSecretsWithSharingAccess(
+        limit: Int = 50,
+        offset: Int = 0
+    ): Result<PaginatedSecretsWithSharingAccessData> =
+        getUserSecretsWithSharingInfo(limit, offset).map { page ->
+            PaginatedSecretsWithSharingAccessData(
+                data = page.data.map(::SecretEntryWithSharingAccessData),
+                hasMore = page.hasMore
+            )
+        }
+
+    /**
      * Search secrets by query.
      */
     suspend fun searchSecrets(query: String, limit: Int = 50, offset: Int = 0): Result<PaginatedSecretsData>
+
+    /** Search equivalent of [getUserSecretsWithAccess], with the same fail-closed fallback. */
+    suspend fun searchSecretsWithAccess(
+        query: String,
+        limit: Int = 50,
+        offset: Int = 0
+    ): Result<PaginatedSecretsWithAccessData> =
+        searchSecrets(query, limit, offset).map { page ->
+            PaginatedSecretsWithAccessData(
+                data = page.data.map(::SecretEntryWithAccessData),
+                hasMore = page.hasMore
+            )
+        }
 
     /**
      * Create a new secret.
@@ -41,6 +88,14 @@ interface SecretDataProvider {
      * Get shares for a specific secret.
      */
     suspend fun getSecretShares(secretId: String): Result<List<SecretShareData>>
+
+    /**
+     * Get share rows with their complete target identity. Organisation targets were added
+     * after [SecretShareData] shipped, so this additive envelope preserves that binary
+     * contract while allowing new consumers to label an organisation share correctly.
+     */
+    suspend fun getSecretSharesWithTargets(secretId: String): Result<List<SecretShareWithTargetData>> =
+        getSecretShares(secretId).map { shares -> shares.map(::SecretShareWithTargetData) }
 
     /**
      * Share a secret with a user or role.
@@ -75,6 +130,26 @@ data class SecretEntryData(
     val metadata: SecretMetadataData? = null,
     val createdAt: String,
     val updatedAt: String
+)
+
+/**
+ * A secret plus the server-authoritative decision about who owns and may manage it.
+ *
+ * This is a new envelope rather than new constructor fields on [SecretEntryData]: plugin
+ * API data classes are binary contracts and must never gain constructor components.
+ */
+data class SecretEntryWithAccessData(
+    val secret: SecretEntryData,
+    val orgId: String? = null,
+    val orgSlug: String? = null,
+    val isOrgOwned: Boolean = false,
+    val canManage: Boolean = false
+)
+
+/** Paginated result for [SecretDataProvider.getUserSecretsWithAccess]. */
+data class PaginatedSecretsWithAccessData(
+    val data: List<SecretEntryWithAccessData>,
+    val hasMore: Boolean
 )
 
 /**
@@ -155,6 +230,15 @@ data class SecretShareData(
 )
 
 /**
+ * A share plus an organisation target, when the share was granted to an organisation.
+ */
+data class SecretShareWithTargetData(
+    val share: SecretShareData,
+    val sharedWithOrgId: String? = null,
+    val sharedWithOrgSlug: String? = null
+)
+
+/**
  * Paginated result for secrets with sharing information.
  */
 data class PaginatedSecretsWithSharingData(
@@ -180,4 +264,19 @@ data class SecretEntryWithSharingData(
     val isOwner: Boolean,
     val sharedByEmail: String? = null,
     val accessLevel: String
+)
+
+/** A sharing row plus server-published organisation ownership and management access. */
+data class SecretEntryWithSharingAccessData(
+    val secret: SecretEntryWithSharingData,
+    val orgId: String? = null,
+    val orgSlug: String? = null,
+    val isOrgOwned: Boolean = false,
+    val canManage: Boolean = false
+)
+
+/** Paginated result for [SecretDataProvider.getUserSecretsWithSharingAccess]. */
+data class PaginatedSecretsWithSharingAccessData(
+    val data: List<SecretEntryWithSharingAccessData>,
+    val hasMore: Boolean
 )

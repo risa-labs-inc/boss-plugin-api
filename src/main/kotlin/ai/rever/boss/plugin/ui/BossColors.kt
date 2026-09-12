@@ -31,6 +31,16 @@ object BossColors {
     val contextMenuBackground = Color(0xFF2B2B2B)
     val contextMenuBorder = Color(0xFF3C3F41)
     val contextMenuHover = Color(0xFF3A3D40)
+
+    /**
+     * The accent drawn as TEXT, where [darkAccent] is the FILL.
+     *
+     * A plugin tinting an accent-coloured label or glyph should reach for this: `darkAccent` is
+     * chosen to sit behind content and lands under 4.5:1 as text on the default theme. This value
+     * is the compile-time stub - at runtime the host's copy of this object is served parent-first
+     * and answers from the active theme, like every other name here.
+     */
+    val accentText = Color(0xFF5AAEE0)
 }
 
 // Convenience aliases for backward compatibility

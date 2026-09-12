@@ -451,7 +451,7 @@ group = "ai.rever.boss.plugin.bundled"
 // 1.0.88, 404ing the fetchApiPluginJar pin in the host PR this exists to
 // unblock (BossConsole#289). Precedent: the 1.0.85 and 1.0.86 PRs edited this
 // comment block and left the line at 1.0.84 / 1.0.85.
-// 1.0.89: adds eight defaulted members to ActiveTabsProvider - supportsTabTransfer,
+// 1.0.90: adds eight defaulted members to ActiveTabsProvider - supportsTabTransfer,
 // liveWorkspaceIds, moveTabToWorkspace, moveTabToPane, activePanelId, selectedTabId,
 // allWindowTabs and refreshAllWindowTabs - plus BossColors.accentText, and marks
 // ActiveTabsProvider @HostImplemented.
@@ -524,10 +524,12 @@ group = "ai.rever.boss.plugin.bundled"
 // wrong row.
 //
 // The number moved once already: this block said 1.0.88 while the branch sat unmerged, and #50
-// (the terminal-tab surface) took 1.0.88 first. Release CI bump-pushes before building, so main's
+// (the terminal-tab surface) took 1.0.88 first, then it said 1.0.89 and an unrelated
+// release took that on 2026-09-10. Verified against the published jar, not assumed: v1.0.89
+// carries none of these members. Release CI bump-pushes before building, so main's
 // version below is the version already released and this merge cuts the next one. Anything that
 // merges ahead of this moves it again, along with the BossConsole and topofmind pins.
-version = "1.0.88"
+version = "1.0.89"
 
 java {
     toolchain {

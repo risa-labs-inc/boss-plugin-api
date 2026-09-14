@@ -437,16 +437,6 @@ group = "ai.rever.boss.plugin.bundled"
 // than in the host, which had no access to it and drew every line as plain Text.
 // All default-bodied; purely additive; apiCheck clean.
 //
-// 1.0.90: adds the optional LlmModelPricingAPI and AiGatewayPricingAPI companions plus
-// AiModelPricing. They expose a provider-published USD-per-million-token rate card without
-// changing AiAvailableModel, AiUsage, AiTurn, AiReply, AiBudget or either existing gateway
-// interface. Those released data-class constructors and host-implemented members cannot move.
-// Null means unavailable, never free; explicit zero survives. The fetched/valid timestamps keep
-// a cached catalog entry from silently becoming a current price, and extras is the constructor's
-// forward-compatibility hatch. The gateway-facing lookup takes AiRequest so its implementation can
-// resolve the actual route, including explicit overrides and CLI selection, rather than asking a
-// consumer to duplicate routing policy. New types only: ApiClassLoader/minApiVersion, no host release.
-//
 // The no-AbstractMethodError claim for older implementors rides on Kotlin
 // 2.3's default -jvm-default=enable: the default bodies land as REAL JVM
 // default methods on the interfaces (verified with javap), so an implementor
@@ -592,6 +582,7 @@ group = "ai.rever.boss.plugin.bundled"
 // carries none of these members. Release CI bump-pushes before building, so main's
 // version below is the version already released and this merge cuts the next one. Anything that
 // merges ahead of this moves it again, along with the BossConsole and topofmind pins.
+//
 // 1.0.92: adds the optional LlmModelPricingAPI and
 // AiGatewayPricingAPI companions plus AiModelPricing. They expose a provider-published
 // USD-per-million-token rate card without changing AiAvailableModel, AiUsage, AiTurn, AiReply,

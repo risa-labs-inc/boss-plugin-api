@@ -165,7 +165,7 @@ interface LlmModelPricingAPI {
  * [AiReply.modelId] or [AiTurn.modelId], the caller must compare that terminal model id with
  * [AiModelPricing.modelId] exactly. A mismatch means the completed call is unpriced; provider-side
  * fallback must not be charged at the requested model's rate. Replies do not identify the
- * provider, so a budget caller must pin `request.extras["providerId"]` to
+ * provider, so a budget caller must pin [AiRequest.EXTRAS_KEY_PROVIDER_ID] to
  * [AiModelPricing.providerId] and [AiRequest.EXTRAS_KEY_MODEL_OVERRIDE] to
  * [AiModelPricing.modelId], then use that same request for inference. The gateway keeps those
  * explicit route identifiers fixed for the call; if that route becomes unavailable, the call

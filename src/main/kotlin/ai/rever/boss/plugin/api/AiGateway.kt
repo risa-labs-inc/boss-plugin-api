@@ -287,7 +287,9 @@ data class AiRequest(
      * rebuild of every consumer.
      *
      * Set [EXTRAS_KEY_PROVIDER_ID] to the exact [LlmConfig.providerId] only after
-     * checking [AiGatewayAPI.capabilities] for [AiGatewayAPI.CAPABILITY_PROVIDER_OVERRIDE].
+     * checking [AiGatewayAPI.capabilities] for [AiGatewayAPI.CAPABILITY_PROVIDER_OVERRIDE]
+     * at request-build time on the same live gateway instance that will receive the call.
+     * Do not cache this decision across gateway replacement, unload or downgrade.
      * Pair it with [EXTRAS_KEY_MODEL_OVERRIDE] to select a model on that provider.
      * A gateway advertising this capability must reject an unavailable explicit provider
      * rather than fall back to the active one. Report rejection as [Result.failure] from
@@ -295,6 +297,10 @@ data class AiRequest(
      * [AiChunk.Failed] from [AiGatewayAPI.stream], not a thrown exception. Honor the selected
      * model, including model-dependent URL substitution, or reject an unsupported
      * provider/model combination through the same channel; never silently use the default.
+     * Use [IllegalArgumentException] for unknown, unavailable or ambiguous provider IDs,
+     * and [UnsupportedOperationException] for unsupported provider/model combinations.
+     * These routing failures require correcting the selection; do not retry them as
+     * transient transport failures or parse their messages to classify them.
      * It still needs a resolvable connection from
      * [LlmProvider.configuredProviders] or a matching [LlmProvider.activeConfig].
      *
@@ -333,9 +339,12 @@ data class AiRequest(
         const val EXTRAS_KEY_MODEL_OVERRIDE = "modelOverride"
 
         /**
-         * [extras] key carrying an explicit [LlmConfig.providerId]. Requires
+         * [extras] key carrying an explicit [LlmConfig.providerId], equivalently the
+         * credential-free [AiProviderModels.providerId] returned to a picker. Requires
          * [AiGatewayAPI.CAPABILITY_PROVIDER_OVERRIDE]; see [extras] for routing guarantees.
          * Like [EXTRAS_KEY_MODEL_OVERRIDE], this const inlines without a runtime Fieldref.
+         * Read it from [extras] directly: adding a view getter for symmetry would introduce
+         * a runtime Methodref and require a host-version floor.
          */
         const val EXTRAS_KEY_PROVIDER_ID = "providerId"
     }

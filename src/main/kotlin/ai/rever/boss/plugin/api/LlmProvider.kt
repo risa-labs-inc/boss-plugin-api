@@ -27,8 +27,8 @@ interface LlmProvider {
      * can be resolved. A null value does not imply [configuredProviders] is empty:
      * consumers with their own model picker can still use a configured connection.
      * Consumers that require a ready-to-use default should hide the unavailable affordance.
-     * Secret Manager has returned blank credentials for keyless custom endpoints from
-     * activeConfig since v1.2.6; Ollama support followed in v1.2.21. See [LlmConfig.apiKey].
+     * See [configuredProviders] for owner-version history of blank credentials returned
+     * here, and [LlmConfig.apiKey] for the consumer migration note.
      */
     fun activeConfig(): LlmConfig?
 
@@ -36,12 +36,16 @@ interface LlmProvider {
      * Configured provider connections in display order, including keyless local services.
      * These credential-bearing connections are for consumers making their own HTTP calls,
      * not a list of ready-made requests. Build gateway-backed pickers from credential-free
-     * [availableModels] and use [AiRequest.extras] for capability-gated provider selection.
+     * [AiGatewayAPI.availableModels] and use [AiRequest.extras] for capability-gated selection.
      *
      * - **Credentials:** every required credential must already be resolved; omit providers
      *   whose required credential is missing. A blank [LlmConfig.apiKey] means the connection
      *   is configured for use without credentials, not that resolution is pending. This
      *   does not verify that a user-supplied endpoint actually accepts unauthenticated calls.
+     * - **Identity:** [LlmConfig.providerId] must be unique within the returned list.
+     *   Multiple custom connections require distinct IDs; the conventional CUSTOM ID can
+     *   identify only one connection. Gateways must reject ambiguous IDs rather than pick
+     *   the first match. Catalog entries use the same unique identity.
      * - **Models:** one connection per provider, not one per model. A nonblank
      *   [LlmConfig.modelId] is the resolved default, suitable for preselection in a picker.
      *   It may be blank only for a model-independent endpoint; the consumer must then
@@ -50,12 +54,16 @@ interface LlmProvider {
      *   model's endpoint, or omit the provider until a default can be resolved. Changing
      *   [LlmConfig.modelId] alone does not update that endpoint. Prefer a gateway advertising
      *   [AiGatewayAPI.CAPABILITY_PROVIDER_OVERRIDE]; see [AiRequest.extras]. A direct HTTP
-     *   consumer must use format-specific URL substitution, encode the model as a path
-     *   segment, and reject unknown [LlmApiFormat] values with an else branch. A model-in-path
+     *   consumer must replace only the format's model path component with the encoded new
+     *   model, not append it or replace every matching substring in the URL. Reject unknown
+     *   [LlmApiFormat] values with an else branch; naming its newer enum constants also
+     *   requires their documented minBossVersion gates. A model-in-path
      *   provider without a resolved default cannot be selected through this override,
      *   even when [availableModels] lists its catalog.
      *
-     * [activeConfig] retains its usable-default-or-null contract. These connection rules
+     * [activeConfig] retains its usable-default-or-null contract. Owner history: Secret
+     * Manager has returned blank credentials from [activeConfig] for keyless custom
+     * endpoints since v1.2.6; Ollama support followed in v1.2.21. These connection rules
      * are implemented by Secret Manager v1.2.26; this is a verified owner version, not a
      * claim that every rule first appeared there. Older owners may omit keyless or
      * model-less connections. The API jar version alone does not enable owner behavior.
@@ -138,6 +146,8 @@ data class LlmConfig(
      * [LlmProvider.configuredProviders], blank means the connection is configured for use
      * without credentials.
      * Consumers must omit credential headers rather than send an empty authorization value.
+     * This corrects the earlier, overly strict "never blank" guarantee: existing consumers
+     * should audit unconditional authentication headers and key-based readiness checks.
      * This does not prove that a user-supplied endpoint accepts unauthenticated requests.
      * See [LlmProvider.activeConfig] and [LlmProvider.configuredProviders] for owner-version
      * compatibility. Configured does not mean possessing a key; see [AiGatewayAPI.activeModel].

@@ -438,6 +438,7 @@ public final class ai/rever/boss/plugin/api/AiCliUsage {
 }
 
 public abstract interface class ai/rever/boss/plugin/api/AiGatewayAPI {
+	public static final field CAPABILITY_PROVIDER_OVERRIDE Ljava/lang/String;
 	public static final field CAPABILITY_STREAMING Ljava/lang/String;
 	public static final field CAPABILITY_TOOLS Ljava/lang/String;
 	public static final field CAPABILITY_VISION Ljava/lang/String;
@@ -454,6 +455,7 @@ public abstract interface class ai/rever/boss/plugin/api/AiGatewayAPI {
 }
 
 public final class ai/rever/boss/plugin/api/AiGatewayAPI$Companion {
+	public static final field CAPABILITY_PROVIDER_OVERRIDE Ljava/lang/String;
 	public static final field CAPABILITY_STREAMING Ljava/lang/String;
 	public static final field CAPABILITY_TOOLS Ljava/lang/String;
 	public static final field CAPABILITY_VISION Ljava/lang/String;
@@ -579,6 +581,7 @@ public final class ai/rever/boss/plugin/api/AiRequest {
 	public static final field $stable I
 	public static final field Companion Lai/rever/boss/plugin/api/AiRequest$Companion;
 	public static final field EXTRAS_KEY_MODEL_OVERRIDE Ljava/lang/String;
+	public static final field EXTRAS_KEY_PROVIDER_ID Ljava/lang/String;
 	public fun <init> ()V
 	public fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/lang/Float;Ljava/lang/Integer;JLjava/util/Map;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/lang/Float;Ljava/lang/Integer;JLjava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V

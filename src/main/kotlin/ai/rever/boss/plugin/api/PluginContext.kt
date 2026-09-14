@@ -553,8 +553,8 @@ interface PluginContext {
         get() = null
 
     /**
-     * Optional access to configured provider connections (Settings → AI Providers, also
-     * available from Secret Manager → AI), credentials and generation defaults.
+     * Optional access to configured provider connections (Settings → AI Providers, or the
+     * owning plugin's UI such as Secret Manager → AI), credentials and generation defaults.
      *
      * Returns null when LLM access isn't available. Plugins that offer AI
      * features (e.g. the Jupyter notebook) use this to reuse the configured keys

@@ -116,6 +116,8 @@ class AiGatewayTypesTest {
         // EXTRAS_KEY_MODEL_OVERRIDE is a const val: already-compiled plugins carry the
         // LITERAL, so changing the string silently orphans every request they build.
         assertEquals("modelOverride", AiRequest.EXTRAS_KEY_MODEL_OVERRIDE)
+        assertEquals("providerId", AiRequest.EXTRAS_KEY_PROVIDER_ID)
+        assertEquals("providerOverride", AiGatewayAPI.CAPABILITY_PROVIDER_OVERRIDE)
     }
 
     // ==================== open-set contracts ====================
@@ -180,6 +182,7 @@ class AiGatewayTypesTest {
             }
 
         assertEquals(emptyList(), older.availableModels())
+        assertFalse(AiGatewayAPI.CAPABILITY_PROVIDER_OVERRIDE in older.capabilities())
     }
 
     @Test

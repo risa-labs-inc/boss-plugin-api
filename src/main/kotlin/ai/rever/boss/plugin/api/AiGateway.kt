@@ -197,6 +197,14 @@ interface AiGatewayAPI {
 
         /** [capabilities] entry: [AiImage] parts are sent rather than dropped. */
         const val CAPABILITY_VISION: String = "vision"
+
+        /**
+         * [capabilities] entry: [AiRequest.EXTRAS_KEY_PROVIDER_ID] selects the requested
+         * provider, rejects unavailable selections and supports model-path substitution
+         * with [AiRequest.EXTRAS_KEY_MODEL_OVERRIDE]. Advertise only when all request
+         * paths honor this contract. Absence means callers must not send provider overrides.
+         */
+        const val CAPABILITY_PROVIDER_OVERRIDE: String = "providerOverride"
     }
 }
 
@@ -206,7 +214,8 @@ interface AiGatewayAPI {
  * There is deliberately no endpoint, credential or wire format here. Those are
  * resolved per call from the user's configured providers. By default a request follows
  * the active provider; callers may opt into provider selection through [extras] only
- * when they have verified the gateway implementation supports it.
+ * when the gateway advertises [AiGatewayAPI.CAPABILITY_PROVIDER_OVERRIDE]. Prefer the
+ * active provider; pin one only when the user explicitly selects it.
  *
  * This type is compiled in, so a member change here (like [modelOverride]) is
  * a host-contract change: the member resolves from the host's pinned copy and
@@ -268,19 +277,18 @@ data class AiRequest(
      * somewhere to put them, each one costs an api release plus a host release plus a
      * rebuild of every consumer.
      *
-     * A gateway supporting explicit provider selection reads the `"providerId"` key as
-     * the exact [LlmConfig.providerId]. This spelling is part of the extras contract.
+     * Set [EXTRAS_KEY_PROVIDER_ID] to the exact [LlmConfig.providerId] only after
+     * checking [AiGatewayAPI.capabilities] for [AiGatewayAPI.CAPABILITY_PROVIDER_OVERRIDE].
      * Pair it with [EXTRAS_KEY_MODEL_OVERRIDE] to select a model on that provider.
-     * Such a gateway must reject an unavailable explicit provider rather than fall back
-     * to the active one, and substitute the selected model into model-dependent URLs.
-     * It still needs a resolvable connection from [LlmProvider.configuredProviders] or
-     * a matching [LlmProvider.activeConfig].
+     * A gateway advertising this capability must reject an unavailable explicit provider
+     * rather than fall back to the active one, and substitute the selected model into
+     * model-dependent URLs. It still needs a resolvable connection from
+     * [LlmProvider.configuredProviders] or a matching [LlmProvider.activeConfig].
      *
-     * There is currently no standard [AiGatewayAPI.capabilities] entry for this override.
-     * Verify support against the installed gateway's documented version before using it;
-     * the API jar version alone is insufficient. An older gateway may ignore `"providerId"`
-     * and send to the active provider, possibly with the other provider's model id.
-     * Do not use this hint when correct provider routing cannot be established.
+     * Older gateways do not advertise this capability, even if some support the key.
+     * Do not send a provider override without it: ignoring the key can send prompt content
+     * to an unintended provider, possibly with the other provider's model id. The API jar
+     * alone does not enable this feature; the gateway must implement and advertise it.
      *
      * Unknown keys are **ignored**, never rejected, so a hint added later degrades on an
      * older gateway instead of failing. Do not put credentials here.
@@ -310,6 +318,13 @@ data class AiRequest(
     companion object {
         /** [extras] key carrying a per-request model id (see [modelOverride]). */
         const val EXTRAS_KEY_MODEL_OVERRIDE = "modelOverride"
+
+        /**
+         * [extras] key carrying an explicit [LlmConfig.providerId]. Requires
+         * [AiGatewayAPI.CAPABILITY_PROVIDER_OVERRIDE]; see [extras] for routing guarantees.
+         * Like [EXTRAS_KEY_MODEL_OVERRIDE], this const inlines without a runtime Fieldref.
+         */
+        const val EXTRAS_KEY_PROVIDER_ID = "providerId"
     }
 }
 

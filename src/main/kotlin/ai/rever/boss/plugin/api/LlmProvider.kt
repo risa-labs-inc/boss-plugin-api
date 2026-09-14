@@ -2,7 +2,7 @@ package ai.rever.boss.plugin.api
 
 /**
  * Read-only access to the AI provider configuration the user set up in
- * Settings → AI Providers (also available from Secret Manager → AI). Plugins reuse
+ * Settings → AI Providers (or the owning plugin's UI, such as Secret Manager → AI). Plugins reuse
  * provider connections and credentials while owning their own model selection;
  * [activeConfig] supplies a ready-to-use generation default for consumers that need one.
  *
@@ -23,6 +23,9 @@ interface LlmProvider {
      * Returns null when no active provider, required credential or usable default model
      * can be resolved. A null value does not imply [configuredProviders] is empty:
      * consumers with their own model picker can still use a configured connection.
+     * Consumers that require a ready-to-use default should hide the unavailable affordance.
+     * Secret Manager has returned blank credentials for keyless custom endpoints from
+     * activeConfig since v1.2.6; Ollama support followed in v1.2.21. See [LlmConfig.apiKey].
      */
     fun activeConfig(): LlmConfig?
 
@@ -41,9 +44,10 @@ interface LlmProvider {
      * - **Model-in-path formats:** see [LlmConfig.baseUrl]. Return the resolved default
      *   model's endpoint, or omit the provider until a default can be resolved. Changing
      *   [LlmConfig.modelId] alone does not update that endpoint. A consumer must rebuild
-     *   the model-dependent URL for another model or use a gateway whose provider/model
-     *   override support it has verified; see [AiRequest.extras]. A gateway override
-     *   cannot make an omitted connection callable.
+     *   the model-dependent URL for another model or use a gateway advertising
+     *   [AiGatewayAPI.CAPABILITY_PROVIDER_OVERRIDE]; see [AiRequest.extras]. A model-in-path
+     *   provider without a resolved default cannot be selected through this override,
+     *   even when [availableModels] lists its catalog.
      *
      * [activeConfig] retains its usable-default-or-null contract. These connection rules
      * are implemented by Secret Manager v1.2.26; this is a verified owner version, not a
@@ -127,8 +131,8 @@ data class LlmConfig(
      * without credentials.
      * Consumers must omit credential headers rather than send an empty authorization value.
      * This does not prove that a user-supplied endpoint accepts unauthenticated requests.
-     * See [LlmProvider.configuredProviders] for owner-version compatibility; keyless
-     * readiness is also distinct from possessing a key in [AiGatewayAPI.activeModel].
+     * See [LlmProvider.activeConfig] and [LlmProvider.configuredProviders] for owner-version
+     * compatibility. Configured does not mean possessing a key; see [AiGatewayAPI.activeModel].
      */
     val apiKey: String,
     /**

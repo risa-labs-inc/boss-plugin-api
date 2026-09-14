@@ -177,7 +177,10 @@ interface AiGatewayAPI {
      * own — it is the transport and the wire formats, not the registry — so an
      * implementation relays [LlmProvider.availableModels] from whichever plugin owns
      * provider configuration; a host without that plugin, or older than this method,
-     * reports nothing rather than failing.
+     * reports nothing rather than failing. The absent-versus-empty contract is the same
+     * as [LlmProvider.availableModels]: a present provider with an empty model list means
+     * discovery completed and reported no models; an absent provider has no catalog to
+     * report. Catalog presence does not guarantee a callable provider connection.
      *
      * Default empty, the same reason [capabilities] and [activeModel] degrade rather
      * than throw: a gateway build older than this method has nothing to report, not a
@@ -200,10 +203,10 @@ interface AiGatewayAPI {
 /**
  * What to ask, with no statement of how to encode it.
  *
- * There is deliberately no provider, endpoint, credential or wire format here.
- * Those are resolved per call from the user's configured providers, so a request
- * built once stays correct when the user switches provider - and a plugin cannot
- * accidentally pin itself to one vendor.
+ * There is deliberately no endpoint, credential or wire format here. Those are
+ * resolved per call from the user's configured providers. By default a request follows
+ * the active provider; callers may opt into provider selection through [extras] only
+ * when they have verified the gateway implementation supports it.
  *
  * This type is compiled in, so a member change here (like [modelOverride]) is
  * a host-contract change: the member resolves from the host's pinned copy and
@@ -264,6 +267,20 @@ data class AiRequest(
      * `toolChoice` and a per-request model tier are all things this will want; without
      * somewhere to put them, each one costs an api release plus a host release plus a
      * rebuild of every consumer.
+     *
+     * A gateway supporting explicit provider selection reads the `"providerId"` key as
+     * the exact [LlmConfig.providerId]. This spelling is part of the extras contract.
+     * Pair it with [EXTRAS_KEY_MODEL_OVERRIDE] to select a model on that provider.
+     * Such a gateway must reject an unavailable explicit provider rather than fall back
+     * to the active one, and substitute the selected model into model-dependent URLs.
+     * It still needs a resolvable connection from [LlmProvider.configuredProviders] or
+     * a matching [LlmProvider.activeConfig].
+     *
+     * There is currently no standard [AiGatewayAPI.capabilities] entry for this override.
+     * Verify support against the installed gateway's documented version before using it;
+     * the API jar version alone is insufficient. An older gateway may ignore `"providerId"`
+     * and send to the active provider, possibly with the other provider's model id.
+     * Do not use this hint when correct provider routing cannot be established.
      *
      * Unknown keys are **ignored**, never rejected, so a hint added later degrades on an
      * older gateway instead of failing. Do not put credentials here.

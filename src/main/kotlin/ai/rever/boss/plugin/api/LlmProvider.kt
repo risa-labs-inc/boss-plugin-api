@@ -2,7 +2,7 @@ package ai.rever.boss.plugin.api
 
 /**
  * Read-only access to the AI provider configuration the user set up in
- * Secret Manager → AI (also available from Settings → AI Providers). Plugins reuse
+ * Settings → AI Providers (also available from Secret Manager → AI). Plugins reuse
  * provider connections and credentials while owning their own model selection;
  * [activeConfig] supplies a ready-to-use generation default for consumers that need one.
  *
@@ -29,20 +29,26 @@ interface LlmProvider {
     /**
      * Configured provider connections in display order, including keyless local services.
      * Useful for a consumer-owned provider/model picker, not a list of ready-made requests.
-     * Every required credential must already be resolved; omit providers whose required
-     * credential is missing. A blank [LlmConfig.apiKey] means no credential is required,
-     * not that credential resolution is pending.
-     * A connection may have a blank [LlmConfig.modelId] when its format sends model selection
-     * separately from the endpoint; the consumer must supply a model before calling it.
-     * This returns one connection per provider, not one per model. Formats that put the
-     * model in the endpoint path (see [LlmConfig.baseUrl]) return the resolved default
-     * model's endpoint, or omit that provider until a default can be resolved. To choose
-     * another model on such a connection, route through an [AiGatewayAPI] implementation
-     * supporting provider/model overrides: set `AiRequest.extras["providerId"]` and
-     * [AiRequest.EXTRAS_KEY_MODEL_OVERRIDE]. The gateway owns model-path substitution;
-     * changing [LlmConfig.modelId] alone does not update its endpoint. This cannot make an
-     * omitted connection callable: a model-dependent provider still needs a resolved
-     * default connection first. [activeConfig] retains its usable-default-or-null contract.
+     *
+     * - **Credentials:** every required credential must already be resolved; omit providers
+     *   whose required credential is missing. A blank [LlmConfig.apiKey] means the connection
+     *   is configured for use without credentials, not that resolution is pending. This
+     *   does not verify that a user-supplied endpoint actually accepts unauthenticated calls.
+     * - **Models:** one connection per provider, not one per model. A nonblank
+     *   [LlmConfig.modelId] is the resolved default, suitable for preselection in a picker.
+     *   It may be blank only for a model-independent endpoint; the consumer must then
+     *   supply a model before calling it.
+     * - **Model-in-path formats:** see [LlmConfig.baseUrl]. Return the resolved default
+     *   model's endpoint, or omit the provider until a default can be resolved. Changing
+     *   [LlmConfig.modelId] alone does not update that endpoint. A consumer must rebuild
+     *   the model-dependent URL for another model or use a gateway whose provider/model
+     *   override support it has verified; see [AiRequest.extras]. A gateway override
+     *   cannot make an omitted connection callable.
+     *
+     * [activeConfig] retains its usable-default-or-null contract. These connection rules
+     * are implemented by Secret Manager v1.2.26; this is a verified owner version, not a
+     * claim that every rule first appeared there. Older owners may omit keyless or
+     * model-less connections. The API jar version alone does not enable owner behavior.
      */
     fun configuredProviders(): List<LlmConfig> = emptyList()
 
@@ -117,8 +123,12 @@ data class LlmConfig(
     val apiFormat: LlmApiFormat,
     /**
      * Resolved provider credential. In [LlmProvider.activeConfig] and
-     * [LlmProvider.configuredProviders], blank means the service requires no credential.
+     * [LlmProvider.configuredProviders], blank means the connection is configured for use
+     * without credentials.
      * Consumers must omit credential headers rather than send an empty authorization value.
+     * This does not prove that a user-supplied endpoint accepts unauthenticated requests.
+     * See [LlmProvider.configuredProviders] for owner-version compatibility; keyless
+     * readiness is also distinct from possessing a key in [AiGatewayAPI.activeModel].
      */
     val apiKey: String,
     /**
@@ -140,7 +150,8 @@ data class LlmConfig(
      */
     val baseUrl: String,
     /**
-     * Default model id. Nonblank in [LlmProvider.activeConfig]; may be blank in
+     * Resolved default model id, suitable for picker preselection. Nonblank in
+     * [LlmProvider.activeConfig]; may be blank in
      * [LlmProvider.configuredProviders] for a model-independent endpoint, in which case
      * the consumer must select a model.
      */

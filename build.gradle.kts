@@ -451,7 +451,9 @@ group = "ai.rever.boss.plugin.bundled"
 // 1.0.88, 404ing the fetchApiPluginJar pin in the host PR this exists to
 // unblock (BossConsole#289). Precedent: the 1.0.85 and 1.0.86 PRs edited this
 // comment block and left the line at 1.0.84 / 1.0.85.
-// 1.0.88: adds ActiveTabsProvider.moveTabToWorkspace + liveWorkspaceIds + supportsTabTransfer, and
+// 1.0.90: adds nine defaulted members to ActiveTabsProvider - supportsTabTransfer,
+// liveWorkspaceIds, moveTabToWorkspace, moveTabToPane, activePanelId, selectedTabId,
+// allWindowTabs, refreshAllWindowTabs and workspaceAccents - plus BossColors.accentText, and
 // marks ActiveTabsProvider @HostImplemented.
 //
 // A BOSS window RUNS several workspaces at once and shows one: switching preserves the whole split
@@ -514,6 +516,35 @@ group = "ai.rever.boss.plugin.bundled"
 // unique only within one workspace's tree - every workspace's first pane is called `main` - so a
 // lookup by panel id alone answers from whichever running workspace is searched first and marks the
 // wrong row.
+//
+// Also adds ActiveTabsProvider.workspaceAccents - what colour each Space is wearing, by workspace
+// id. A BOSS theme belongs to a Space now: entering one re-skins the whole app, and a Space naming
+// no theme wears the Settings choice. A plugin could not see any of that. BossThemes and
+// BossThemeController are host-internal and absent from this jar, and neither LayoutWorkspace nor
+// ActiveTabData carries anything chromatic - so a panel listing every Space could tell you where a
+// tab was and not what that place looks like.
+//
+// A MAP rather than a lookup function, for three reasons. It has to follow a live theme change,
+// and a plain function is read once - making it @Composable would fix that and bind the answer to
+// a composition, where a consumer also needs the colour in ordinary code (a floor's receding faces
+// are shaded off its front in plain arithmetic). A StateFlow is what every other live value here
+// already is, so it is collected and proxied like activeTabs and allWindowTabs. And a caller wants
+// every Space at once - a panel drawing a header per running Space asks N times a frame for a
+// value that changes about never.
+//
+// Keyed over every Space the host knows (saved, running, and the layouts BOSS ships), not the
+// current one alone, because the callers that need this are listing Spaces they are not in. An
+// absent id means no colour and should be drawn untinted; substituting BossColors.accent would
+// mark an unknown Space as the one on screen. The default is ONE shared empty flow, not a fresh
+// instance per read, so a collectAsState over an unimplementing host settles instead of
+// re-subscribing every recomposition. Same minBossVersion gate as the rest of this release.
+//
+// The number moved once already: this block said 1.0.88 while the branch sat unmerged, and #50
+// (the terminal-tab surface) took 1.0.88 first, then it said 1.0.89 and an unrelated
+// release took that on 2026-09-10. Verified against the published jar, not assumed: v1.0.89
+// carries none of these members. Release CI bump-pushes before building, so main's
+// version below is the version already released and this merge cuts the next one. Anything that
+// merges ahead of this moves it again, along with the BossConsole and topofmind pins.
 version = "1.0.89"
 
 java {

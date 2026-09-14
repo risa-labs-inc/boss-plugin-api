@@ -1,8 +1,10 @@
 package ai.rever.boss.plugin.api
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.serialization.Serializable
 
@@ -285,7 +287,51 @@ interface ActiveTabsProvider {
      */
     suspend fun refreshAllWindowTabs() {
     }
+
+    /**
+     * What colour each Space is wearing, by workspace id.
+     *
+     * A BOSS theme belongs to a Space: entering one re-skins the whole app, and a Space that names
+     * no theme of its own wears the one chosen in Settings. This is that decision, published - the
+     * `signal` colour of the theme each Space resolves to, which is the same value
+     * `BossColors.accent` reports for whichever Space is on screen.
+     *
+     * **A map, not a lookup function.** Three reasons, and the first is the requirement:
+     *
+     * - **It has to follow a live theme change.** A plain function is read once and nothing
+     *   re-reads it, so a Space re-themed while a panel is up would keep its old tint until
+     *   something else recomposed. Making the function `@Composable` would fix that and bind the
+     *   answer to a composition, where a caller also needs it in ordinary code - a floor's
+     *   receding faces are shaded off its front in plain arithmetic, and a row list is built
+     *   before anything is drawn.
+     * - **A [StateFlow] is what every other live value here already is** ([activeTabs],
+     *   [allWindowTabs]), so a consumer collects it the way it collects those and an IPC proxy
+     *   forwards it the way it forwards those.
+     * - **A caller wants every Space at once, not one.** A panel drawing a header per running
+     *   Space and a stack drawing all of them asks N times a frame for a value that changes about
+     *   never; one collection answers the lot.
+     *
+     * **Keyed over every Space the host knows** - saved, running, and the layouts BOSS ships -
+     * not only the current one, because the callers that need this are listing Spaces they are not
+     * in. An id that is absent has no colour to offer and should be drawn untinted; never
+     * substitute `BossColors.accent`, which is the colour of the Space you are LOOKING at and
+     * would mark an unknown Space as the current one.
+     *
+     * The default is a permanently empty flow rather than a fresh one per read: a caller collects
+     * this in a composition, and handing back a new instance each time would re-subscribe on every
+     * recomposition. Empty means "this host does not theme Spaces", which is a tint nobody draws,
+     * not a colour nobody can see.
+     */
+    val workspaceAccents: StateFlow<Map<String, Color>> get() = NO_WORKSPACE_ACCENTS
 }
+
+/**
+ * The default [ActiveTabsProvider.workspaceAccents]: one shared, permanently empty flow.
+ *
+ * A top-level `val` rather than an expression in the getter, so every host that does not
+ * implement the member hands back the same instance and a `collectAsState` over it settles.
+ */
+private val NO_WORKSPACE_ACCENTS: StateFlow<Map<String, Color>> = MutableStateFlow(emptyMap())
 
 /**
  * Data class representing an active tab.

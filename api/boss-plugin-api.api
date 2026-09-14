@@ -59,6 +59,7 @@ public abstract interface class ai/rever/boss/plugin/api/ActiveTabsProvider {
 	public fun getLiveWorkspaceIds ()Ljava/util/Set;
 	public fun getSupportsTabTransfer ()Z
 	public abstract fun getTabUrl (Ljava/lang/String;)Ljava/lang/String;
+	public fun getWorkspaceAccents ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun loadFavicon (Ljava/lang/String;Landroidx/compose/runtime/Composer;I)Landroidx/compose/ui/graphics/painter/Painter;
 	public fun moveTabToPane (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun moveTabToPane$default (Lai/rever/boss/plugin/api/ActiveTabsProvider;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
@@ -75,6 +76,7 @@ public final class ai/rever/boss/plugin/api/ActiveTabsProvider$DefaultImpls {
 	public static fun getAllWindowTabs (Lai/rever/boss/plugin/api/ActiveTabsProvider;)Lkotlinx/coroutines/flow/StateFlow;
 	public static fun getLiveWorkspaceIds (Lai/rever/boss/plugin/api/ActiveTabsProvider;)Ljava/util/Set;
 	public static fun getSupportsTabTransfer (Lai/rever/boss/plugin/api/ActiveTabsProvider;)Z
+	public static fun getWorkspaceAccents (Lai/rever/boss/plugin/api/ActiveTabsProvider;)Lkotlinx/coroutines/flow/StateFlow;
 	public static fun moveTabToPane (Lai/rever/boss/plugin/api/ActiveTabsProvider;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun moveTabToPane$default (Lai/rever/boss/plugin/api/ActiveTabsProvider;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static fun moveTabToWorkspace (Lai/rever/boss/plugin/api/ActiveTabsProvider;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;

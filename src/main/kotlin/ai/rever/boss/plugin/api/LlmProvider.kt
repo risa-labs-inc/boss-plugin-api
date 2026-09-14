@@ -35,8 +35,9 @@ interface LlmProvider {
     /**
      * Configured provider connections in display order, including keyless local services.
      * These credential-bearing connections are for consumers making their own HTTP calls,
-     * not a list of ready-made requests. Build gateway-backed pickers from credential-free
-     * [AiGatewayAPI.availableModels] and use [AiRequest.extras] for capability-gated selection.
+     * not a list of ready-made requests. Build pickers from credential-free [availableModels]
+     * or [AiGatewayAPI.availableModels], depending on which API is available. Gateway-backed
+     * consumers use [AiRequest.extras] for capability-gated selection.
      *
      * - **Credentials:** every required credential must already be resolved; omit providers
      *   whose required credential is missing. A blank [LlmConfig.apiKey] means the connection
@@ -145,7 +146,8 @@ data class LlmConfig(
      * Resolved provider credential. In [LlmProvider.activeConfig] and
      * [LlmProvider.configuredProviders], blank means the connection is configured for use
      * without credentials.
-     * Consumers must omit credential headers rather than send an empty authorization value.
+     * Consumers must omit the credential entirely, whether carried in a header or query
+     * parameter, rather than sending an empty authorization value or an empty key parameter.
      * This corrects the earlier, overly strict "never blank" guarantee: existing consumers
      * should audit unconditional authentication headers and key-based readiness checks.
      * This does not prove that a user-supplied endpoint accepts unauthenticated requests.

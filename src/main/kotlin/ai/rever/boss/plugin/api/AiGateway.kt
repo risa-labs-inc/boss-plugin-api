@@ -206,8 +206,11 @@ interface AiGatewayAPI {
          * provider and rejects unavailable selections. With [AiRequest.EXTRAS_KEY_MODEL_OVERRIDE],
          * honor the requested model, including any model-path substitution, or reject an
          * unsupported provider/model combination; never silently use the default instead.
-         * Advertise only when all request paths honor this routing-or-rejection contract.
-         * Absence means callers must not send provider overrides.
+         * This is an instance-wide routing-or-rejection guarantee, not a capability of the
+         * active provider. Once advertised, this guarantee holds across active-provider
+         * changes on that instance: honor the explicit selection or reject it, never route
+         * to the newly active provider instead. Advertise only when all request paths honor
+         * this contract. Absence means callers must not send provider overrides.
          *
          * This const inlines without a runtime Fieldref, so referencing it needs no new
          * host-version floor. Calling [capabilities] uses its existing method contract;
@@ -299,8 +302,13 @@ data class AiRequest(
      * provider/model combination through the same channel; never silently use the default.
      * Use [IllegalArgumentException] for unknown, unavailable or ambiguous provider IDs,
      * and [UnsupportedOperationException] for unsupported provider/model combinations.
-     * These routing failures require correcting the selection; do not retry them as
-     * transient transport failures or parse their messages to classify them.
+     * These types describe routing rejections, not an exclusive error taxonomy. In
+     * particular, [UnsupportedOperationException] can also mean unsupported tools or a
+     * streaming method, even on a gateway advertising provider overrides. Check the other
+     * capabilities required by the request; neither the exception type nor its message
+     * alone identifies a bad provider/model. Do not remove picker choices or recommend a
+     * different provider solely from that type. Show an unsupported-request failure when
+     * the cause is ambiguous; retry only when a transient cause has been established.
      * It still needs a resolvable connection from
      * [LlmProvider.configuredProviders] or a matching [LlmProvider.activeConfig].
      *

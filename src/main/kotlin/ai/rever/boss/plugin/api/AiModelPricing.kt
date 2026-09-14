@@ -7,13 +7,18 @@ package ai.rever.boss.plugin.api
  * the two counts [AiUsage] can report. A route whose current catalog rate card contains a non-zero
  * request, image, cache, reasoning, tool or other charge must not publish this type until that
  * charge is represented; returning null is more accurate than an incomplete dollar estimate.
+ * Conservative nulls are expected: the first producer supports only provider/model entries whose
+ * catalog exposes both token rates and no unrepresented non-zero charge.
  *
  * [fetchedAtEpochMs] and [validUntilEpochMs] bound the catalog observation this came from. A
  * provider must stop returning the card after it expires. A caller may keep a card obtained before
  * expiry for the turn already in progress, so every model call in that turn uses one rate snapshot.
  *
  * This is a new data class whose constructor is frozen from its first release. Future rate
- * categories belong in [extras], paired with a new usage/costing API that can interpret them.
+ * categories belong in [extras], paired with a new usage/costing API that can interpret them. The
+ * CLI-session equivalent is [AiCliPricing]; this separate native-route card carries provider,
+ * model, provenance and freshness, and spells out USD in its rate names because it directly feeds
+ * dollar budgets.
  */
 data class AiModelPricing(
     /** Stable provider id, matching [LlmConfig.providerId] exactly and case-sensitively. */
@@ -66,7 +71,7 @@ data class AiModelPricing(
  *
  * Resolve this companion lazily from the configured [PluginContext.llmProvider] with
  * `as? LlmModelPricingAPI`; plugin registration order is not guaranteed. A consumer naming this
- * type must declare the API release that introduced it as its `minApiVersion`.
+ * type must declare `minApiVersion: 1.0.90`.
  */
 interface LlmModelPricingAPI {
     fun modelPricing(
@@ -88,6 +93,11 @@ interface LlmModelPricingAPI {
  * [AiReply.modelId] or [AiTurn.modelId], the caller must compare that terminal model id with
  * [AiModelPricing.modelId] exactly. A mismatch means the completed call is unpriced; provider-side
  * fallback must not be charged at the requested model's rate.
+ *
+ * Resolve [AiGatewayAPI] lazily through [PluginContext.getPluginAPI], then cast it with
+ * `as? AiGatewayPricingAPI`; plugin registration order is not guaranteed. A consumer naming this
+ * type must declare `minApiVersion: 1.0.90`. Lookups are in-memory, synchronous and non-throwing:
+ * they must not perform network work, and invalid route/catalog data must produce null.
  */
 interface AiGatewayPricingAPI {
     fun modelPricing(request: AiRequest): AiModelPricing?

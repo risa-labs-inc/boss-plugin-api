@@ -3,6 +3,7 @@ package ai.rever.boss.plugin.api
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertIs
 import kotlin.test.assertNull
 
 class AiModelPricingTest {
@@ -42,8 +43,17 @@ class AiModelPricingTest {
             override fun modelPricing(request: AiRequest): AiModelPricing? = null
         }
 
-        assertNull((owner as? LlmModelPricingAPI)?.modelPricing("OPENROUTER", "openai/gpt-5"))
+        val pricingOwner = assertIs<LlmModelPricingAPI>(owner)
+        assertNull(pricingOwner.modelPricing("OPENROUTER", "openai/gpt-5"))
         assertNull(gateway.modelPricing(AiRequest()))
+    }
+
+    @Test
+    fun `copy revalidates rates and extras default empty`() {
+        val pricing = pricing()
+
+        assertEquals(emptyMap(), pricing.extras)
+        assertFailsWith<IllegalArgumentException> { pricing.copy(inputUsdPer1M = -1.0) }
     }
 
     private fun pricing(

@@ -592,6 +592,17 @@ group = "ai.rever.boss.plugin.bundled"
 // carries none of these members. Release CI bump-pushes before building, so main's
 // version below is the version already released and this merge cuts the next one. Anything that
 // merges ahead of this moves it again, along with the BossConsole and topofmind pins.
+// Unreleased (assigned by the release workflow): adds the optional LlmModelPricingAPI and
+// AiGatewayPricingAPI companions plus AiModelPricing. They expose a provider-published
+// USD-per-million-token rate card without changing AiAvailableModel, AiUsage, AiTurn, AiReply,
+// AiBudget or either existing gateway interface. Those released data-class constructors and
+// host-implemented members cannot move. Null means unavailable, never free; explicit zero survives.
+// The fetched/valid timestamps keep a cached catalog entry from silently becoming a current price,
+// and extras is the constructor's forward-compatibility hatch. The gateway-facing lookup takes
+// AiRequest so its implementation can resolve the actual route, including explicit overrides and
+// CLI selection, rather than asking a consumer to duplicate routing policy. New types only:
+// ApiClassLoader/minApiVersion, no host release.
+//
 version = "1.0.91"
 
 java {

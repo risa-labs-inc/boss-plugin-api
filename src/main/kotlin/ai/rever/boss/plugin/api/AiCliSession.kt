@@ -571,7 +571,9 @@ data class AiCliUsage(
 }
 
 /**
- * Per-million-token prices used to cost a turn.
+ * Per-million-token prices used to cost a CLI turn.
+ * The native-route equivalent is [AiModelPricing], with separate provenance, freshness and
+ * strict validation; this released constructor and its validation policy remain unchanged.
  *
  * An implementation is expected to clamp a negative rate to zero rather than subtracting
  * from a running total. That is an obligation on the implementation, not a promise this

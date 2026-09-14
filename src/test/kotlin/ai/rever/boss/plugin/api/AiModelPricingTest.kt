@@ -5,13 +5,14 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
+import kotlin.test.assertFalse
 
 class AiModelPricingTest {
     @Test
     fun `explicit zero rates remain a priced model`() {
         val pricing = pricing(input = 0.0, output = 0.0, fetchedAt = 0, validUntil = 0)
 
-        assertEquals("provider-catalog", AiModelPricing.SOURCE_PROVIDER_CATALOG)
         assertEquals(0.0, pricing.inputUsdPer1M)
         assertEquals(0.0, pricing.outputUsdPer1M)
         assertEquals(pricing.fetchedAtEpochMs, pricing.validUntilEpochMs)
@@ -19,7 +20,7 @@ class AiModelPricingTest {
 
     @Test
     fun `invalid rates and validity windows are rejected`() {
-        for (rate in listOf(Double.NaN, Double.POSITIVE_INFINITY, -0.01)) {
+        for (rate in listOf(Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, -0.0, -0.01)) {
             assertFailsWith<IllegalArgumentException> { pricing(input = rate) }
             assertFailsWith<IllegalArgumentException> { pricing(output = rate) }
         }
@@ -35,18 +36,17 @@ class AiModelPricingTest {
     }
 
     @Test
-    fun `provider and gateway pricing defaults are unavailable`() {
-        val owner: LlmProvider = object : LlmProvider, LlmModelPricingAPI {
+    fun `both pricing companions can be discovered on one provider`() {
+        val owner: LlmProvider = object : LlmProvider, LlmModelPricingAPI, AiGatewayPricingAPI {
             override fun activeConfig(): LlmConfig? = null
             override fun modelPricing(providerId: String, modelId: String): AiModelPricing? = null
-        }
-        val gateway = object : AiGatewayPricingAPI {
+
             override fun modelPricing(request: AiRequest): AiModelPricing? = null
         }
 
         val pricingOwner = assertIs<LlmModelPricingAPI>(owner)
         assertNull(pricingOwner.modelPricing("OPENROUTER", "openai/gpt-5"))
-        assertNull(gateway.modelPricing(AiRequest()))
+        assertNull(assertIs<AiGatewayPricingAPI>(owner).modelPricing(AiRequest()))
     }
 
     @Test
@@ -55,6 +55,47 @@ class AiModelPricingTest {
 
         assertEquals(emptyMap(), pricing.extras)
         assertFailsWith<IllegalArgumentException> { pricing.copy(inputUsdPer1M = -1.0) }
+    }
+
+    @Test
+    fun `catalog source literal is stable`() {
+        assertEquals("provider-catalog", AiModelPricing.SOURCE_PROVIDER_CATALOG)
+    }
+
+    @Test
+    fun `equal cards have equal hashes and expiry is inclusive`() {
+        val card = pricing()
+        assertEquals(card, card.copy())
+        assertEquals(card.hashCode(), card.copy().hashCode())
+        assertFalse(card.isValidAt(9))
+        assertTrue(card.isValidAt(10))
+        assertTrue(card.isValidAt(20))
+        assertFalse(card.isValidAt(21))
+        assertTrue(pricing(fetchedAt = 0, validUntil = 0).isValidAt(0))
+        assertTrue(pricing(validUntil = Long.MAX_VALUE).isValidAt(Long.MAX_VALUE))
+    }
+
+    @Test
+    fun `catalog factory returns null for every invalid field and preserves valid data`() {
+        fun row(provider: String = "OPENROUTER", model: String = "openai/gpt-5",
+                input: Double = 1.0, output: Double = 2.0, source: String = "provider-catalog",
+                fetched: Long = 10, until: Long = 20) =
+            AiModelPricing.orNull(provider, model, input, output, source, fetched, until)
+        assertEquals(pricing(), row())
+        assertNull(row(provider = " "))
+        assertNull(row(model = ""))
+        assertNull(row(source = "\t"))
+        assertNull(row(fetched = -1))
+        assertNull(row(until = 9))
+        for (rate in listOf(Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, -0.0, -1.0)) {
+            assertNull(row(input = rate))
+            assertNull(row(output = rate))
+        }
+        assertEquals(pricing(input = 0.0, output = 0.0, fetchedAt = 0, validUntil = 0),
+            row(input = 0.0, output = 0.0, fetched = 0, until = 0))
+        val extras = mapOf("future-metadata" to "opaque")
+        assertEquals(extras, AiModelPricing.orNull("p", "m", 1.0, 2.0,
+            "provider-catalog", 0, 1, extras)?.extras)
     }
 
     private fun pricing(

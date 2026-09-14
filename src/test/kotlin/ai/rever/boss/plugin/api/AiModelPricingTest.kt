@@ -98,6 +98,17 @@ class AiModelPricingTest {
             "provider-catalog", 0, 1, extras)?.extras)
     }
 
+    @Test
+    fun `catalog factory snapshots producer metadata without interpreting future rates`() {
+        val metadata = mutableMapOf("cached-input-usd-per-1m" to "future-format")
+        val card = AiModelPricing.orNull("p", "m", 1.0, 2.0, "provider-catalog", 0, 1, metadata)!!
+        val originalHash = card.hashCode()
+        metadata["cached-input-usd-per-1m"] = "changed"
+        metadata["new-key"] = "new-value"
+        assertEquals(mapOf("cached-input-usd-per-1m" to "future-format"), card.extras)
+        assertEquals(originalHash, card.hashCode())
+    }
+
     private fun pricing(
         input: Double = 1.0,
         output: Double = 2.0,

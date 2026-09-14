@@ -5,8 +5,8 @@ package ai.rever.boss.plugin.api
  *
  * Rates are US dollars per one million input or output tokens. This deliberately models only
  * the two counts [AiUsage] can report. A route whose current catalog rate card contains a non-zero
- * request, image, cache, reasoning, tool or other charge must not publish this type until that
- * charge is represented; returning null is more accurate than an incomplete dollar estimate.
+ * request, image, cache, reasoning, tool or other charge must not return a card through
+ * [LlmModelPricingAPI] or [AiGatewayPricingAPI] until that charge is represented; returning null is more accurate than an incomplete dollar estimate.
  * Conservative nulls are expected: the first producer supports only provider/model entries whose
  * catalog exposes both token rates and no unrepresented non-zero charge.
  *
@@ -24,7 +24,7 @@ package ai.rever.boss.plugin.api
  * [orNull] to convert invalid rows to null.
  */
 data class AiModelPricing(
-    /** Stable provider id, matching [LlmConfig.providerId] exactly and case-sensitively. */
+    /** Stable provider id: key catalogs on [LlmConfig.providerId] verbatim, case-sensitively. */
     val providerId: String,
     /** Exact case-sensitive model id the rate applies to; aliases are not inferred. */
     val modelId: String,
@@ -34,7 +34,11 @@ data class AiModelPricing(
     val outputUsdPer1M: Double,
     /** Open provenance label, e.g. `provider-catalog`; use lowercase kebab-case, never a URL or credentials. */
     val source: String,
-    /** When the provider catalog containing these rates was fetched, Unix epoch milliseconds. */
+    /**
+     * When the catalog was fetched on the local wall clock, Unix epoch milliseconds.
+     * Inclusive lower bound for [isValidAt]; a clock rollback before this observation makes the
+     * card unavailable until the clock catches up. Do not substitute a remote server timestamp.
+     */
     val fetchedAtEpochMs: Long,
     /** Inclusive last instant at which a new turn may adopt this card, Unix epoch milliseconds. */
     val validUntilEpochMs: Long,
@@ -44,7 +48,13 @@ data class AiModelPricing(
      * `cache-write-usd-per-1m`, encoded as finite, non-negative decimal strings. Their presence
      * does not make a card complete for this API: non-zero cache charges still require null.
      * Only a future paired usage/costing API may interpret these keys; consumers of that API
-     * must ignore keys it does not define. Never put credentials in this map.
+     * must ignore keys it does not define. Producers may prepare such cards for that future
+     * interface, but must not return non-zero extra-charge cards through either current lookup.
+     * These reserved values are opaque here and are not validated; the future API must validate
+     * their format before costing. Never put credentials in this map.
+     *
+     * Direct constructors and `copy` retain this map: callers must supply immutable metadata and
+     * never mutate its backing map. [orNull] copies producer-owned metadata into a snapshot.
      */
     val extras: Map<String, String> = emptyMap(),
 ) {
@@ -86,7 +96,7 @@ data class AiModelPricing(
             extras: Map<String, String> = emptyMap(),
         ): AiModelPricing? = try {
             AiModelPricing(providerId, modelId, inputUsdPer1M, outputUsdPer1M, source,
-                fetchedAtEpochMs, validUntilEpochMs, extras)
+                fetchedAtEpochMs, validUntilEpochMs, extras.toMap())
         } catch (_: IllegalArgumentException) {
             null
         }

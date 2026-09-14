@@ -449,6 +449,29 @@ interface PluginContext {
         get() = null
 
     /**
+     * Optional provider for the people the current user shares an organisation
+     * with.
+     *
+     * Returns null when organisation data is not available, which is the normal
+     * state on a host with no organisation plugin loaded, so a recipient picker
+     * must degrade to "no teammates to show" rather than treating null as an
+     * error.
+     *
+     * Prefer this over [userManagementProvider] for anything a regular user
+     * does: that one is the admin directory and carries roles. Prefer it over
+     * [supabaseDataProvider] so each sharing feature stops hand-rolling the same
+     * co-membership join.
+     *
+     * This member requires a BossConsole release containing this version of
+     * [PluginContext], which is [HostImplemented]. Consumers must gate direct
+     * access with `minBossVersion`; installing a newer API jar alone cannot add
+     * the getter to an older host's parent-first copy. The nullable default
+     * applies only once the getter exists on the host.
+     */
+    val organisationMembersProvider: OrganisationMembersProvider?
+        get() = null
+
+    /**
      * Optional navigation resolver provider for PSI-based code navigation.
      *
      * Returns null if navigation services are not available.
@@ -553,13 +576,15 @@ interface PluginContext {
         get() = null
 
     /**
-     * Optional access to the configured AI providers (Settings → AI Providers) —
-     * API keys, endpoints, and the selected model.
+     * Optional access to configured provider connections (Settings → AI Providers, or the
+     * owning plugin's UI such as Secret Manager → AI), credentials and generation defaults.
      *
      * Returns null when LLM access isn't available. Plugins that offer AI
      * features (e.g. the Jupyter notebook) use this to reuse the configured keys
-     * instead of managing their own; they must hide AI affordances when it is
-     * null or [LlmProvider.activeConfig] returns null.
+     * instead of managing their own; hide unavailable AI affordances when this provider
+     * is null. A null [LlmProvider.activeConfig] means no ready-to-use default, not that
+     * every connection is unavailable: consumers owning a model picker should check
+     * [LlmProvider.configuredProviders] and supply their own selection.
      *
      * Host-implemented, but the host only relays: the value is the
      * [LlmProviderSettingsAPI] registered by the plugin that owns provider

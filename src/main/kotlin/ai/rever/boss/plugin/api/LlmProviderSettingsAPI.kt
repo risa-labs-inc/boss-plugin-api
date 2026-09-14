@@ -10,7 +10,8 @@ import androidx.compose.ui.Modifier
  * Same pattern as [EditorTabPluginAPI]: the owning plugin registers this via
  * registerPluginAPI(), and consumers access it via
  * getPluginAPI(LlmProviderSettingsAPI::class.java). The BossConsole host consumes
- * it through LlmProviderAPIAccess to render Settings → AI Providers and to back
+ * it through LlmProviderAPIAccess to render Settings → AI Providers (also reachable
+ * in the owning plugin's Secret Manager → AI section) and to back
  * [PluginContext.llmProvider].
  *
  * It extends [LlmProvider] on purpose: the plugin is already the authority on

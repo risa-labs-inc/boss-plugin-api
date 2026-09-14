@@ -466,6 +466,7 @@ public final class ai/rever/boss/plugin/api/AiCliUsage {
 }
 
 public abstract interface class ai/rever/boss/plugin/api/AiGatewayAPI {
+	public static final field CAPABILITY_PROVIDER_OVERRIDE Ljava/lang/String;
 	public static final field CAPABILITY_STREAMING Ljava/lang/String;
 	public static final field CAPABILITY_TOOLS Ljava/lang/String;
 	public static final field CAPABILITY_VISION Ljava/lang/String;
@@ -482,6 +483,7 @@ public abstract interface class ai/rever/boss/plugin/api/AiGatewayAPI {
 }
 
 public final class ai/rever/boss/plugin/api/AiGatewayAPI$Companion {
+	public static final field CAPABILITY_PROVIDER_OVERRIDE Ljava/lang/String;
 	public static final field CAPABILITY_STREAMING Ljava/lang/String;
 	public static final field CAPABILITY_TOOLS Ljava/lang/String;
 	public static final field CAPABILITY_VISION Ljava/lang/String;
@@ -607,6 +609,7 @@ public final class ai/rever/boss/plugin/api/AiRequest {
 	public static final field $stable I
 	public static final field Companion Lai/rever/boss/plugin/api/AiRequest$Companion;
 	public static final field EXTRAS_KEY_MODEL_OVERRIDE Ljava/lang/String;
+	public static final field EXTRAS_KEY_PROVIDER_ID Ljava/lang/String;
 	public fun <init> ()V
 	public fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/lang/Float;Ljava/lang/Integer;JLjava/util/Map;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/lang/Float;Ljava/lang/Integer;JLjava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -1399,6 +1402,26 @@ public final class ai/rever/boss/plugin/api/CoBrowseRtcPeer$DefaultImpls {
 
 public abstract interface class ai/rever/boss/plugin/api/CoBrowseRtcProvider {
 	public abstract fun createPeer (Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Lai/rever/boss/plugin/api/CoBrowseRtcPeer;
+}
+
+public final class ai/rever/boss/plugin/api/CoMember {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)Lai/rever/boss/plugin/api/CoMember;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/CoMember;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ILjava/lang/Object;)Lai/rever/boss/plugin/api/CoMember;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAvatarUrl ()Ljava/lang/String;
+	public final fun getDisplayName ()Ljava/lang/String;
+	public final fun getEmail ()Ljava/lang/String;
+	public final fun getOrganisationIds ()Ljava/util/List;
+	public final fun getUserId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public abstract interface class ai/rever/boss/plugin/api/ConsoleLogsAPI {
@@ -3594,6 +3617,21 @@ public final class ai/rever/boss/plugin/api/NotificationType : java/lang/Enum {
 	public static fun values ()[Lai/rever/boss/plugin/api/NotificationType;
 }
 
+public abstract interface class ai/rever/boss/plugin/api/OrganisationMembersProvider {
+	public static final field Companion Lai/rever/boss/plugin/api/OrganisationMembersProvider$Companion;
+	public static final field DEFAULT_LIMIT I
+	public abstract fun listCoMembers-0E7RQCE (Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun listCoMembers-0E7RQCE$default (Lai/rever/boss/plugin/api/OrganisationMembersProvider;Ljava/lang/String;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class ai/rever/boss/plugin/api/OrganisationMembersProvider$Companion {
+	public static final field DEFAULT_LIMIT I
+}
+
+public final class ai/rever/boss/plugin/api/OrganisationMembersProvider$DefaultImpls {
+	public static synthetic fun listCoMembers-0E7RQCE$default (Lai/rever/boss/plugin/api/OrganisationMembersProvider;Ljava/lang/String;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
 public final class ai/rever/boss/plugin/api/PaginatedSecretsData {
 	public static final field $stable I
 	public fun <init> (Ljava/util/List;Z)V
@@ -3601,6 +3639,34 @@ public final class ai/rever/boss/plugin/api/PaginatedSecretsData {
 	public final fun component2 ()Z
 	public final fun copy (Ljava/util/List;Z)Lai/rever/boss/plugin/api/PaginatedSecretsData;
 	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/PaginatedSecretsData;Ljava/util/List;ZILjava/lang/Object;)Lai/rever/boss/plugin/api/PaginatedSecretsData;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getData ()Ljava/util/List;
+	public final fun getHasMore ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/PaginatedSecretsWithAccessData {
+	public static final field $stable I
+	public fun <init> (Ljava/util/List;Z)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun component2 ()Z
+	public final fun copy (Ljava/util/List;Z)Lai/rever/boss/plugin/api/PaginatedSecretsWithAccessData;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/PaginatedSecretsWithAccessData;Ljava/util/List;ZILjava/lang/Object;)Lai/rever/boss/plugin/api/PaginatedSecretsWithAccessData;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getData ()Ljava/util/List;
+	public final fun getHasMore ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/PaginatedSecretsWithSharingAccessData {
+	public static final field $stable I
+	public fun <init> (Ljava/util/List;Z)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun component2 ()Z
+	public final fun copy (Ljava/util/List;Z)Lai/rever/boss/plugin/api/PaginatedSecretsWithSharingAccessData;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/PaginatedSecretsWithSharingAccessData;Ljava/util/List;ZILjava/lang/Object;)Lai/rever/boss/plugin/api/PaginatedSecretsWithSharingAccessData;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getData ()Ljava/util/List;
 	public final fun getHasMore ()Z
@@ -4256,6 +4322,7 @@ public abstract interface class ai/rever/boss/plugin/api/PluginContext {
 	public fun getNavigationResolverProvider ()Lai/rever/boss/plugin/api/NavigationResolverProvider;
 	public fun getNavigationTargetProvider ()Lai/rever/boss/plugin/api/NavigationTargetProvider;
 	public fun getNotificationProvider ()Lai/rever/boss/plugin/api/NotificationProvider;
+	public fun getOrganisationMembersProvider ()Lai/rever/boss/plugin/api/OrganisationMembersProvider;
 	public fun getPanelEventProvider ()Lai/rever/boss/plugin/api/PanelEventProvider;
 	public abstract fun getPanelRegistry ()Lai/rever/boss/plugin/api/PanelRegistry;
 	public fun getPerformanceDataProvider ()Lai/rever/boss/plugin/api/PerformanceDataProvider;
@@ -4329,6 +4396,7 @@ public final class ai/rever/boss/plugin/api/PluginContext$DefaultImpls {
 	public static fun getNavigationResolverProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/NavigationResolverProvider;
 	public static fun getNavigationTargetProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/NavigationTargetProvider;
 	public static fun getNotificationProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/NotificationProvider;
+	public static fun getOrganisationMembersProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/OrganisationMembersProvider;
 	public static fun getPanelEventProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/PanelEventProvider;
 	public static fun getPerformanceDataProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/PerformanceDataProvider;
 	public static fun getPluginAPI (Lai/rever/boss/plugin/api/PluginContext;Ljava/lang/Class;)Ljava/lang/Object;
@@ -5521,21 +5589,35 @@ public abstract interface class ai/rever/boss/plugin/api/SecretDataProvider {
 	public abstract fun createSecret-gIAlu-s (Lai/rever/boss/plugin/api/CreateSecretRequestData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun deleteSecret-gIAlu-s (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getSecretShares-gIAlu-s (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getSecretSharesWithTargets-gIAlu-s (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getUserSecrets-0E7RQCE (IILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun getUserSecrets-0E7RQCE$default (Lai/rever/boss/plugin/api/SecretDataProvider;IILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public fun getUserSecretsWithAccess-0E7RQCE (IILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun getUserSecretsWithAccess-0E7RQCE$default (Lai/rever/boss/plugin/api/SecretDataProvider;IILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public fun getUserSecretsWithSharingAccess-0E7RQCE (IILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun getUserSecretsWithSharingAccess-0E7RQCE$default (Lai/rever/boss/plugin/api/SecretDataProvider;IILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun getUserSecretsWithSharingInfo-0E7RQCE (IILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun getUserSecretsWithSharingInfo-0E7RQCE$default (Lai/rever/boss/plugin/api/SecretDataProvider;IILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun searchSecrets-BWLJW6A (Ljava/lang/String;IILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun searchSecrets-BWLJW6A$default (Lai/rever/boss/plugin/api/SecretDataProvider;Ljava/lang/String;IILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public fun searchSecretsWithAccess-BWLJW6A (Ljava/lang/String;IILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun searchSecretsWithAccess-BWLJW6A$default (Lai/rever/boss/plugin/api/SecretDataProvider;Ljava/lang/String;IILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun shareSecret-gIAlu-s (Lai/rever/boss/plugin/api/ShareSecretRequestData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun unshareSecret-gIAlu-s (Lai/rever/boss/plugin/api/UnshareSecretRequestData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun updateSecret-gIAlu-s (Lai/rever/boss/plugin/api/UpdateSecretRequestData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class ai/rever/boss/plugin/api/SecretDataProvider$DefaultImpls {
+	public static fun getSecretSharesWithTargets-gIAlu-s (Lai/rever/boss/plugin/api/SecretDataProvider;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun getUserSecrets-0E7RQCE$default (Lai/rever/boss/plugin/api/SecretDataProvider;IILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static fun getUserSecretsWithAccess-0E7RQCE (Lai/rever/boss/plugin/api/SecretDataProvider;IILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun getUserSecretsWithAccess-0E7RQCE$default (Lai/rever/boss/plugin/api/SecretDataProvider;IILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static fun getUserSecretsWithSharingAccess-0E7RQCE (Lai/rever/boss/plugin/api/SecretDataProvider;IILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun getUserSecretsWithSharingAccess-0E7RQCE$default (Lai/rever/boss/plugin/api/SecretDataProvider;IILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun getUserSecretsWithSharingInfo-0E7RQCE$default (Lai/rever/boss/plugin/api/SecretDataProvider;IILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun searchSecrets-BWLJW6A$default (Lai/rever/boss/plugin/api/SecretDataProvider;Ljava/lang/String;IILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static fun searchSecretsWithAccess-BWLJW6A (Lai/rever/boss/plugin/api/SecretDataProvider;Ljava/lang/String;IILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun searchSecretsWithAccess-BWLJW6A$default (Lai/rever/boss/plugin/api/SecretDataProvider;Ljava/lang/String;IILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class ai/rever/boss/plugin/api/SecretEntryData {
@@ -5566,6 +5648,50 @@ public final class ai/rever/boss/plugin/api/SecretEntryData {
 	public final fun getUsername ()Ljava/lang/String;
 	public final fun getWebsite ()Ljava/lang/String;
 	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/SecretEntryWithAccessData {
+	public static final field $stable I
+	public fun <init> (Lai/rever/boss/plugin/api/SecretEntryData;Ljava/lang/String;Ljava/lang/String;ZZ)V
+	public synthetic fun <init> (Lai/rever/boss/plugin/api/SecretEntryData;Ljava/lang/String;Ljava/lang/String;ZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lai/rever/boss/plugin/api/SecretEntryData;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Z
+	public final fun component5 ()Z
+	public final fun copy (Lai/rever/boss/plugin/api/SecretEntryData;Ljava/lang/String;Ljava/lang/String;ZZ)Lai/rever/boss/plugin/api/SecretEntryWithAccessData;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/SecretEntryWithAccessData;Lai/rever/boss/plugin/api/SecretEntryData;Ljava/lang/String;Ljava/lang/String;ZZILjava/lang/Object;)Lai/rever/boss/plugin/api/SecretEntryWithAccessData;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCanManage ()Z
+	public final fun getOrgId ()Ljava/lang/String;
+	public final fun getOrgSlug ()Ljava/lang/String;
+	public final fun getSecret ()Lai/rever/boss/plugin/api/SecretEntryData;
+	public fun hashCode ()I
+	public final fun isOrgOwned ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/SecretEntryWithSharingAccessData {
+	public static final field $stable I
+	public fun <init> (Lai/rever/boss/plugin/api/SecretEntryWithSharingData;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZ)V
+	public synthetic fun <init> (Lai/rever/boss/plugin/api/SecretEntryWithSharingData;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lai/rever/boss/plugin/api/SecretEntryWithSharingData;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Z
+	public final fun component6 ()Z
+	public final fun copy (Lai/rever/boss/plugin/api/SecretEntryWithSharingData;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZ)Lai/rever/boss/plugin/api/SecretEntryWithSharingAccessData;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/SecretEntryWithSharingAccessData;Lai/rever/boss/plugin/api/SecretEntryWithSharingData;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZILjava/lang/Object;)Lai/rever/boss/plugin/api/SecretEntryWithSharingAccessData;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCanManage ()Z
+	public final fun getOrgId ()Ljava/lang/String;
+	public final fun getOrgSlug ()Ljava/lang/String;
+	public final fun getSecret ()Lai/rever/boss/plugin/api/SecretEntryWithSharingData;
+	public final fun getSharedWithOrgSlug ()Ljava/lang/String;
+	public fun hashCode ()I
+	public final fun isOrgOwned ()Z
 	public fun toString ()Ljava/lang/String;
 }
 
@@ -5653,6 +5779,23 @@ public final class ai/rever/boss/plugin/api/SecretShareData {
 	public final fun getSharedWithRoleName ()Ljava/lang/String;
 	public final fun getSharedWithUserEmail ()Ljava/lang/String;
 	public final fun getSharedWithUserId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/SecretShareWithTargetData {
+	public static final field $stable I
+	public fun <init> (Lai/rever/boss/plugin/api/SecretShareData;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Lai/rever/boss/plugin/api/SecretShareData;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lai/rever/boss/plugin/api/SecretShareData;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Lai/rever/boss/plugin/api/SecretShareData;Ljava/lang/String;Ljava/lang/String;)Lai/rever/boss/plugin/api/SecretShareWithTargetData;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/SecretShareWithTargetData;Lai/rever/boss/plugin/api/SecretShareData;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lai/rever/boss/plugin/api/SecretShareWithTargetData;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getShare ()Lai/rever/boss/plugin/api/SecretShareData;
+	public final fun getSharedWithOrgId ()Ljava/lang/String;
+	public final fun getSharedWithOrgSlug ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }

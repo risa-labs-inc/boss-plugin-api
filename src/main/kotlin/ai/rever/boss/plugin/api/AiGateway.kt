@@ -177,7 +177,13 @@ interface AiGatewayAPI {
      * own — it is the transport and the wire formats, not the registry — so an
      * implementation relays [LlmProvider.availableModels] from whichever plugin owns
      * provider configuration; a host without that plugin, or older than this method,
-     * reports nothing rather than failing.
+     * reports nothing rather than failing. The absent-versus-empty contract is the same
+     * as [LlmProvider.availableModels]: a present provider with an empty model list means
+     * discovery completed and reported no models; an absent provider has no catalog to
+     * report. Catalog presence does not guarantee a callable provider connection.
+     * A gateway-only picker need not obtain credentials just to test availability: it can
+     * offer the catalog as choices, check [CAPABILITY_PROVIDER_OVERRIDE] before an explicit
+     * selection, and handle the request's failure if that provider/model is unavailable.
      *
      * Default empty, the same reason [capabilities] and [activeModel] degrade rather
      * than throw: a gateway build older than this method has nothing to report, not a
@@ -194,16 +200,34 @@ interface AiGatewayAPI {
 
         /** [capabilities] entry: [AiImage] parts are sent rather than dropped. */
         const val CAPABILITY_VISION: String = "vision"
+
+        /**
+         * [capabilities] entry: [AiRequest.EXTRAS_KEY_PROVIDER_ID] selects the requested
+         * provider and rejects unavailable selections. With [AiRequest.EXTRAS_KEY_MODEL_OVERRIDE],
+         * honor the requested model, including any model-path substitution, or reject an
+         * unsupported provider/model combination; never silently use the default instead.
+         * This is an instance-wide routing-or-rejection guarantee, not a capability of the
+         * active provider. Once advertised, this guarantee holds across active-provider
+         * changes on that instance: honor the explicit selection or reject it, never route
+         * to the newly active provider instead. Advertise only when all request paths honor
+         * this contract. Absence means callers must not send provider overrides.
+         *
+         * This const inlines without a runtime Fieldref, so referencing it needs no new
+         * host-version floor. Calling [capabilities] uses its existing method contract;
+         * adding this capability does not add a method or enable a gateway implementation.
+         */
+        const val CAPABILITY_PROVIDER_OVERRIDE: String = "providerOverride"
     }
 }
 
 /**
  * What to ask, with no statement of how to encode it.
  *
- * There is deliberately no provider, endpoint, credential or wire format here.
- * Those are resolved per call from the user's configured providers, so a request
- * built once stays correct when the user switches provider - and a plugin cannot
- * accidentally pin itself to one vendor.
+ * There is deliberately no endpoint, credential or wire format here. Those are
+ * resolved per call from the user's configured providers. By default a request follows
+ * the active provider; callers may opt into provider selection through [extras] only
+ * when the gateway advertises [AiGatewayAPI.CAPABILITY_PROVIDER_OVERRIDE]. Prefer the
+ * active provider; pin one only when the user explicitly selects it.
  *
  * This type is compiled in, so a member change here (like [modelOverride]) is
  * a host-contract change: the member resolves from the host's pinned copy and
@@ -265,6 +289,34 @@ data class AiRequest(
      * somewhere to put them, each one costs an api release plus a host release plus a
      * rebuild of every consumer.
      *
+     * Set [EXTRAS_KEY_PROVIDER_ID] to the exact [LlmConfig.providerId] only after
+     * checking [AiGatewayAPI.capabilities] for [AiGatewayAPI.CAPABILITY_PROVIDER_OVERRIDE]
+     * at request-build time on the same live gateway instance that will receive the call.
+     * Do not cache this decision across gateway replacement, unload or downgrade.
+     * Pair it with [EXTRAS_KEY_MODEL_OVERRIDE] to select a model on that provider.
+     * A gateway advertising this capability must reject an unavailable explicit provider
+     * rather than fall back to the active one. Report rejection as [Result.failure] from
+     * [AiGatewayAPI.complete], [AiGatewayAPI.step] or [AiGatewayAPI.runAgent], and as
+     * [AiChunk.Failed] from [AiGatewayAPI.stream], not a thrown exception. Honor the selected
+     * model, including model-dependent URL substitution, or reject an unsupported
+     * provider/model combination through the same channel; never silently use the default.
+     * Use [IllegalArgumentException] for unknown, unavailable or ambiguous provider IDs,
+     * and [UnsupportedOperationException] for unsupported provider/model combinations.
+     * These types describe routing rejections, not an exclusive error taxonomy. In
+     * particular, [UnsupportedOperationException] can also mean unsupported tools or a
+     * streaming method, even on a gateway advertising provider overrides. Check the other
+     * capabilities required by the request; neither the exception type nor its message
+     * alone identifies a bad provider/model. Do not remove picker choices or recommend a
+     * different provider solely from that type. Show an unsupported-request failure when
+     * the cause is ambiguous; retry only when a transient cause has been established.
+     * It still needs a resolvable connection from
+     * [LlmProvider.configuredProviders] or a matching [LlmProvider.activeConfig].
+     *
+     * Older gateways do not advertise this capability, even if some support the key.
+     * Do not send a provider override without it: ignoring the key can send prompt content
+     * to an unintended provider, possibly with the other provider's model id. The API jar
+     * alone does not enable this feature; the gateway must implement and advertise it.
+     *
      * Unknown keys are **ignored**, never rejected, so a hint added later degrades on an
      * older gateway instead of failing. Do not put credentials here.
      */
@@ -293,6 +345,16 @@ data class AiRequest(
     companion object {
         /** [extras] key carrying a per-request model id (see [modelOverride]). */
         const val EXTRAS_KEY_MODEL_OVERRIDE = "modelOverride"
+
+        /**
+         * [extras] key carrying an explicit [LlmConfig.providerId], equivalently the
+         * credential-free [AiProviderModels.providerId] returned to a picker. Requires
+         * [AiGatewayAPI.CAPABILITY_PROVIDER_OVERRIDE]; see [extras] for routing guarantees.
+         * Like [EXTRAS_KEY_MODEL_OVERRIDE], this const inlines without a runtime Fieldref.
+         * Read it from [extras] directly: adding a view getter for symmetry would introduce
+         * a runtime Methodref and require a host-version floor.
+         */
+        const val EXTRAS_KEY_PROVIDER_ID = "providerId"
     }
 }
 

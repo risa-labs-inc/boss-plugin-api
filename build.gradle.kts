@@ -582,7 +582,7 @@ group = "ai.rever.boss.plugin.bundled"
 // carries none of these members. Release CI bump-pushes before building, so main's
 // version below is the version already released and this merge cuts the next one. Anything that
 // merges ahead of this moves it again, along with the BossConsole and topofmind pins.
-version = "1.0.90"
+version = "1.0.91"
 
 java {
     toolchain {

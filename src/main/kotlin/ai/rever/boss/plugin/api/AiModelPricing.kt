@@ -166,7 +166,11 @@ interface LlmModelPricingAPI {
  * [AiReply.modelId] or [AiTurn.modelId], the caller must compare that terminal model id with
  * [AiModelPricing.modelId] exactly. A mismatch means the completed call is unpriced; provider-side
  * fallback must not be charged at the requested model's rate. Replies do not identify the
- * provider. A budget caller must first confirm [AiGatewayAPI.CAPABILITY_PROVIDER_OVERRIDE] from
+ * provider. Missing or partially reported [AiUsage] must not be treated as free. A caller may use
+ * local token estimates for an absent or non-positive dimension contradicted by observable
+ * non-empty input or output; if it cannot estimate that dimension, the completed call is unpriced
+ * and an enforcing caller must stop before another model call. A budget caller must
+ * first confirm [AiGatewayAPI.CAPABILITY_PROVIDER_OVERRIDE] from
  * [AiGatewayAPI.capabilities] on the same live gateway instance used for lookup and inference;
  * do not cache that decision across gateway replacement, unload or downgrade. It must then pin
  * [AiRequest.EXTRAS_KEY_PROVIDER_ID] to [AiModelPricing.providerId] and

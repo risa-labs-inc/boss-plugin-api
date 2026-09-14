@@ -35,7 +35,10 @@ data class AiModelPricing(
     val fetchedAtEpochMs: Long,
     /** Inclusive last instant at which a new turn may adopt this card, Unix epoch milliseconds. */
     val validUntilEpochMs: Long,
-    /** Forward-compatible metadata. Unknown keys must be ignored and must not affect costing. */
+    /**
+     * Forward-compatible metadata. Unknown keys must be ignored and must not affect costing;
+     * a future costing API may define known keys that do. Never put credentials in this map.
+     */
     val extras: Map<String, String> = emptyMap(),
 ) {
     init {
@@ -71,7 +74,9 @@ data class AiModelPricing(
  *
  * Resolve this companion lazily from the configured [PluginContext.llmProvider] with
  * `as? LlmModelPricingAPI`; plugin registration order is not guaranteed. A consumer naming this
- * type must declare `minApiVersion: 1.0.90`.
+ * type must declare `minApiVersion: 1.0.90` and honour the `minBossVersion` host-relay gate on
+ * [PluginContext.llmProvider]. A producer implementing this type must also declare
+ * `minApiVersion: 1.0.90`.
  */
 interface LlmModelPricingAPI {
     fun modelPricing(
@@ -92,7 +97,10 @@ interface LlmModelPricingAPI {
  * snapshot, and an already-running call may finish above the cap. Before applying the snapshot to
  * [AiReply.modelId] or [AiTurn.modelId], the caller must compare that terminal model id with
  * [AiModelPricing.modelId] exactly. A mismatch means the completed call is unpriced; provider-side
- * fallback must not be charged at the requested model's rate.
+ * fallback must not be charged at the requested model's rate. A blank terminal id means the
+ * provider did not report which model answered and is also unpriced. Once an in-flight call has
+ * completed unpriced, a caller enforcing a dollar budget must stop before another model call;
+ * silently skipping that spend would make the cap ineffective.
  *
  * Resolve [AiGatewayAPI] lazily through [PluginContext.getPluginAPI], then cast it with
  * `as? AiGatewayPricingAPI`; plugin registration order is not guaranteed. A consumer naming this

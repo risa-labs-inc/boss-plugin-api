@@ -11,6 +11,7 @@ class AiModelPricingTest {
     fun `explicit zero rates remain a priced model`() {
         val pricing = pricing(input = 0.0, output = 0.0, fetchedAt = 0, validUntil = 0)
 
+        assertEquals("provider-catalog", AiModelPricing.SOURCE_PROVIDER_CATALOG)
         assertEquals(0.0, pricing.inputUsdPer1M)
         assertEquals(0.0, pricing.outputUsdPer1M)
         assertEquals(pricing.fetchedAtEpochMs, pricing.validUntilEpochMs)

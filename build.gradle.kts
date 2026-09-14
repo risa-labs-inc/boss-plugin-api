@@ -592,7 +592,7 @@ group = "ai.rever.boss.plugin.bundled"
 // carries none of these members. Release CI bump-pushes before building, so main's
 // version below is the version already released and this merge cuts the next one. Anything that
 // merges ahead of this moves it again, along with the BossConsole and topofmind pins.
-// Unreleased (assigned by the release workflow): adds the optional LlmModelPricingAPI and
+// 1.0.92: adds the optional LlmModelPricingAPI and
 // AiGatewayPricingAPI companions plus AiModelPricing. They expose a provider-published
 // USD-per-million-token rate card without changing AiAvailableModel, AiUsage, AiTurn, AiReply,
 // AiBudget or either existing gateway interface. Those released data-class constructors and

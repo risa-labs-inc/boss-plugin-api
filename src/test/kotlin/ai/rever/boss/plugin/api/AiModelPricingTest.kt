@@ -32,6 +32,8 @@ class AiModelPricingTest {
         }
         assertFailsWith<IllegalArgumentException> { pricing(providerId = " ") }
         assertFailsWith<IllegalArgumentException> { pricing(modelId = "") }
+        assertFailsWith<IllegalArgumentException> { pricing(providerId = " OPENROUTER") }
+        assertFailsWith<IllegalArgumentException> { pricing(modelId = "openai/gpt-5\n") }
         assertFailsWith<IllegalArgumentException> { pricing(source = "\t") }
     }
 
@@ -47,6 +49,12 @@ class AiModelPricingTest {
         val pricingOwner = assertIs<LlmModelPricingAPI>(owner)
         assertNull(pricingOwner.modelPricing("OPENROUTER", "openai/gpt-5"))
         assertNull(assertIs<AiGatewayPricingAPI>(owner).modelPricing(AiRequest()))
+
+        val plain: Any = object : LlmProvider {
+            override fun activeConfig(): LlmConfig? = null
+        }
+        assertNull(plain as? LlmModelPricingAPI)
+        assertNull(plain as? AiGatewayPricingAPI)
     }
 
     @Test
@@ -84,6 +92,8 @@ class AiModelPricingTest {
         assertEquals(pricing(), row())
         assertNull(row(provider = " "))
         assertNull(row(model = ""))
+        assertNull(row(provider = "OPENROUTER "))
+        assertNull(row(model = "openai/gpt-5\t"))
         assertNull(row(source = "\t"))
         assertNull(row(fetched = -1))
         assertNull(row(until = 9))

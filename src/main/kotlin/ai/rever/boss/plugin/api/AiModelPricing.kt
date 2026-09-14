@@ -27,7 +27,7 @@ package ai.rever.boss.plugin.api
 data class AiModelPricing(
     /** Stable provider id: key catalogs on [LlmConfig.providerId] verbatim, case-sensitively. */
     val providerId: String,
-    /** Exact case-sensitive model id the rate applies to; aliases are not inferred. */
+    /** Exact [LlmConfig.modelId] the rate applies to, case-sensitively; aliases are not inferred. */
     val modelId: String,
     /** US dollars per one million [AiUsage.inputTokens]. */
     val inputUsdPer1M: Double,
@@ -63,15 +63,15 @@ data class AiModelPricing(
     val extras: Map<String, String> = emptyMap(),
 ) {
     init {
-        require(providerId.isNotBlank()) { "providerId must not be blank" }
-        require(modelId.isNotBlank()) { "modelId must not be blank" }
+        require(providerId.isValidIdentifier()) { "providerId must not be blank, padded or contain control characters" }
+        require(modelId.isValidIdentifier()) { "modelId must not be blank, padded or contain control characters" }
         require(inputUsdPer1M.isFinite() && inputUsdPer1M.compareTo(0.0) >= 0) {
             "inputUsdPer1M must be finite and non-negative (negative zero is not canonical)"
         }
         require(outputUsdPer1M.isFinite() && outputUsdPer1M.compareTo(0.0) >= 0) {
             "outputUsdPer1M must be finite and non-negative (negative zero is not canonical)"
         }
-        require(source.matches(Regex("[a-z0-9]+(?:-[a-z0-9]+)*"))) {
+        require(source.matches(SOURCE_FORMAT)) {
             "source must be lowercase kebab-case"
         }
         require(fetchedAtEpochMs >= 0L) { "fetchedAtEpochMs must be non-negative" }
@@ -87,6 +87,8 @@ data class AiModelPricing(
     fun isValidAt(nowEpochMs: Long): Boolean = nowEpochMs in fetchedAtEpochMs..validUntilEpochMs
 
     companion object {
+        private val SOURCE_FORMAT = Regex("[a-z0-9]+(?:-[a-z0-9]+)*")
+
         /**
          * [source] value for rates read directly from a provider's model catalog.
          * Inlined into consumers; this literal must never change and needs no runtime field lookup.
@@ -120,6 +122,9 @@ data class AiModelPricing(
         } catch (_: IllegalArgumentException) {
             null
         }
+
+        private fun String.isValidIdentifier(): Boolean =
+            isNotBlank() && this == trim() && none(Char::isISOControl)
     }
 }
 
@@ -134,10 +139,9 @@ data class AiModelPricing(
  *
  * Resolve this companion lazily from the configured [PluginContext.llmProvider] with
  * `as? LlmModelPricingAPI`; plugin registration order is not guaranteed. A consumer naming this
- * type must declare `minApiVersion` at least the release introducing these types and honour
+ * type must declare `minApiVersion: 1.0.92` or newer and honour
  * the `minBossVersion` host-relay gate on [PluginContext.llmProvider]. A producer implementing
- * this type must also declare
- * `minApiVersion` at least the release introducing these types.
+ * this type must also declare `minApiVersion: 1.0.92` or newer.
  */
 interface LlmModelPricingAPI {
     fun modelPricing(
@@ -161,16 +165,18 @@ interface LlmModelPricingAPI {
  * [AiReply.modelId] or [AiTurn.modelId], the caller must compare that terminal model id with
  * [AiModelPricing.modelId] exactly. A mismatch means the completed call is unpriced; provider-side
  * fallback must not be charged at the requested model's rate. Replies do not identify the
- * provider: applying or re-looking-up a rate also requires the gateway to guarantee the provider
- * did not change. If that cannot be established, the completed call remains unpriced. A blank
- * terminal id means the provider did not report which model answered and is also unpriced.
- * Once an in-flight call has
- * completed unpriced, a caller enforcing a dollar budget must stop before another model call;
- * silently skipping that spend would make the cap ineffective.
+ * provider, so a budget caller must pin `request.extras["providerId"]` to
+ * [AiModelPricing.providerId] and [AiRequest.EXTRAS_KEY_MODEL_OVERRIDE] to
+ * [AiModelPricing.modelId], then use that same request for inference. The gateway keeps those
+ * explicit route identifiers fixed for the call; if that route becomes unavailable, the call
+ * fails instead of crossing providers. Without an explicit route, the caller cannot establish
+ * provider identity and the completed call remains unpriced. A blank terminal id is also unpriced.
+ * Once an in-flight call has completed unpriced, a caller enforcing a dollar budget must stop
+ * before another model call; silently skipping that spend would make the cap ineffective.
  *
  * Resolve [AiGatewayAPI] lazily through [PluginContext.getPluginAPI], then cast it with
  * `as? AiGatewayPricingAPI`; plugin registration order is not guaranteed. A consumer naming this
- * type must declare `minApiVersion` at least the release introducing these types. Lookups are
+ * type must declare `minApiVersion: 1.0.92` or newer. Lookups are
  * in-memory, synchronous and non-throwing: they must not perform network work, and invalid
  * route/catalog data must produce null.
  */

@@ -323,7 +323,102 @@ interface ActiveTabsProvider {
      * not a colour nobody can see.
      */
     val workspaceAccents: StateFlow<Map<String, Color>> get() = NO_WORKSPACE_ACCENTS
+
+    /**
+     * Every theme a Space can be given, in the host's own display order.
+     *
+     * The catalogue behind a theme picker. [workspaceAccents] says what a Space is wearing and
+     * this says what it could wear - different questions, and a caller offering a choice needs
+     * both. `BossThemes` is host-internal and absent from this jar, so without this a plugin could
+     * show a colour it had been handed and no way to change it.
+     *
+     * **A plain `val`, not a [StateFlow].** This is the set of themes the running build ships,
+     * which is fixed for the life of the process; a flow would say it could change and make every
+     * consumer subscribe to something that never emits twice. What DOES change is which theme a
+     * Space wears, and that is already a flow.
+     *
+     * **Empty is the probe.** A host that does not theme Spaces returns no themes, which is
+     * exactly the condition under which a caller should not offer the action - so this answers
+     * "can I do this here" without a second `supportsX` member. The same is not true of a
+     * defaulted `false` return from [setWorkspaceTheme], which cannot separate "no implementation"
+     * from "it ran and refused"; that is why the probe lives on this side.
+     */
+    val availableThemes: List<BossThemeOption> get() = emptyList()
+
+    /**
+     * Give the Space [workspaceId] the theme [themeId], and return whether the host did it.
+     *
+     * A theme belongs to a Space: setting one re-skins the app the moment that Space is on screen,
+     * and is remembered for the next time it is entered. Themeing a Space that is NOT on screen
+     * changes nothing visible until you go there, which is the point.
+     *
+     * [themeId] must be one of [availableThemes]; anything else is refused rather than guessed at.
+     * `false` also covers a host with no implementation, which is why [availableThemes] rather
+     * than this return is what a caller should gate its affordance on.
+     *
+     * **Resetting a Space to its default is deliberately not expressible here.** The host knows
+     * whether a Space has a theme of its own and a plugin does not, so a "use the default" row
+     * would sometimes do nothing and look broken; picking the theme a Space already resolves to
+     * has the same effect on the file anyway. Reset stays where that knowledge is, on the host's
+     * own Space menu.
+     */
+    fun setWorkspaceTheme(workspaceId: String, themeId: String): Boolean = false
+
+    /**
+     * WHICH theme a Space resolves to, by id, or null if the host cannot say.
+     *
+     * The identity where [workspaceAccents] is the appearance, and it exists because those are not
+     * the same question: BOSS ships Blueprint and Blueprint Light with an identical `#0F5BFF`, so
+     * a picker marking "the one you are wearing" by colour ticks BOTH of them. That was not
+     * reasoned out - it was seen, in a render of the picker this member was added for.
+     *
+     * **Not a replacement for [workspaceAccents], and not a duplicate of it.** They serve opposite
+     * needs and the split is deliberate: a tint wants a COLOUR and wants it LIVE, so it is a flow
+     * of the thing that gets drawn; a picker wants an IDENTITY at the moment it opens, so this is
+     * a point query. Joining a theme id against [availableThemes] on every tinted row, or
+     * subscribing to an id in order to draw a colour, would each be the wrong half doing the other
+     * one's work.
+     *
+     * The id is one of [availableThemes]. Null means this host does not theme Spaces, or knows
+     * nothing about that Space.
+     */
+    fun workspaceThemeId(workspaceId: String): String? = null
 }
+
+/**
+ * One theme a Space can wear: what to call it, and enough to DRAW it.
+ *
+ * A new type rather than more members on an existing one, which is what makes it additive: a type
+ * resolves from the installed api jar and needs only `minApiVersion`, where a constructor
+ * parameter on a data class already crossing this boundary moves the synthetic constructor
+ * descriptor and `copy$default` and is a hard break for every plugin compiled earlier.
+ *
+ * **[surface] is here because a swatch alone cannot separate two themes that share an accent.**
+ * BOSS ships Blueprint and Blueprint Light with an identical `#0F5BFF`, so a row of coloured dots
+ * makes them one entry twice. What actually differs is the GROUND, so a picker can paint this
+ * theme's own surface and put its accent on it - ink under blue against paper under blue - which
+ * is both a real distinction and a truer preview than any glyph standing in for one. It also keeps
+ * the caller honest: a plugin has no light-theme colour of its own, so drawing a pale plate
+ * without this would mean a colour literal.
+ *
+ * [isLight] is kept alongside it rather than derived from [surface]'s luminance. It is the host's
+ * stated answer, and a renderer choosing a contrast should not have to compute one.
+ *
+ * Not `@Serializable`, unlike [ActiveTabData]: `Color` has no serializer, and the out-of-process
+ * path serves [ActiveTabsProvider.availableThemes]' empty default rather than forwarding this.
+ */
+data class BossThemeOption(
+    /** Stable id, as passed to [ActiveTabsProvider.setWorkspaceTheme]. */
+    val id: String,
+    /** What to call it in a picker. */
+    val name: String,
+    /** Whether this theme is the light half of its identity. */
+    val isLight: Boolean,
+    /** Its signal colour - the same value [ActiveTabsProvider.workspaceAccents] reports. */
+    val accent: Color,
+    /** Its panel surface, the ground that accent sits on. See the note above. */
+    val surface: Color,
+)
 
 /**
  * The default [ActiveTabsProvider.workspaceAccents]: one shared, permanently empty flow.

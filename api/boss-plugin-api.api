@@ -53,6 +53,7 @@ public abstract interface class ai/rever/boss/plugin/api/ActiveTabsProvider {
 	public fun getActivePanelId ()Ljava/lang/String;
 	public abstract fun getActiveTabs ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getAllWindowTabs ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getAvailableThemes ()Ljava/util/List;
 	public abstract fun getBrowserIntegration (Ljava/lang/String;)Lai/rever/boss/plugin/api/BrowserIntegration;
 	public abstract fun getFallbackIcon (Ljava/lang/String;)Landroidx/compose/ui/graphics/vector/ImageVector;
 	public abstract fun getFaviconCacheKey (Ljava/lang/String;)Ljava/lang/String;
@@ -68,12 +69,15 @@ public abstract interface class ai/rever/boss/plugin/api/ActiveTabsProvider {
 	public abstract fun refreshTabs (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun selectTab (Ljava/lang/String;Ljava/lang/String;)V
 	public fun selectedTabId (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+	public fun setWorkspaceTheme (Ljava/lang/String;Ljava/lang/String;)Z
+	public fun workspaceThemeId (Ljava/lang/String;)Ljava/lang/String;
 }
 
 public final class ai/rever/boss/plugin/api/ActiveTabsProvider$DefaultImpls {
 	public static fun createBrowserTabInRightSplit (Lai/rever/boss/plugin/api/ActiveTabsProvider;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
 	public static fun getActivePanelId (Lai/rever/boss/plugin/api/ActiveTabsProvider;)Ljava/lang/String;
 	public static fun getAllWindowTabs (Lai/rever/boss/plugin/api/ActiveTabsProvider;)Lkotlinx/coroutines/flow/StateFlow;
+	public static fun getAvailableThemes (Lai/rever/boss/plugin/api/ActiveTabsProvider;)Ljava/util/List;
 	public static fun getLiveWorkspaceIds (Lai/rever/boss/plugin/api/ActiveTabsProvider;)Ljava/util/Set;
 	public static fun getSupportsTabTransfer (Lai/rever/boss/plugin/api/ActiveTabsProvider;)Z
 	public static fun getWorkspaceAccents (Lai/rever/boss/plugin/api/ActiveTabsProvider;)Lkotlinx/coroutines/flow/StateFlow;
@@ -82,6 +86,8 @@ public final class ai/rever/boss/plugin/api/ActiveTabsProvider$DefaultImpls {
 	public static fun moveTabToWorkspace (Lai/rever/boss/plugin/api/ActiveTabsProvider;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static fun refreshAllWindowTabs (Lai/rever/boss/plugin/api/ActiveTabsProvider;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static fun selectedTabId (Lai/rever/boss/plugin/api/ActiveTabsProvider;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+	public static fun setWorkspaceTheme (Lai/rever/boss/plugin/api/ActiveTabsProvider;Ljava/lang/String;Ljava/lang/String;)Z
+	public static fun workspaceThemeId (Lai/rever/boss/plugin/api/ActiveTabsProvider;Ljava/lang/String;)Ljava/lang/String;
 }
 
 public final class ai/rever/boss/plugin/api/AiAgentResult {
@@ -975,6 +981,26 @@ public final class ai/rever/boss/plugin/api/BossApiRuntime {
 	public static final field INSTANCE Lai/rever/boss/plugin/api/BossApiRuntime;
 	public final fun getVersion ()Ljava/lang/String;
 	public final fun isAtLeast (Ljava/lang/String;)Z
+}
+
+public final class ai/rever/boss/plugin/api/BossThemeOption {
+	public static final field $stable I
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ZJJLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Z
+	public final fun component4-0d7_KjU ()J
+	public final fun component5-0d7_KjU ()J
+	public final fun copy-jZ3TX3s (Ljava/lang/String;Ljava/lang/String;ZJJ)Lai/rever/boss/plugin/api/BossThemeOption;
+	public static synthetic fun copy-jZ3TX3s$default (Lai/rever/boss/plugin/api/BossThemeOption;Ljava/lang/String;Ljava/lang/String;ZJJILjava/lang/Object;)Lai/rever/boss/plugin/api/BossThemeOption;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAccent-0d7_KjU ()J
+	public final fun getId ()Ljava/lang/String;
+	public final fun getName ()Ljava/lang/String;
+	public final fun getSurface-0d7_KjU ()J
+	public fun hashCode ()I
+	public final fun isLight ()Z
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class ai/rever/boss/plugin/api/BreadcrumbItem {

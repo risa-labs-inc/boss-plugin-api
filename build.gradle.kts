@@ -451,10 +451,11 @@ group = "ai.rever.boss.plugin.bundled"
 // 1.0.88, 404ing the fetchApiPluginJar pin in the host PR this exists to
 // unblock (BossConsole#289). Precedent: the 1.0.85 and 1.0.86 PRs edited this
 // comment block and left the line at 1.0.84 / 1.0.85.
-// 1.0.90: adds nine defaulted members to ActiveTabsProvider - supportsTabTransfer,
+// 1.0.90: adds twelve defaulted members to ActiveTabsProvider - supportsTabTransfer,
 // liveWorkspaceIds, moveTabToWorkspace, moveTabToPane, activePanelId, selectedTabId,
-// allWindowTabs, refreshAllWindowTabs and workspaceAccents - plus BossColors.accentText, and
-// marks ActiveTabsProvider @HostImplemented.
+// allWindowTabs, refreshAllWindowTabs, workspaceAccents, availableThemes, setWorkspaceTheme and
+// workspaceThemeId - plus the new BossThemeOption type and BossColors.accentText, and marks
+// ActiveTabsProvider @HostImplemented.
 //
 // A BOSS window RUNS several workspaces at once and shows one: switching preserves the whole split
 // tree of the one you leave, and those stay live BossTabsComponents. The read side of that has been
@@ -538,6 +539,42 @@ group = "ai.rever.boss.plugin.bundled"
 // mark an unknown Space as the one on screen. The default is ONE shared empty flow, not a fresh
 // instance per read, so a collectAsState over an unimplementing host settles instead of
 // re-subscribing every recomposition. Same minBossVersion gate as the rest of this release.
+//
+// Also adds ActiveTabsProvider.availableThemes + setWorkspaceTheme, and the BossThemeOption type
+// they are expressed in - the write side of the same feature. workspaceAccents says what a Space
+// is wearing; these say what it could wear and let a panel change it. Without them a plugin can
+// draw a Space's colour and send the user to the host's own Space menu to alter it, which is the
+// one place the Space in question may not even be the one on screen.
+//
+// availableThemes is a plain val, not a StateFlow: it is the set of themes the running build
+// ships, fixed for the life of the process, and a flow would make every consumer subscribe to
+// something that emits once. EMPTY is the probe - a host that does not theme Spaces returns no
+// themes, which is exactly when a caller should not offer the action - so there is no
+// supportsWorkspaceThemes member. setWorkspaceTheme's defaulted `false` could not serve as that
+// probe, since it cannot separate "no implementation" from "it ran and refused".
+//
+// BossThemeOption is a NEW TYPE rather than more fields on something existing, which is what
+// makes it additive: a type resolves from the installed jar under minApiVersion, where a
+// constructor parameter on a data class already crossing this boundary moves the synthetic
+// constructor descriptor and copy$default and is a hard break for every plugin compiled earlier.
+// It carries the theme's SURFACE as well as its accent, because BOSS ships Blueprint and
+// Blueprint Light with an identical #0F5BFF: a row of coloured dots makes them one entry twice,
+// and what actually differs is the ground. A picker can then paint the theme's own surface with
+// its accent on it, which is a truer preview than a glyph and keeps the caller off colour
+// literals - a plugin has no light-theme colour of its own to draw a pale plate with.
+//
+// Resetting a Space to its default is deliberately NOT expressible: the host knows whether a
+// Space has a theme of its own and a plugin does not, so a "use the default" row would sometimes
+// do nothing. Reset stays on the host's Space menu, where that knowledge is.
+//
+// workspaceThemeId is the third, and it was found by RENDERING the picker rather than reasoned
+// out. Marking "the theme you are wearing" by colour ticks Blueprint AND Blueprint Light, because
+// they share #0F5BFF exactly - two checks in one list, which reads as a bug. So identity and
+// appearance are separate members. They are not duplicates: a tint wants a COLOUR and wants it
+// LIVE, so workspaceAccents is a flow of the thing that gets drawn; a picker wants an IDENTITY
+// when it opens, so this is a point query. Joining an id against availableThemes on every tinted
+// row, or subscribing to an id in order to draw a colour, would each be the wrong half doing the
+// other one's work.
 //
 // The number moved once already: this block said 1.0.88 while the branch sat unmerged, and #50
 // (the terminal-tab surface) took 1.0.88 first, then it said 1.0.89 and an unrelated

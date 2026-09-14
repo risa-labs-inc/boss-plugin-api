@@ -112,10 +112,25 @@ class AiGatewayTypesTest {
     }
 
     @Test
+    fun `provider and model overrides coexist in the same request`() {
+        val request = AiRequest(
+            extras = mapOf(
+                AiRequest.EXTRAS_KEY_PROVIDER_ID to "X",
+                AiRequest.EXTRAS_KEY_MODEL_OVERRIDE to "m",
+            ),
+        )
+
+        assertEquals("X", request.extras[AiRequest.EXTRAS_KEY_PROVIDER_ID])
+        assertEquals("m", request.modelOverride)
+    }
+
+    @Test
     fun `the extras key literal is pinned - old jars inlined it`() {
         // EXTRAS_KEY_MODEL_OVERRIDE is a const val: already-compiled plugins carry the
         // LITERAL, so changing the string silently orphans every request they build.
         assertEquals("modelOverride", AiRequest.EXTRAS_KEY_MODEL_OVERRIDE)
+        assertEquals("providerId", AiRequest.EXTRAS_KEY_PROVIDER_ID)
+        assertEquals("providerOverride", AiGatewayAPI.CAPABILITY_PROVIDER_OVERRIDE)
     }
 
     // ==================== open-set contracts ====================
@@ -161,10 +176,10 @@ class AiGatewayTypesTest {
         assertEquals("considered", withoutTools.getOrNull()?.text)
     }
 
-    // ==================== availableModels defaults ====================
+    // ==================== catalog and capability defaults ====================
 
     @Test
-    fun `an older AiGatewayAPI implementor reports no models rather than throwing`() {
+    fun `an older AiGatewayAPI implementor reports no models or capabilities`() {
         val older =
             object : AiGatewayAPI {
                 override suspend fun complete(request: AiRequest) = Result.success(AiReply(""))
@@ -180,6 +195,7 @@ class AiGatewayTypesTest {
             }
 
         assertEquals(emptyList(), older.availableModels())
+        assertEquals(emptySet(), older.capabilities())
     }
 
     @Test

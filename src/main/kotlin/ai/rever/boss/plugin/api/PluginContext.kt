@@ -576,13 +576,15 @@ interface PluginContext {
         get() = null
 
     /**
-     * Optional access to the configured AI providers (Settings → AI Providers) —
-     * API keys, endpoints, and the selected model.
+     * Optional access to configured provider connections (Settings → AI Providers, or the
+     * owning plugin's UI such as Secret Manager → AI), credentials and generation defaults.
      *
      * Returns null when LLM access isn't available. Plugins that offer AI
      * features (e.g. the Jupyter notebook) use this to reuse the configured keys
-     * instead of managing their own; they must hide AI affordances when it is
-     * null or [LlmProvider.activeConfig] returns null.
+     * instead of managing their own; hide unavailable AI affordances when this provider
+     * is null. A null [LlmProvider.activeConfig] means no ready-to-use default, not that
+     * every connection is unavailable: consumers owning a model picker should check
+     * [LlmProvider.configuredProviders] and supply their own selection.
      *
      * Host-implemented, but the host only relays: the value is the
      * [LlmProviderSettingsAPI] registered by the plugin that owns provider

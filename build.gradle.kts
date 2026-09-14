@@ -451,6 +451,137 @@ group = "ai.rever.boss.plugin.bundled"
 // 1.0.88, 404ing the fetchApiPluginJar pin in the host PR this exists to
 // unblock (BossConsole#289). Precedent: the 1.0.85 and 1.0.86 PRs edited this
 // comment block and left the line at 1.0.84 / 1.0.85.
+// 1.0.90: adds twelve defaulted members to ActiveTabsProvider - supportsTabTransfer,
+// liveWorkspaceIds, moveTabToWorkspace, moveTabToPane, activePanelId, selectedTabId,
+// allWindowTabs, refreshAllWindowTabs, workspaceAccents, availableThemes, setWorkspaceTheme and
+// workspaceThemeId - plus the new BossThemeOption type and BossColors.accentText, and marks
+// ActiveTabsProvider @HostImplemented.
+//
+// A BOSS window RUNS several workspaces at once and shows one: switching preserves the whole split
+// tree of the one you leave, and those stay live BossTabsComponents. The read side of that has been
+// exposed all along - activeTabs reports tabs whose workspaceId is not the current one - but every
+// WRITE path in the host searched the current tree only, so there was no way to move a tab between
+// workspaces, and selectTab/closeTab silently did nothing for a tab in a preserved one. The host
+// already has the primitive (detachTab/adoptTab transfer the live component and its lifecycle, so a
+// moved browser tab keeps its page and playing media); nothing crossed a workspace boundary with it.
+//
+// Three members rather than one. supportsTabTransfer is the probe, because a defaulted `false`
+// return cannot separate "no implementation here" from "it ran and refused" - same shape as
+// supportsOpenPanelAsTab and supportsHiddenEntries. liveWorkspaceIds is NOT derivable from
+// activeTabs: a workspace with no tabs contributes no rows, so a freshly created empty one would be
+// invisible as a destination; nor is it WorkspaceDataProvider.workspaces, which lists everything
+// SAVED, most of which is not running and cannot receive a live tab. Destinations are deliberately
+// limited to live workspaces - putting a tab into a cold on-disk one means serializing it into the
+// saved layout and destroying the component, which is a different operation.
+//
+// suspend, because detach/adopt touch Essenty LifecycleRegistries and must run on the UI thread; the
+// implementation marshals rather than making every caller find the UI dispatcher. refreshTabs is
+// already suspend here, so it reads consistently. No targetPanelId parameter: a plugin cannot name a
+// panel in a preserved workspace, since ActiveTabData.panelId is only populated for panels that
+// already hold tabs - the host picks that workspace's active panel.
+//
+// NOT jar-only. ActiveTabsProvider is inside the api package plugin-api-core filters into the host
+// and serves parent-first, so the host's pinned copy is what every plugin resolves: an older host's
+// copy has none of these members and a call is a NoSuchMethodError, not the defaulted no-op. Gate on
+// the minBossVersion of the release that pins 1.0.88, same shape as 1.0.77 openPanelAsTab. The
+// annotation is added to say so at the declaration site; it is documentation-only. Additive.
+//
+// Also adds ActiveTabsProvider.activePanelId + selectedTabId(workspaceId, panelId) - which pane the user is
+// working in, and which tab each pane is showing. Neither is derivable from activeTabs: that is a
+// flat list of what EXISTS, and every pane has exactly one tab on top of it that the list does not
+// mark. Without them a panel listing tabs can only guess at the tab bar's two-strength selected
+// marker (full accent for the focused pane's selected tab, a quieter one for every other pane's)
+// or draw nothing, which is what Top of Mind did.
+//
+// Members on the interface rather than fields on ActiveTabData, and that is forced rather than
+// chosen: ActiveTabData is a data class crossing this boundary, so a new constructor parameter
+// moves the synthetic constructor descriptor and copy$default and is a HARD break for every plugin
+// compiled earlier - the same rule the Ai* note below records. Defaulted interface members are
+// additive. Same minBossVersion gate as the rest of 1.0.88.
+//
+// Also adds ActiveTabsProvider.allWindowTabs + refreshAllWindowTabs - every tab in every open
+// window, where activeTabs is the caller's own window alone. A separate member rather than
+// widening activeTabs: a sidebar listing "what is running here" is window-scoped and grouping
+// another window's tabs under this one's workspaces would be wrong, but a quick switcher is not -
+// the tab being reached for may be in the window behind, and a switcher that cannot see it is one
+// you stop trusting. Defaults to activeTabs rather than an empty list, so a host that cannot see
+// other windows degrades to a narrower answer instead of one that looks broken.
+//
+// Also adds BossColors.accentText - the accent drawn as TEXT, where darkAccent is the FILL. A
+// plugin tinting an accent-coloured label had only darkAccent (= signal), which is chosen to sit
+// behind content and lands under 4.5:1 as text; the tab bar uses signalText for exactly this and
+// no plugin could reach it. Additive, and it needs the matching property in the host's
+// plugin-ui-core copy, which is what is served parent-first at runtime.
+//
+// selectedTabId takes the WORKSPACE as well as the panel, and that is not redundant: a panel id is
+// unique only within one workspace's tree - every workspace's first pane is called `main` - so a
+// lookup by panel id alone answers from whichever running workspace is searched first and marks the
+// wrong row.
+//
+// Also adds ActiveTabsProvider.workspaceAccents - what colour each Space is wearing, by workspace
+// id. A BOSS theme belongs to a Space now: entering one re-skins the whole app, and a Space naming
+// no theme wears the Settings choice. A plugin could not see any of that. BossThemes and
+// BossThemeController are host-internal and absent from this jar, and neither LayoutWorkspace nor
+// ActiveTabData carries anything chromatic - so a panel listing every Space could tell you where a
+// tab was and not what that place looks like.
+//
+// A MAP rather than a lookup function, for three reasons. It has to follow a live theme change,
+// and a plain function is read once - making it @Composable would fix that and bind the answer to
+// a composition, where a consumer also needs the colour in ordinary code (a floor's receding faces
+// are shaded off its front in plain arithmetic). A StateFlow is what every other live value here
+// already is, so it is collected and proxied like activeTabs and allWindowTabs. And a caller wants
+// every Space at once - a panel drawing a header per running Space asks N times a frame for a
+// value that changes about never.
+//
+// Keyed over every Space the host knows (saved, running, and the layouts BOSS ships), not the
+// current one alone, because the callers that need this are listing Spaces they are not in. An
+// absent id means no colour and should be drawn untinted; substituting BossColors.accent would
+// mark an unknown Space as the one on screen. The default is ONE shared empty flow, not a fresh
+// instance per read, so a collectAsState over an unimplementing host settles instead of
+// re-subscribing every recomposition. Same minBossVersion gate as the rest of this release.
+//
+// Also adds ActiveTabsProvider.availableThemes + setWorkspaceTheme, and the BossThemeOption type
+// they are expressed in - the write side of the same feature. workspaceAccents says what a Space
+// is wearing; these say what it could wear and let a panel change it. Without them a plugin can
+// draw a Space's colour and send the user to the host's own Space menu to alter it, which is the
+// one place the Space in question may not even be the one on screen.
+//
+// availableThemes is a plain val, not a StateFlow: it is the set of themes the running build
+// ships, fixed for the life of the process, and a flow would make every consumer subscribe to
+// something that emits once. EMPTY is the probe - a host that does not theme Spaces returns no
+// themes, which is exactly when a caller should not offer the action - so there is no
+// supportsWorkspaceThemes member. setWorkspaceTheme's defaulted `false` could not serve as that
+// probe, since it cannot separate "no implementation" from "it ran and refused".
+//
+// BossThemeOption is a NEW TYPE rather than more fields on something existing, which is what
+// makes it additive: a type resolves from the installed jar under minApiVersion, where a
+// constructor parameter on a data class already crossing this boundary moves the synthetic
+// constructor descriptor and copy$default and is a hard break for every plugin compiled earlier.
+// It carries the theme's SURFACE as well as its accent, because BOSS ships Blueprint and
+// Blueprint Light with an identical #0F5BFF: a row of coloured dots makes them one entry twice,
+// and what actually differs is the ground. A picker can then paint the theme's own surface with
+// its accent on it, which is a truer preview than a glyph and keeps the caller off colour
+// literals - a plugin has no light-theme colour of its own to draw a pale plate with.
+//
+// Resetting a Space to its default is deliberately NOT expressible: the host knows whether a
+// Space has a theme of its own and a plugin does not, so a "use the default" row would sometimes
+// do nothing. Reset stays on the host's Space menu, where that knowledge is.
+//
+// workspaceThemeId is the third, and it was found by RENDERING the picker rather than reasoned
+// out. Marking "the theme you are wearing" by colour ticks Blueprint AND Blueprint Light, because
+// they share #0F5BFF exactly - two checks in one list, which reads as a bug. So identity and
+// appearance are separate members. They are not duplicates: a tint wants a COLOUR and wants it
+// LIVE, so workspaceAccents is a flow of the thing that gets drawn; a picker wants an IDENTITY
+// when it opens, so this is a point query. Joining an id against availableThemes on every tinted
+// row, or subscribing to an id in order to draw a colour, would each be the wrong half doing the
+// other one's work.
+//
+// The number moved once already: this block said 1.0.88 while the branch sat unmerged, and #50
+// (the terminal-tab surface) took 1.0.88 first, then it said 1.0.89 and an unrelated
+// release took that on 2026-09-10. Verified against the published jar, not assumed: v1.0.89
+// carries none of these members. Release CI bump-pushes before building, so main's
+// version below is the version already released and this merge cuts the next one. Anything that
+// merges ahead of this moves it again, along with the BossConsole and topofmind pins.
 version = "1.0.89"
 
 java {

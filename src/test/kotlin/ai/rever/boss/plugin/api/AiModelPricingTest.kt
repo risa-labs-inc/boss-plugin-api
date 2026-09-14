@@ -3,9 +3,10 @@ package ai.rever.boss.plugin.api
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNull
-import kotlin.test.assertFalse
+import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
 class AiModelPricingTest {
@@ -120,6 +121,16 @@ class AiModelPricingTest {
     }
 
     @Test
+    fun `direct constructor retains the documented metadata backing map`() {
+        val metadata = mutableMapOf("future-metadata" to "original")
+        val card = pricing(extras = metadata)
+
+        assertSame(metadata, card.extras)
+        metadata["future-metadata"] = "changed"
+        assertEquals("changed", card.extras["future-metadata"])
+    }
+
+    @Test
     fun `factory canonicalizes signed zero and accepts non-expiring rows`() {
         val card = AiModelPricing.orNull("p", "m", -0.0, -0.0, "provider-catalog", 0, Long.MAX_VALUE)!!
         assertEquals(0.0, card.inputUsdPer1M)
@@ -144,6 +155,7 @@ class AiModelPricingTest {
         providerId: String = "OPENROUTER",
         modelId: String = "openai/gpt-5",
         source: String = AiModelPricing.SOURCE_PROVIDER_CATALOG,
+        extras: Map<String, String> = emptyMap(),
     ) = AiModelPricing(
         providerId = providerId,
         modelId = modelId,
@@ -152,5 +164,6 @@ class AiModelPricingTest {
         source = source,
         fetchedAtEpochMs = fetchedAt,
         validUntilEpochMs = validUntil,
+        extras = extras,
     )
 }

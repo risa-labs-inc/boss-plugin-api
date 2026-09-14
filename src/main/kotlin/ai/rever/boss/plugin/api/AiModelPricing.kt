@@ -154,10 +154,11 @@ interface LlmModelPricingAPI {
  * Optional pricing companion to [AiGatewayAPI].
  *
  * The gateway resolves the same route [request] would use, including explicit provider/model
- * overrides and local CLI selection, then returns that route's current complete rate card.
- * A route-only [AiRequest] with no messages is valid. Implementations must not log or retain
- * request content during pricing lookup. Null means the route is unpriced, expired, unsupported,
- * or unavailable; it never means free.
+ * overrides and local CLI selection, then returns that route's current complete rate card. Callers
+ * should pass a route-only `AiRequest(extras = routeExtras)` with blank system text and no messages,
+ * then send the full request for inference with those exact extras. Implementations must not log or
+ * retain request content during pricing lookup. Null means the route is unpriced, expired,
+ * unsupported, or unavailable; it never means free.
  *
  * This does not reserve spend or promise that a call cannot cross a cap. It supports an estimated
  * USD budget checked between model calls: a caller prices reported [AiUsage] against the returned
@@ -169,9 +170,9 @@ interface LlmModelPricingAPI {
  * [AiGatewayAPI.capabilities] on the same live gateway instance used for lookup and inference;
  * do not cache that decision across gateway replacement, unload or downgrade. It must then pin
  * [AiRequest.EXTRAS_KEY_PROVIDER_ID] to [AiModelPricing.providerId] and
- * [AiRequest.EXTRAS_KEY_MODEL_OVERRIDE] to [AiModelPricing.modelId], and use that same request for
- * inference. A gateway advertising the capability keeps those explicit route identifiers fixed
- * for the call; if that route becomes unavailable, the call fails instead of crossing providers.
+ * [AiRequest.EXTRAS_KEY_MODEL_OVERRIDE] to [AiModelPricing.modelId], and use those same extras for
+ * inference. A gateway advertising the capability keeps those explicit route identifiers fixed for
+ * the call; if that route becomes unavailable, the call fails instead of crossing providers.
  * Without the capability and an explicit route, the caller cannot establish provider identity and
  * the completed call remains unpriced. A blank terminal id is also unpriced.
  * Once an in-flight call has completed unpriced, a caller enforcing a dollar budget must stop

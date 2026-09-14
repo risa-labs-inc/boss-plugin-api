@@ -166,7 +166,7 @@ class AiGatewayTypesTest {
     // ==================== availableModels defaults ====================
 
     @Test
-    fun `an older AiGatewayAPI implementor reports no models rather than throwing`() {
+    fun `an older AiGatewayAPI implementor reports no models or capabilities`() {
         val older =
             object : AiGatewayAPI {
                 override suspend fun complete(request: AiRequest) = Result.success(AiReply(""))
@@ -182,7 +182,7 @@ class AiGatewayTypesTest {
             }
 
         assertEquals(emptyList(), older.availableModels())
-        assertFalse(AiGatewayAPI.CAPABILITY_PROVIDER_OVERRIDE in older.capabilities())
+        assertEquals(emptySet(), older.capabilities())
     }
 
     @Test

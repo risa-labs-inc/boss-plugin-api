@@ -181,6 +181,9 @@ interface AiGatewayAPI {
      * as [LlmProvider.availableModels]: a present provider with an empty model list means
      * discovery completed and reported no models; an absent provider has no catalog to
      * report. Catalog presence does not guarantee a callable provider connection.
+     * A gateway-only picker need not obtain credentials just to test availability: it can
+     * offer the catalog as choices, check [CAPABILITY_PROVIDER_OVERRIDE] before an explicit
+     * selection, and handle the request's failure if that provider/model is unavailable.
      *
      * Default empty, the same reason [capabilities] and [activeModel] degrade rather
      * than throw: a gateway build older than this method has nothing to report, not a
@@ -200,9 +203,15 @@ interface AiGatewayAPI {
 
         /**
          * [capabilities] entry: [AiRequest.EXTRAS_KEY_PROVIDER_ID] selects the requested
-         * provider, rejects unavailable selections and supports model-path substitution
-         * with [AiRequest.EXTRAS_KEY_MODEL_OVERRIDE]. Advertise only when all request
-         * paths honor this contract. Absence means callers must not send provider overrides.
+         * provider and rejects unavailable selections. With [AiRequest.EXTRAS_KEY_MODEL_OVERRIDE],
+         * honor the requested model, including any model-path substitution, or reject an
+         * unsupported provider/model combination; never silently use the default instead.
+         * Advertise only when all request paths honor this routing-or-rejection contract.
+         * Absence means callers must not send provider overrides.
+         *
+         * This const inlines without a runtime Fieldref, so referencing it needs no new
+         * host-version floor. Calling [capabilities] uses its existing method contract;
+         * adding this capability does not add a method or enable a gateway implementation.
          */
         const val CAPABILITY_PROVIDER_OVERRIDE: String = "providerOverride"
     }
@@ -281,8 +290,12 @@ data class AiRequest(
      * checking [AiGatewayAPI.capabilities] for [AiGatewayAPI.CAPABILITY_PROVIDER_OVERRIDE].
      * Pair it with [EXTRAS_KEY_MODEL_OVERRIDE] to select a model on that provider.
      * A gateway advertising this capability must reject an unavailable explicit provider
-     * rather than fall back to the active one, and substitute the selected model into
-     * model-dependent URLs. It still needs a resolvable connection from
+     * rather than fall back to the active one. Report rejection as [Result.failure] from
+     * [AiGatewayAPI.complete], [AiGatewayAPI.step] or [AiGatewayAPI.runAgent], and as
+     * [AiChunk.Failed] from [AiGatewayAPI.stream], not a thrown exception. Honor the selected
+     * model, including model-dependent URL substitution, or reject an unsupported
+     * provider/model combination through the same channel; never silently use the default.
+     * It still needs a resolvable connection from
      * [LlmProvider.configuredProviders] or a matching [LlmProvider.activeConfig].
      *
      * Older gateways do not advertise this capability, even if some support the key.

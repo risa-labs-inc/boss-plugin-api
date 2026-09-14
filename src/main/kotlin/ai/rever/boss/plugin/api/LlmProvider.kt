@@ -2,13 +2,16 @@ package ai.rever.boss.plugin.api
 
 /**
  * Read-only access to the AI provider configuration the user set up in
- * Settings → AI Providers (or the owning plugin's UI, such as Secret Manager → AI). Plugins reuse
- * provider connections and credentials while owning their own model selection;
+ * Settings → AI Providers (or the owning plugin's UI, such as Secret Manager → AI).
+ * Plugins reuse provider connections and credentials while owning their own model selection;
  * [activeConfig] supplies a ready-to-use generation default for consumers that need one.
  *
  * The implementation is backed by the plugin that owns provider configuration (see
  * [LlmProviderSettingsAPI]), which stores credentials as secrets and resolves a
  * provider's key from the environment first, then from the stored secret.
+ * Historical version notes below refer specifically to `ai.rever.boss.plugin.dynamic.secretmanager`
+ * ([Secret Manager releases](https://github.com/risa-labs-inc/boss-plugin-secret-manager/releases)),
+ * not to other implementations of this interface.
  *
  * Like every provider on [PluginContext], this may be null — plugins must degrade
  * gracefully (hide AI affordances) when LLM access isn't available. It is also null
@@ -31,7 +34,9 @@ interface LlmProvider {
 
     /**
      * Configured provider connections in display order, including keyless local services.
-     * Useful for a consumer-owned provider/model picker, not a list of ready-made requests.
+     * These credential-bearing connections are for consumers making their own HTTP calls,
+     * not a list of ready-made requests. Build gateway-backed pickers from credential-free
+     * [availableModels] and use [AiRequest.extras] for capability-gated provider selection.
      *
      * - **Credentials:** every required credential must already be resolved; omit providers
      *   whose required credential is missing. A blank [LlmConfig.apiKey] means the connection
@@ -43,9 +48,10 @@ interface LlmProvider {
      *   supply a model before calling it.
      * - **Model-in-path formats:** see [LlmConfig.baseUrl]. Return the resolved default
      *   model's endpoint, or omit the provider until a default can be resolved. Changing
-     *   [LlmConfig.modelId] alone does not update that endpoint. A consumer must rebuild
-     *   the model-dependent URL for another model or use a gateway advertising
-     *   [AiGatewayAPI.CAPABILITY_PROVIDER_OVERRIDE]; see [AiRequest.extras]. A model-in-path
+     *   [LlmConfig.modelId] alone does not update that endpoint. Prefer a gateway advertising
+     *   [AiGatewayAPI.CAPABILITY_PROVIDER_OVERRIDE]; see [AiRequest.extras]. A direct HTTP
+     *   consumer must use format-specific URL substitution, encode the model as a path
+     *   segment, and reject unknown [LlmApiFormat] values with an else branch. A model-in-path
      *   provider without a resolved default cannot be selected through this override,
      *   even when [availableModels] lists its catalog.
      *
@@ -73,7 +79,9 @@ interface LlmProvider {
      * means discovery completed and the provider explicitly reported no available models.
      * A known catalog does not guarantee a callable connection: a model-in-path provider
      * may appear here while [configuredProviders] omits it for lacking a resolved default
-     * model. Consumers must check connection availability before offering a model as usable.
+     * model. Direct HTTP consumers must check connection availability before treating a
+     * model as usable. Gateway-only pickers can offer the catalog and handle request failure
+     * without obtaining credentials; see [AiGatewayAPI.availableModels].
      *
      * Default empty, the same reason [configuredProviders] degrades rather than throws:
      * an implementor older than this method has nothing to report, not a

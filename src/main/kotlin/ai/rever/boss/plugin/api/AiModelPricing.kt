@@ -165,12 +165,15 @@ interface LlmModelPricingAPI {
  * [AiReply.modelId] or [AiTurn.modelId], the caller must compare that terminal model id with
  * [AiModelPricing.modelId] exactly. A mismatch means the completed call is unpriced; provider-side
  * fallback must not be charged at the requested model's rate. Replies do not identify the
- * provider, so a budget caller must pin [AiRequest.EXTRAS_KEY_PROVIDER_ID] to
- * [AiModelPricing.providerId] and [AiRequest.EXTRAS_KEY_MODEL_OVERRIDE] to
- * [AiModelPricing.modelId], then use that same request for inference. The gateway keeps those
- * explicit route identifiers fixed for the call; if that route becomes unavailable, the call
- * fails instead of crossing providers. Without an explicit route, the caller cannot establish
- * provider identity and the completed call remains unpriced. A blank terminal id is also unpriced.
+ * provider. A budget caller must first confirm [AiGatewayAPI.CAPABILITY_PROVIDER_OVERRIDE] from
+ * [AiGatewayAPI.capabilities] on the same live gateway instance used for lookup and inference;
+ * do not cache that decision across gateway replacement, unload or downgrade. It must then pin
+ * [AiRequest.EXTRAS_KEY_PROVIDER_ID] to [AiModelPricing.providerId] and
+ * [AiRequest.EXTRAS_KEY_MODEL_OVERRIDE] to [AiModelPricing.modelId], and use that same request for
+ * inference. A gateway advertising the capability keeps those explicit route identifiers fixed
+ * for the call; if that route becomes unavailable, the call fails instead of crossing providers.
+ * Without the capability and an explicit route, the caller cannot establish provider identity and
+ * the completed call remains unpriced. A blank terminal id is also unpriced.
  * Once an in-flight call has completed unpriced, a caller enforcing a dollar budget must stop
  * before another model call; silently skipping that spend would make the cap ineffective.
  *

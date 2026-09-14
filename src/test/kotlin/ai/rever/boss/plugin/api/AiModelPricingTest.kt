@@ -5,8 +5,8 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
 import kotlin.test.assertNull
-import kotlin.test.assertTrue
 import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class AiModelPricingTest {
     @Test
@@ -87,7 +87,7 @@ class AiModelPricingTest {
         assertNull(row(source = "\t"))
         assertNull(row(fetched = -1))
         assertNull(row(until = 9))
-        for (rate in listOf(Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, -0.0, -1.0)) {
+        for (rate in listOf(Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, -1.0)) {
             assertNull(row(input = rate))
             assertNull(row(output = rate))
         }
@@ -107,6 +107,23 @@ class AiModelPricingTest {
         metadata["new-key"] = "new-value"
         assertEquals(mapOf("cached-input-usd-per-1m" to "future-format"), card.extras)
         assertEquals(originalHash, card.hashCode())
+    }
+
+    @Test
+    fun `factory canonicalizes signed zero and accepts non-expiring rows`() {
+        val card = AiModelPricing.orNull("p", "m", -0.0, -0.0, "provider-catalog", 0, Long.MAX_VALUE)!!
+        assertEquals(0.0, card.inputUsdPer1M)
+        assertEquals(0.0, card.outputUsdPer1M)
+        assertTrue(card.isValidAt(Long.MAX_VALUE))
+    }
+
+    @Test
+    fun `source labels reject URLs whitespace and malformed labels`() {
+        for (source in listOf("https://example.invalid", "provider catalog", "Provider", "-provider", "provider-")) {
+            assertFailsWith<IllegalArgumentException> { pricing(source = source) }
+            assertNull(AiModelPricing.orNull("p", "m", 1.0, 2.0, source, 0, 1))
+        }
+        assertEquals("catalog-v2", pricing(source = "catalog-v2").source)
     }
 
     private fun pricing(

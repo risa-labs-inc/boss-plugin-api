@@ -6,7 +6,8 @@ package ai.rever.boss.plugin.api
  * Rates are US dollars per one million input or output tokens. This deliberately models only
  * the two counts [AiUsage] can report. A route whose current catalog rate card contains a non-zero
  * request, image, cache, reasoning, tool or other charge must not return a card through
- * [LlmModelPricingAPI] or [AiGatewayPricingAPI] until that charge is represented; returning null is more accurate than an incomplete dollar estimate.
+ * [LlmModelPricingAPI] or [AiGatewayPricingAPI] until that charge is represented; returning null
+ * is more accurate than an incomplete dollar estimate.
  * Conservative nulls are expected: the first producer supports only provider/model entries whose
  * catalog exposes both token rates and no unrepresented non-zero charge.
  *
@@ -32,7 +33,10 @@ data class AiModelPricing(
     val inputUsdPer1M: Double,
     /** US dollars per one million [AiUsage.outputTokens]. */
     val outputUsdPer1M: Double,
-    /** Open provenance label, e.g. `provider-catalog`; use lowercase kebab-case, never a URL or credentials. */
+    /**
+     * Open provenance label, e.g. `provider-catalog`; lowercase kebab-case, never credentials.
+     * The format check rejects URLs and whitespace; producers must still exclude secrets.
+     */
     val source: String,
     /**
      * When the catalog was fetched on the local wall clock, Unix epoch milliseconds.
@@ -67,14 +71,19 @@ data class AiModelPricing(
         require(outputUsdPer1M.isFinite() && outputUsdPer1M.compareTo(0.0) >= 0) {
             "outputUsdPer1M must be finite and non-negative (negative zero is not canonical)"
         }
-        require(source.isNotBlank()) { "source must not be blank" }
+        require(source.matches(Regex("[a-z0-9]+(?:-[a-z0-9]+)*"))) {
+            "source must be lowercase kebab-case"
+        }
         require(fetchedAtEpochMs >= 0L) { "fetchedAtEpochMs must be non-negative" }
         require(validUntilEpochMs >= fetchedAtEpochMs) {
             "validUntilEpochMs must not precede fetchedAtEpochMs"
         }
     }
 
-    /** Inclusive observation window; equal timestamps describe a valid single instant. */
+    /**
+     * Inclusive local observation window; equal timestamps describe a valid single instant.
+     * A clock rollback before [fetchedAtEpochMs] deliberately returns false until it catches up.
+     */
     fun isValidAt(nowEpochMs: Long): Boolean = nowEpochMs in fetchedAtEpochMs..validUntilEpochMs
 
     companion object {
@@ -84,7 +93,10 @@ data class AiModelPricing(
          */
         const val SOURCE_PROVIDER_CATALOG: String = "provider-catalog"
 
-        /** Validates a catalog row without throwing on invalid fields. Does not check freshness. */
+        /**
+         * Validates a catalog row without throwing on invalid fields. Does not check freshness.
+         * Normalizes signed zero to canonical positive zero so an explicit free rate survives.
+         */
         fun orNull(
             providerId: String,
             modelId: String,
@@ -95,8 +107,16 @@ data class AiModelPricing(
             validUntilEpochMs: Long,
             extras: Map<String, String> = emptyMap(),
         ): AiModelPricing? = try {
-            AiModelPricing(providerId, modelId, inputUsdPer1M, outputUsdPer1M, source,
-                fetchedAtEpochMs, validUntilEpochMs, extras.toMap())
+            AiModelPricing(
+                providerId = providerId,
+                modelId = modelId,
+                inputUsdPer1M = inputUsdPer1M + 0.0,
+                outputUsdPer1M = outputUsdPer1M + 0.0,
+                source = source,
+                fetchedAtEpochMs = fetchedAtEpochMs,
+                validUntilEpochMs = validUntilEpochMs,
+                extras = extras.toMap(),
+            )
         } catch (_: IllegalArgumentException) {
             null
         }
@@ -115,7 +135,8 @@ data class AiModelPricing(
  * Resolve this companion lazily from the configured [PluginContext.llmProvider] with
  * `as? LlmModelPricingAPI`; plugin registration order is not guaranteed. A consumer naming this
  * type must declare `minApiVersion` at least the release introducing these types and honour
- * the `minBossVersion` host-relay gate on [PluginContext.llmProvider]. A producer implementing this type must also declare
+ * the `minBossVersion` host-relay gate on [PluginContext.llmProvider]. A producer implementing
+ * this type must also declare
  * `minApiVersion` at least the release introducing these types.
  */
 interface LlmModelPricingAPI {
@@ -142,7 +163,8 @@ interface LlmModelPricingAPI {
  * fallback must not be charged at the requested model's rate. Replies do not identify the
  * provider: applying or re-looking-up a rate also requires the gateway to guarantee the provider
  * did not change. If that cannot be established, the completed call remains unpriced. A blank
- * terminal id means the provider did not report which model answered and is also unpriced. Once an in-flight call has
+ * terminal id means the provider did not report which model answered and is also unpriced.
+ * Once an in-flight call has
  * completed unpriced, a caller enforcing a dollar budget must stop before another model call;
  * silently skipping that spend would make the cap ineffective.
  *

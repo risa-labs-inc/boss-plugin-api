@@ -38,7 +38,10 @@ data class CoMember(
  *
  * Implementors are expected to enforce that scoping server-side. The caller is
  * a plugin, so the answer must not depend on the plugin asking nicely: dedupe
- * by user id, return only active memberships, and exclude the caller.
+ * by user id, require active memberships for both the caller and the returned
+ * person in each shared organisation, and exclude the caller. Derive the caller
+ * from the authenticated server session; unauthenticated lookups must fail.
+ * Only those shared active organisations may appear in [CoMember.organisationIds].
  */
 interface OrganisationMembersProvider {
     /**

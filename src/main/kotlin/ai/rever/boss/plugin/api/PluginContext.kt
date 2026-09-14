@@ -461,6 +461,12 @@ interface PluginContext {
      * does: that one is the admin directory and carries roles. Prefer it over
      * [supabaseDataProvider] so each sharing feature stops hand-rolling the same
      * co-membership join.
+     *
+     * This member requires a BossConsole release containing this version of
+     * [PluginContext], which is [HostImplemented]. Consumers must gate direct
+     * access with `minBossVersion`; installing a newer API jar alone cannot add
+     * the getter to an older host's parent-first copy. The nullable default
+     * applies only once the getter exists on the host.
      */
     val organisationMembersProvider: OrganisationMembersProvider?
         get() = null

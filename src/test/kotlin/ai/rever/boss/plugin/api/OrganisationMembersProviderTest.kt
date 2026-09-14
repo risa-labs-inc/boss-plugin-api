@@ -13,10 +13,9 @@ import kotlin.test.assertTrue
  * every existing caller gets. Both are pinned here.
  *
  * The `organisationMembersProvider` default is pinned for a different reason.
- * It is what makes risa-labs-inc/boss-plugin-api#42 additive: a host compiled
- * against an earlier API does not override it, so the property has to answer
- * null rather than reaching an abstract member and throwing AbstractMethodError
- * at the first plugin that asks.
+ * A host exposing this API can omit the override and inherit a JVM default.
+ * This does not test older hosts that load their own older PluginContext;
+ * consumers still need the minBossVersion gate documented on the property.
  */
 class OrganisationMembersProviderTest {
 
@@ -57,35 +56,27 @@ class OrganisationMembersProviderTest {
     }
 
     @Test
-    fun `a host that does not implement the provider answers null rather than throwing`() {
-        // The whole additive claim rests on this. A PluginContext compiled before
-        // #42 overrides nothing here, so the property has to resolve to a default
-        // that answers null instead of reaching an abstract member.
-        //
-        // Asserted through PluginContext$DefaultImpls rather than a stub context
-        // deliberately. That static IS the compatibility guarantee: it is what an
-        // already-compiled host links against, and it is the line apiCheck records.
-        // Building a stub would instead prove that a class compiled TODAY works,
-        // which was never in doubt, and would need seven unrelated members
-        // (panelRegistry, tabRegistry, pluginScope and the health callbacks) whose
-        // churn would then break this test for reasons unrelated to #42.
-        // The receiver is a Proxy rather than null because Kotlin emits an
-        // Intrinsics null check on the synthetic `$this` parameter. The proxy
-        // never has a method called on it: a `get() = null` default ignores its
-        // receiver entirely, which is the point.
-        val olderHost =
+    fun `the provider getter is a JVM default returning null`() {
+        val getter = PluginContext::class.java.getMethod("getOrganisationMembersProvider")
+        assertTrue(getter.isDefault, "old implementations need a JVM default, not only DefaultImpls")
+
+        // Invoke the actual interface default through normal proxy dispatch.
+        // Calling DefaultImpls directly would still pass if JVM defaults were disabled.
+        val context =
             java.lang.reflect.Proxy.newProxyInstance(
                 PluginContext::class.java.classLoader,
                 arrayOf(PluginContext::class.java),
-            ) { _, method, _ -> error("the default must not call back into the host, but called ${method.name}") }
+            ) { proxy, method, _ ->
+                check(method == getter) { "unexpected callback: ${method.name}" }
+                java.lang.reflect.InvocationHandler.invokeDefault(proxy, method)
+            } as PluginContext
 
+        assertNull(context.organisationMembersProvider)
+
+        // Keep coverage for Kotlin's compatibility bridge as well.
         val defaults = Class.forName("ai.rever.boss.plugin.api.PluginContext\$DefaultImpls")
-        val getter = defaults.getMethod("getOrganisationMembersProvider", PluginContext::class.java)
-
-        assertNull(
-            getter.invoke(null, olderHost),
-            "the default getter must answer null for a host that does not override it",
-        )
+        val bridge = defaults.getMethod("getOrganisationMembersProvider", PluginContext::class.java)
+        assertNull(bridge.invoke(null, context))
     }
 
     @Test

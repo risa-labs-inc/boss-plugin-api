@@ -365,6 +365,30 @@ interface ActiveTabsProvider {
     fun setWorkspaceTheme(workspaceId: String, themeId: String): Boolean = false
 
     /**
+     * Stop running a Space, keeping its saved layout on disk.
+     *
+     * **Closing is not deleting, and the distinction is the whole reason this exists** rather than
+     * a plugin reaching for `WorkspaceDataProvider.deleteWorkspace`: that removes the FILE and is
+     * not reversible, where this drops the running copy and leaves the Space reopenable from the
+     * picker. A button labelled "close" must never be able to destroy a saved layout.
+     *
+     * Works on ANY Space this window is running, not only the one on screen. That was not possible
+     * until the cross-workspace addressing on this interface existed: every host write path read
+     * the current tree alone, so a Space that was merely preserved could not be acted on.
+     *
+     * **What it costs the user.** The Space's file holds its last EXPLICIT save, and nothing has
+     * been quietly saving the arrangement since the layout watcher stopped writing named Spaces -
+     * so closing a Space with unsaved changes loses them, exactly as the host's own switch prompt
+     * warns when it offers to close. A caller should confirm before calling this on a Space that
+     * has anything in it, and need not for an empty one, which has nothing to lose.
+     *
+     * @return true if the Space was running and was closed. `false` also covers a host with no
+     *   implementation, so gate the affordance on [supportsTabTransfer]-style evidence rather than
+     *   on this return - a Space that was already closed and a host that cannot close look alike.
+     */
+    fun closeWorkspace(workspaceId: String): Boolean = false
+
+    /**
      * WHICH theme a Space resolves to, by id, or null if the host cannot say.
      *
      * The identity where [workspaceAccents] is the appearance, and it exists because those are not

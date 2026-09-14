@@ -297,6 +297,34 @@ enum class TerminalSessionEventType {
  * @property pageIndexInVisit 1-based position of this page within an unbroken run of
  *   navigations on the same [domain] — navigation depth, without the paths that produced
  *   it. Resets when the user leaves the site.
+ * @property route templated shape of the page's path. Capped at 8 segments and 120
+ *   characters; a route exceeding the character cap is omitted rather than trimmed. The
+ *   property name is chosen to survive downstream scrubbing: a key ending in `url`, `uri`,
+ *   `href` or `link` is dropped by the analytics sanitizer, which matches by SUFFIX - so
+ *   `route` is safe, and so are `linkTargetDomain`, `linkKind` and `linkIsExternal`, whose
+ *   `link` is a prefix. The separator is `>` for the same family of reason, spelled out
+ *   below., `>`-separated and carrying **no raw
+ *   segment**: `/claims/8837261/detail` arrives as `"claims>:num>detail"`. Every segment is
+ *   either a placeholder describing its shape (`:num`, `:uuid`, `:hex`, `:date`, `:slug`)
+ *   or a literal drawn from a fixed vocabulary of route words — an unrecognised word
+ *   becomes `:word`, because `/accounts/john-smith` must not ship `john-smith`. Built by
+ *   the host, which is the only layer that ever sees the real path.
+ *
+ *   Separated with `>` rather than `/` on purpose: downstream scrubbers drop any value
+ *   containing a slash followed by two characters, so a `/`-joined route would be delivered
+ *   as an absent property rather than as data.
+ * @property routeKnown true only when **every** segment survived literally and the path was
+ *   not truncated. Read that strictly: `:num` is a placeholder, so `/claims/8837261/detail`
+ *   arrives as `claims>:num>detail` with `routeKnown = false`. Almost any route carrying an
+ *   id is therefore false, and **a consumer filtering on `routeKnown == true` will discard
+ *   most real traffic** - it answers "is this route entirely vocabulary" rather than "is this
+ *   route trustworthy". To separate a recognised structure from a guessed one, read [route]
+ *   itself: `:word` is the only placeholder that means "this segment was not recognised";
+ *   `:num`, `:uuid`, `:hex`, `:date` all mean "recognised, and deliberately not sent".
+ *
+ *   Truncation also sets it false. A path is capped at 8 segments and the whole route at 120
+ *   characters; over the character cap [route] is omitted entirely rather than trimmed, since
+ *   a route that needed cutting is not the route the page had.
  */
 data class BrowserEvent(
     val browserEventType: BrowserEventType,
@@ -306,7 +334,13 @@ data class BrowserEvent(
     val dwellMs: Long? = null,
     val activeMs: Long? = null,
     val pageIndexInVisit: Int? = null,
-    override val timestamp: Long = System.currentTimeMillis()
+    override val timestamp: Long = System.currentTimeMillis(),
+    // Appended AFTER timestamp on purpose. Inserting them ahead of it changed component8 from
+    // Long to String?, which keeps compiling at every positional destructuring site and quietly
+    // hands back a different type. The constructor descriptor and copy$default move either way;
+    // this at least makes the break loud rather than silent.
+    val route: String? = null,
+    val routeKnown: Boolean? = null,
 ) : ApplicationEvent
 
 /**
@@ -349,9 +383,17 @@ enum class BrowserNavigationType {
  * - element text, `textContent`, `innerText`, `placeholder`, `title`, `alt`
  * - `aria-label` and any other label, and `id` or `class` attributes
  * - input `value` — for any field, of any type
- * - `href`, `src`, `action`, and every other URL-bearing attribute
+ * - `src`, `action`, and every other URL-bearing attribute
  * - clipboard contents on [BrowserInteractionType.COPY] / [BrowserInteractionType.PASTE],
  *   which record only that it happened
+ * - the selected string on [BrowserInteractionType.TEXT_SELECTED], which is measured in the
+ *   page and discarded there; only its shape crosses into Kotlin
+ *
+ * One deliberate exception, scoped as narrowly as it can be: a link's `href` is read **only
+ * to derive its hostname**, which the host then reduces to a registrable domain
+ * ([linkTargetDomain]). The path, query string and fragment are cut in the page and never
+ * reach Kotlin, so the exception widens the event by one low-cardinality field rather than
+ * by a URL.
  *
  * That exclusion list is the whole design. In a healthcare deployment the page body is
  * PHI: a label reads "Patient MRN", an input value *is* the MRN, and an `id` is routinely
@@ -376,6 +418,34 @@ enum class BrowserNavigationType {
  * @property repeatCount how many times the interaction repeated in quick succession —
  *   the signal behind [BrowserInteractionType.RAGE_CLICK].
  * @property windowId the BOSS window the browser is hosted in, when known.
+ * @property linkTargetDomain registrable domain a clicked link points at, reduced from its
+ *   hostname by the same eTLD+1 collapse applied to [domain]. Null for a click on anything
+ *   that is not a link, and for links with no resolvable host (`#anchor`, `mailto:`).
+ * @property linkKind what kind of link was followed - exactly one of `"internal"`,
+ *   `"external"`, `"anchor"`, `"download"`, `"mailto"`, `"tel"`, or null. The host refuses
+ *   anything outside that closed set, so an unfamiliar value is a page interfering rather
+ *   than a new kind of link. Deliberately a `String` and not an enum: a new constant on an
+ *   enum is a `minBossVersion` trap for every consumer with a `when` over it, and the cost
+ *   of a typo'd literal is one absent property rather than a crash. Do not "fix" it into an
+ *   enum.
+ * @property linkIsExternal whether [linkTargetDomain] differs from [domain], **derived by
+ *   the host** rather than accepted from the page. Null - not false - whenever
+ *   [linkTargetDomain] is null, because "no resolvable host" and "stayed on this site" are
+ *   different claims and `false` reads as the second. Where it and [linkKind] disagree (a
+ *   `"download"` pointing off-site is both), this field is the authority on *where* and
+ *   [linkKind] on *what*; neither overrides the other.
+ * @property selectionCharBucket length of a selection on
+ *   [BrowserInteractionType.TEXT_SELECTED], floored to the **lower bound** of its bucket:
+ *   the value is literally one of 0, 25, 100 or 500, never an index. So `0` means 1-24
+ *   characters, `500` means 500 or more, and null means nothing was selected. A bucket says
+ *   whether someone grabbed a value or a paragraph; an exact count starts to fingerprint the
+ *   string itself.
+ * @property selectionWordCount whitespace-delimited word count of that selection, **capped at
+ *   500** - so 500 means "500 or more" and an average over this field is biased low for any
+ *   population that selects whole documents. Null when nothing was selected.
+ * @property selectionHasDigits whether the selection contained any digit — the difference
+ *   between copying prose and copying an identifier, which is the behaviour worth knowing.
+ *   Note this says a number was present, never which number.
  */
 data class BrowserInteractionEvent(
     val interactionType: BrowserInteractionType,
@@ -388,7 +458,15 @@ data class BrowserInteractionEvent(
     val scrollDepthPercent: Int? = null,
     val repeatCount: Int? = null,
     val windowId: String? = null,
-    override val timestamp: Long = System.currentTimeMillis()
+    override val timestamp: Long = System.currentTimeMillis(),
+    // Appended AFTER timestamp, for the reason given on BrowserEvent: ahead of it, component11
+    // silently changed from Long to String?.
+    val linkTargetDomain: String? = null,
+    val linkKind: String? = null,
+    val linkIsExternal: Boolean? = null,
+    val selectionCharBucket: Int? = null,
+    val selectionWordCount: Int? = null,
+    val selectionHasDigits: Boolean? = null,
 ) : ApplicationEvent
 
 /**
@@ -404,5 +482,15 @@ enum class BrowserInteractionType {
     FIELD_FOCUSED,
     FORM_SUBMITTED,
     COPY,
-    PASTE
+    PASTE,
+
+    /**
+     * The user selected text on the page.
+     *
+     * Carries the selection's *shape* only — see [BrowserInteractionEvent.selectionCharBucket],
+     * [BrowserInteractionEvent.selectionWordCount], [BrowserInteractionEvent.selectionHasDigits].
+     * The selected string is measured by the injected collector and discarded in the page;
+     * it never crosses into Kotlin, so no later filtering stage is load-bearing for it.
+     */
+    TEXT_SELECTED
 }

@@ -1089,9 +1089,10 @@ public final class ai/rever/boss/plugin/api/BrokeredCredentialProvider$DefaultIm
 
 public final class ai/rever/boss/plugin/api/BrowserEvent : ai/rever/boss/plugin/api/ApplicationEvent {
 	public static final field $stable I
-	public fun <init> (Lai/rever/boss/plugin/api/BrowserEventType;Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/api/BrowserNavigationType;Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/Integer;J)V
-	public synthetic fun <init> (Lai/rever/boss/plugin/api/BrowserEventType;Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/api/BrowserNavigationType;Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/Integer;JILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lai/rever/boss/plugin/api/BrowserEventType;Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/api/BrowserNavigationType;Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/Integer;JLjava/lang/String;Ljava/lang/Boolean;)V
+	public synthetic fun <init> (Lai/rever/boss/plugin/api/BrowserEventType;Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/api/BrowserNavigationType;Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/Integer;JLjava/lang/String;Ljava/lang/Boolean;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Lai/rever/boss/plugin/api/BrowserEventType;
+	public final fun component10 ()Ljava/lang/Boolean;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()Ljava/lang/String;
 	public final fun component4 ()Lai/rever/boss/plugin/api/BrowserNavigationType;
@@ -1099,8 +1100,9 @@ public final class ai/rever/boss/plugin/api/BrowserEvent : ai/rever/boss/plugin/
 	public final fun component6 ()Ljava/lang/Long;
 	public final fun component7 ()Ljava/lang/Integer;
 	public final fun component8 ()J
-	public final fun copy (Lai/rever/boss/plugin/api/BrowserEventType;Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/api/BrowserNavigationType;Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/Integer;J)Lai/rever/boss/plugin/api/BrowserEvent;
-	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/BrowserEvent;Lai/rever/boss/plugin/api/BrowserEventType;Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/api/BrowserNavigationType;Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/Integer;JILjava/lang/Object;)Lai/rever/boss/plugin/api/BrowserEvent;
+	public final fun component9 ()Ljava/lang/String;
+	public final fun copy (Lai/rever/boss/plugin/api/BrowserEventType;Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/api/BrowserNavigationType;Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/Integer;JLjava/lang/String;Ljava/lang/Boolean;)Lai/rever/boss/plugin/api/BrowserEvent;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/BrowserEvent;Lai/rever/boss/plugin/api/BrowserEventType;Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/api/BrowserNavigationType;Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/Integer;JLjava/lang/String;Ljava/lang/Boolean;ILjava/lang/Object;)Lai/rever/boss/plugin/api/BrowserEvent;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getActiveMs ()Ljava/lang/Long;
 	public final fun getBrowserEventType ()Lai/rever/boss/plugin/api/BrowserEventType;
@@ -1108,6 +1110,8 @@ public final class ai/rever/boss/plugin/api/BrowserEvent : ai/rever/boss/plugin/
 	public final fun getDwellMs ()Ljava/lang/Long;
 	public final fun getNavigationType ()Lai/rever/boss/plugin/api/BrowserNavigationType;
 	public final fun getPageIndexInVisit ()Ljava/lang/Integer;
+	public final fun getRoute ()Ljava/lang/String;
+	public final fun getRouteKnown ()Ljava/lang/Boolean;
 	public fun getTimestamp ()J
 	public final fun getWindowId ()Ljava/lang/String;
 	public fun hashCode ()I
@@ -1138,11 +1142,17 @@ public final class ai/rever/boss/plugin/api/BrowserIntegration$DefaultImpls {
 
 public final class ai/rever/boss/plugin/api/BrowserInteractionEvent : ai/rever/boss/plugin/api/ApplicationEvent {
 	public static final field $stable I
-	public fun <init> (Lai/rever/boss/plugin/api/BrowserInteractionType;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;J)V
-	public synthetic fun <init> (Lai/rever/boss/plugin/api/BrowserInteractionType;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;JILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lai/rever/boss/plugin/api/BrowserInteractionType;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;JLjava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Boolean;)V
+	public synthetic fun <init> (Lai/rever/boss/plugin/api/BrowserInteractionType;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;JLjava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Boolean;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Lai/rever/boss/plugin/api/BrowserInteractionType;
 	public final fun component10 ()Ljava/lang/String;
 	public final fun component11 ()J
+	public final fun component12 ()Ljava/lang/String;
+	public final fun component13 ()Ljava/lang/String;
+	public final fun component14 ()Ljava/lang/Boolean;
+	public final fun component15 ()Ljava/lang/Integer;
+	public final fun component16 ()Ljava/lang/Integer;
+	public final fun component17 ()Ljava/lang/Boolean;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()Ljava/lang/String;
 	public final fun component4 ()Ljava/lang/String;
@@ -1151,8 +1161,8 @@ public final class ai/rever/boss/plugin/api/BrowserInteractionEvent : ai/rever/b
 	public final fun component7 ()Ljava/lang/String;
 	public final fun component8 ()Ljava/lang/Integer;
 	public final fun component9 ()Ljava/lang/Integer;
-	public final fun copy (Lai/rever/boss/plugin/api/BrowserInteractionType;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;J)Lai/rever/boss/plugin/api/BrowserInteractionEvent;
-	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/BrowserInteractionEvent;Lai/rever/boss/plugin/api/BrowserInteractionType;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;JILjava/lang/Object;)Lai/rever/boss/plugin/api/BrowserInteractionEvent;
+	public final fun copy (Lai/rever/boss/plugin/api/BrowserInteractionType;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;JLjava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Boolean;)Lai/rever/boss/plugin/api/BrowserInteractionEvent;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/BrowserInteractionEvent;Lai/rever/boss/plugin/api/BrowserInteractionType;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;JLjava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Boolean;ILjava/lang/Object;)Lai/rever/boss/plugin/api/BrowserInteractionEvent;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getDomain ()Ljava/lang/String;
 	public final fun getElementPath ()Ljava/lang/String;
@@ -1161,8 +1171,14 @@ public final class ai/rever/boss/plugin/api/BrowserInteractionEvent : ai/rever/b
 	public final fun getFieldName ()Ljava/lang/String;
 	public final fun getInputType ()Ljava/lang/String;
 	public final fun getInteractionType ()Lai/rever/boss/plugin/api/BrowserInteractionType;
+	public final fun getLinkIsExternal ()Ljava/lang/Boolean;
+	public final fun getLinkKind ()Ljava/lang/String;
+	public final fun getLinkTargetDomain ()Ljava/lang/String;
 	public final fun getRepeatCount ()Ljava/lang/Integer;
 	public final fun getScrollDepthPercent ()Ljava/lang/Integer;
+	public final fun getSelectionCharBucket ()Ljava/lang/Integer;
+	public final fun getSelectionHasDigits ()Ljava/lang/Boolean;
+	public final fun getSelectionWordCount ()Ljava/lang/Integer;
 	public fun getTimestamp ()J
 	public final fun getWindowId ()Ljava/lang/String;
 	public fun hashCode ()I
@@ -1177,6 +1193,7 @@ public final class ai/rever/boss/plugin/api/BrowserInteractionType : java/lang/E
 	public static final field PASTE Lai/rever/boss/plugin/api/BrowserInteractionType;
 	public static final field RAGE_CLICK Lai/rever/boss/plugin/api/BrowserInteractionType;
 	public static final field SCROLL_DEPTH Lai/rever/boss/plugin/api/BrowserInteractionType;
+	public static final field TEXT_SELECTED Lai/rever/boss/plugin/api/BrowserInteractionType;
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lai/rever/boss/plugin/api/BrowserInteractionType;
 	public static fun values ()[Lai/rever/boss/plugin/api/BrowserInteractionType;

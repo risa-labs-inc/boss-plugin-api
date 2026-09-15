@@ -21,8 +21,9 @@ package ai.rever.boss.plugin.api
  * CLI-session equivalent is [AiCliPricing]; this separate native-route card carries provider,
  * model, provenance and freshness, and spells out USD in its rate names because it directly feeds
  * dollar budgets. Unlike the released [AiCliPricing], this native card rejects malformed rates
- * rather than clamping them: construction and `copy` both validate. Catalog producers should use
- * [orNull] to convert invalid rows to null.
+ * rather than clamping them: construction and `copy` both validate. Catalog producers must use
+ * [orNull] to convert invalid rows to null; direct construction and `copy` are the strict paths,
+ * reject negative zero, and retain the [extras] map they are handed rather than snapshotting it.
  */
 data class AiModelPricing(
     /** Stable provider id: key catalogs on [LlmConfig.providerId] verbatim, case-sensitively. */
@@ -63,21 +64,11 @@ data class AiModelPricing(
     val extras: Map<String, String> = emptyMap(),
 ) {
     init {
-        require(providerId.isValidIdentifier()) { "providerId must not be blank, padded or contain control characters" }
-        require(modelId.isValidIdentifier()) { "modelId must not be blank, padded or contain control characters" }
-        require(inputUsdPer1M.isFinite() && inputUsdPer1M.compareTo(0.0) >= 0) {
-            "inputUsdPer1M must be finite and non-negative (negative zero is not canonical)"
-        }
-        require(outputUsdPer1M.isFinite() && outputUsdPer1M.compareTo(0.0) >= 0) {
-            "outputUsdPer1M must be finite and non-negative (negative zero is not canonical)"
-        }
-        require(source.matches(SOURCE_FORMAT)) {
-            "source must be lowercase kebab-case"
-        }
-        require(fetchedAtEpochMs >= 0L) { "fetchedAtEpochMs must be non-negative" }
-        require(validUntilEpochMs >= fetchedAtEpochMs) {
-            "validUntilEpochMs must not precede fetchedAtEpochMs"
-        }
+        val error = validationError(
+            providerId, modelId, inputUsdPer1M, outputUsdPer1M, source,
+            fetchedAtEpochMs, validUntilEpochMs,
+        )
+        require(error == null) { requireNotNull(error) }
     }
 
     /**
@@ -97,7 +88,8 @@ data class AiModelPricing(
 
         /**
          * Validates a catalog row without throwing on invalid fields. Does not check freshness.
-         * Normalizes signed zero to canonical positive zero so an explicit free rate survives.
+         * Normalizes signed zero to canonical positive zero so an explicit free rate survives,
+         * and snapshots [extras]. The map must remain stable while this call copies it.
          */
         fun orNull(
             providerId: String,
@@ -108,19 +100,53 @@ data class AiModelPricing(
             fetchedAtEpochMs: Long,
             validUntilEpochMs: Long,
             extras: Map<String, String> = emptyMap(),
-        ): AiModelPricing? = try {
-            AiModelPricing(
+        ): AiModelPricing? {
+            val canonicalInput = inputUsdPer1M + 0.0
+            val canonicalOutput = outputUsdPer1M + 0.0
+            if (validationError(
+                    providerId, modelId, canonicalInput, canonicalOutput, source,
+                    fetchedAtEpochMs, validUntilEpochMs,
+                ) != null
+            ) return null
+            val extrasSnapshot = try {
+                extras.toMap()
+            } catch (_: IllegalArgumentException) {
+                return null
+            }
+            return AiModelPricing(
                 providerId = providerId,
                 modelId = modelId,
-                inputUsdPer1M = inputUsdPer1M + 0.0,
-                outputUsdPer1M = outputUsdPer1M + 0.0,
+                inputUsdPer1M = canonicalInput,
+                outputUsdPer1M = canonicalOutput,
                 source = source,
                 fetchedAtEpochMs = fetchedAtEpochMs,
                 validUntilEpochMs = validUntilEpochMs,
-                extras = extras.toMap(),
+                extras = extrasSnapshot,
             )
-        } catch (_: IllegalArgumentException) {
-            null
+        }
+
+        private fun validationError(
+            providerId: String,
+            modelId: String,
+            inputUsdPer1M: Double,
+            outputUsdPer1M: Double,
+            source: String,
+            fetchedAtEpochMs: Long,
+            validUntilEpochMs: Long,
+        ): String? = when {
+            !providerId.isValidIdentifier() ->
+                "providerId must not be blank, padded or contain control characters"
+            !modelId.isValidIdentifier() ->
+                "modelId must not be blank, padded or contain control characters"
+            !inputUsdPer1M.isFinite() || inputUsdPer1M.compareTo(0.0) < 0 ->
+                "inputUsdPer1M must be finite and non-negative (negative zero is not canonical)"
+            !outputUsdPer1M.isFinite() || outputUsdPer1M.compareTo(0.0) < 0 ->
+                "outputUsdPer1M must be finite and non-negative (negative zero is not canonical)"
+            !source.matches(SOURCE_FORMAT) -> "source must be lowercase kebab-case"
+            fetchedAtEpochMs < 0L -> "fetchedAtEpochMs must be non-negative"
+            validUntilEpochMs < fetchedAtEpochMs ->
+                "validUntilEpochMs must not precede fetchedAtEpochMs"
+            else -> null
         }
 
         private fun String.isValidIdentifier(): Boolean =
@@ -135,7 +161,7 @@ data class AiModelPricing(
  * It never means free. Zero rates are returned only when the provider catalog explicitly published
  * zero. Lookups are in-memory, synchronous and non-throwing so callers can snapshot pricing before
  * starting a turn without performing network work. Implementations must validate catalog data and
- * use [AiModelPricing.orNull] or convert any construction failure to null.
+ * use [AiModelPricing.orNull] to honour this non-throwing contract.
  *
  * Resolve this companion lazily from the configured [PluginContext.llmProvider] with
  * `as? LlmModelPricingAPI`; plugin registration order is not guaranteed. A consumer naming this
@@ -186,7 +212,8 @@ interface LlmModelPricingAPI {
  * `as? AiGatewayPricingAPI`; plugin registration order is not guaranteed. A consumer naming this
  * type must declare `minApiVersion: 1.0.92` or newer. Lookups are
  * in-memory, synchronous and non-throwing: they must not perform network work, and invalid
- * route/catalog data must produce null.
+ * route/catalog data must produce null. Implementations must construct returned cards through
+ * [AiModelPricing.orNull] to honour that contract.
  */
 interface AiGatewayPricingAPI {
     fun modelPricing(request: AiRequest): AiModelPricing?

@@ -1,12 +1,12 @@
 package ai.rever.boss.plugin.api
 
+import java.util.ConcurrentModificationException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNull
-import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
 class AiModelPricingTest {
@@ -95,6 +95,7 @@ class AiModelPricingTest {
         assertNull(row(model = ""))
         assertNull(row(provider = "OPENROUTER "))
         assertNull(row(model = "openai/gpt-5\t"))
+        assertNull(row(source = ""))
         assertNull(row(source = "\t"))
         assertNull(row(fetched = -1))
         assertNull(row(until = 9))
@@ -121,13 +122,13 @@ class AiModelPricingTest {
     }
 
     @Test
-    fun `direct constructor retains the documented metadata backing map`() {
-        val metadata = mutableMapOf("future-metadata" to "original")
-        val card = pricing(extras = metadata)
+    fun `catalog factory contains a metadata snapshot runtime failure`() {
+        val unstable = object : AbstractMap<String, String>() {
+            override val entries: Set<Map.Entry<String, String>>
+                get() = throw ConcurrentModificationException("producer changed during snapshot")
+        }
 
-        assertSame(metadata, card.extras)
-        metadata["future-metadata"] = "changed"
-        assertEquals("changed", card.extras["future-metadata"])
+        assertNull(AiModelPricing.orNull("p", "m", 1.0, 2.0, "provider-catalog", 0, 1, unstable))
     }
 
     @Test

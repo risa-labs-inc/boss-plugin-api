@@ -64,11 +64,15 @@ data class AiModelPricing(
     val extras: Map<String, String> = emptyMap(),
 ) {
     init {
-        val error = validationError(
-            providerId, modelId, inputUsdPer1M, outputUsdPer1M, source,
-            fetchedAtEpochMs, validUntilEpochMs,
-        )
-        require(error == null) { requireNotNull(error) }
+        validationError(
+            providerId = providerId,
+            modelId = modelId,
+            inputUsdPer1M = inputUsdPer1M,
+            outputUsdPer1M = outputUsdPer1M,
+            source = source,
+            fetchedAtEpochMs = fetchedAtEpochMs,
+            validUntilEpochMs = validUntilEpochMs,
+        )?.let { throw IllegalArgumentException(it) }
     }
 
     /**
@@ -104,13 +108,18 @@ data class AiModelPricing(
             val canonicalInput = inputUsdPer1M + 0.0
             val canonicalOutput = outputUsdPer1M + 0.0
             if (validationError(
-                    providerId, modelId, canonicalInput, canonicalOutput, source,
-                    fetchedAtEpochMs, validUntilEpochMs,
+                    providerId = providerId,
+                    modelId = modelId,
+                    inputUsdPer1M = canonicalInput,
+                    outputUsdPer1M = canonicalOutput,
+                    source = source,
+                    fetchedAtEpochMs = fetchedAtEpochMs,
+                    validUntilEpochMs = validUntilEpochMs,
                 ) != null
             ) return null
             val extrasSnapshot = try {
                 extras.toMap()
-            } catch (_: IllegalArgumentException) {
+            } catch (_: RuntimeException) {
                 return null
             }
             return AiModelPricing(
@@ -182,8 +191,10 @@ interface LlmModelPricingAPI {
  * The gateway resolves the same route [request] would use, including explicit provider/model
  * overrides and local CLI selection, then returns that route's current complete rate card. Callers
  * should pass a route-only `AiRequest(extras = routeExtras)` with blank system text and no messages,
- * then send the full request for inference with those exact extras. Implementations must not log or
- * retain request content during pricing lookup. Null means the route is unpriced, expired,
+ * then send the full request for inference with those exact extras. Implementations must resolve
+ * pricing from provider state and, of the request fields, may read only [AiRequest.extras]. They
+ * must not read, log or retain [AiRequest.system] or [AiRequest.messages] during pricing lookup.
+ * Null means the route is unpriced, expired,
  * unsupported, or unavailable; it never means free.
  *
  * This does not reserve spend or promise that a call cannot cross a cap. It supports an estimated

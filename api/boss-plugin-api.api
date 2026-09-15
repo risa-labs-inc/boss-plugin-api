@@ -7247,6 +7247,8 @@ public final class ai/rever/boss/plugin/browser/BrowserContextMenuInfo {
 	public fun <init> ()V
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;ZZZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/browser/FormFieldInfo;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ZZZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/browser/FormFieldInfo;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;ZZZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/browser/FormFieldInfo;Lai/rever/boss/plugin/browser/BrowserMenuContext;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ZZZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/browser/FormFieldInfo;Lai/rever/boss/plugin/browser/BrowserMenuContext;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()Z
@@ -7264,6 +7266,7 @@ public final class ai/rever/boss/plugin/browser/BrowserContextMenuInfo {
 	public final fun getHasVideo ()Z
 	public final fun getImageUrl ()Ljava/lang/String;
 	public final fun getLinkUrl ()Ljava/lang/String;
+	public final fun getMenuContext ()Lai/rever/boss/plugin/browser/BrowserMenuContext;
 	public final fun getPageTitle ()Ljava/lang/String;
 	public final fun getPageUrl ()Ljava/lang/String;
 	public final fun getSelectedText ()Ljava/lang/String;
@@ -7311,7 +7314,9 @@ public abstract interface class ai/rever/boss/plugin/browser/BrowserHandle {
 	public abstract fun canGoForward ()Z
 	public fun clearPageEventScript ()V
 	public abstract fun copySelection ()V
+	public fun copySelection (Lai/rever/boss/plugin/browser/BrowserMenuContext;)V
 	public abstract fun cut ()V
+	public fun cut (Lai/rever/boss/plugin/browser/BrowserMenuContext;)V
 	public fun dispatchCoBrowseInput (Ljava/lang/String;)V
 	public abstract fun dispose ()V
 	public fun executeJavaScript (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -7331,6 +7336,7 @@ public abstract interface class ai/rever/boss/plugin/browser/BrowserHandle {
 	public abstract fun loadUrl (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun loadUrlAndWait (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun paste ()V
+	public fun paste (Lai/rever/boss/plugin/browser/BrowserMenuContext;)V
 	public abstract fun reload ()V
 	public abstract fun removeFaviconListener (Lkotlin/jvm/functions/Function1;)V
 	public abstract fun removeLoadingListener (Lkotlin/jvm/functions/Function1;)V
@@ -7341,6 +7347,7 @@ public abstract interface class ai/rever/boss/plugin/browser/BrowserHandle {
 	public abstract fun requestPictureInPicture ()V
 	public abstract fun resetZoom ()V
 	public abstract fun selectAll ()V
+	public fun selectAll (Lai/rever/boss/plugin/browser/BrowserMenuContext;)V
 	public fun setCoBrowseControlEnabled (Z)V
 	public abstract fun setContextMenuCallback (Lkotlin/jvm/functions/Function1;)V
 	public abstract fun setFullscreenHandler (Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)V
@@ -7360,6 +7367,8 @@ public abstract interface class ai/rever/boss/plugin/browser/BrowserHandle {
 public final class ai/rever/boss/plugin/browser/BrowserHandle$DefaultImpls {
 	public static fun applyCoBrowseControl (Lai/rever/boss/plugin/browser/BrowserHandle;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static fun clearPageEventScript (Lai/rever/boss/plugin/browser/BrowserHandle;)V
+	public static fun copySelection (Lai/rever/boss/plugin/browser/BrowserHandle;Lai/rever/boss/plugin/browser/BrowserMenuContext;)V
+	public static fun cut (Lai/rever/boss/plugin/browser/BrowserHandle;Lai/rever/boss/plugin/browser/BrowserMenuContext;)V
 	public static fun dispatchCoBrowseInput (Lai/rever/boss/plugin/browser/BrowserHandle;Ljava/lang/String;)V
 	public static fun executeJavaScript (Lai/rever/boss/plugin/browser/BrowserHandle;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static fun fillCredentials (Lai/rever/boss/plugin/browser/BrowserHandle;Ljava/lang/String;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -7367,6 +7376,8 @@ public final class ai/rever/boss/plugin/browser/BrowserHandle$DefaultImpls {
 	public static fun getSupportsPageEventScript (Lai/rever/boss/plugin/browser/BrowserHandle;)Z
 	public static fun isCoBrowseCapturing (Lai/rever/boss/plugin/browser/BrowserHandle;)Z
 	public static fun loadUrlAndWait (Lai/rever/boss/plugin/browser/BrowserHandle;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static fun paste (Lai/rever/boss/plugin/browser/BrowserHandle;Lai/rever/boss/plugin/browser/BrowserMenuContext;)V
+	public static fun selectAll (Lai/rever/boss/plugin/browser/BrowserHandle;Lai/rever/boss/plugin/browser/BrowserMenuContext;)V
 	public static fun setCoBrowseControlEnabled (Lai/rever/boss/plugin/browser/BrowserHandle;Z)V
 	public static fun setOpenInNewTabWithDataCallback (Lai/rever/boss/plugin/browser/BrowserHandle;Lkotlin/jvm/functions/Function1;)V
 	public static fun setPageEventScript (Lai/rever/boss/plugin/browser/BrowserHandle;Ljava/lang/String;Lkotlin/jvm/functions/Function2;)V
@@ -7378,6 +7389,9 @@ public final class ai/rever/boss/plugin/browser/BrowserHandle$DefaultImpls {
 public final class ai/rever/boss/plugin/browser/BrowserHandleKt {
 	public static final field PAGE_EVENT_BRIDGE Ljava/lang/String;
 	public static final field PAGE_EVENT_EMIT Ljava/lang/String;
+}
+
+public abstract interface class ai/rever/boss/plugin/browser/BrowserMenuContext {
 }
 
 public final class ai/rever/boss/plugin/browser/BrowserProfileInfo {

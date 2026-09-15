@@ -266,3 +266,100 @@ interface McpToolRegistry {
      */
     suspend fun invoke(toolName: String, arguments: String): McpToolResult
 }
+
+/**
+ * Represents a tracked invocation of an MCP tool.
+ */
+data class McpExecutionRequest(
+    /** The stable correlation ID for the execution across its observation lifecycle. */
+    val executionId: String,
+    /** The stable provider/server identity exposed by the host for correlation/grouping. */
+    val providerId: String,
+    /** The name of the tool being executed. */
+    val toolName: String,
+    /**
+     * Bounded display preview of the tool arguments.
+     *
+     * This is a display preview, NOT a replay input or a raw audit payload.
+     * The host must sanitize/redact sensitive data before delivery and may completely
+     * omit data (e.g., oversized, malformed, or deeply nested content). An omitted
+     * preview may be empty or a host-defined display marker (such as `[OMITTED: ...]`);
+     * consumers must not assume previews are valid JSON or parse marker text as a protocol.
+     * Current expected bounds: input <= 16,384 chars, preview <= 4,096 chars, depth <= 8.
+     * Future or stricter hosts may impose smaller effective limits.
+     */
+    val arguments: String,
+    /**
+     * The epoch millisecond timestamp marking the start of the execution.
+     * Use this for timeline placement, not elapsed-time measurement: wall clocks
+     * can jump, and callback delivery includes observer overhead. Plugins needing
+     * an approximate observed duration should measure start-to-finish callbacks
+     * with a monotonic clock. This contract does not expose host execution duration.
+     */
+    val timestampMillis: Long
+)
+
+/**
+ * Represents a structured execution error from an MCP tool invocation or host limit.
+ *
+ * Host-provided display metadata, not a raw exception or audit record. Hosts must
+ * sanitize/redact and bound any exposed details using the preview limits in
+ * [McpExecutionRequest.arguments], and may omit exception details entirely.
+ */
+data class McpExecutionError(
+    /** Host-defined category; consumers must tolerate unfamiliar values. */
+    val type: String,
+    /** Optional sanitized display preview; null means details were omitted. */
+    val message: String?
+)
+
+/**
+ * The terminal outcome of an MCP execution.
+ */
+sealed interface McpExecutionOutcome {
+    /**
+     * The MCP handler completed normally.
+     * Note: This includes cases where the handler successfully returns an [McpToolResult]
+     * that contains an in-band MCP error (i.e., `isError == true`).
+     */
+    data class Success(
+        /**
+         * Sanitized, bounded display copy of the handler result, never its raw payload.
+         * The host must apply the preview limits and omission rules documented on
+         * [McpExecutionRequest.arguments] to [McpToolResult.text], preserving
+         * [McpToolResult.isError] even when content is omitted. Observation must not
+         * mutate the result returned to the tool caller.
+         */
+        val result: McpToolResult
+    ) : McpExecutionOutcome
+    /** The execution failed through a thrown/unhandled exception or host-level failure. */
+    data class Failure(val error: McpExecutionError) : McpExecutionOutcome
+    /** The host terminated the execution because the configured execution deadline was exceeded. */
+    data class Timeout(val error: McpExecutionError) : McpExecutionOutcome
+    /** The execution was explicitly cancelled. */
+    data class Cancelled(val error: McpExecutionError) : McpExecutionOutcome
+}
+
+/**
+ * A synchronous observer for MCP tool executions.
+ *
+ * Callbacks are invoked synchronously on the thread processing the outcome, outside
+ * registry synchronization locks. Callbacks must be fast and non-blocking, and may
+ * execute concurrently for different executions.
+ *
+ * Observer exceptions are isolated and swallowed by the host; they must never alter
+ * the underlying tool execution result, cancellation, timeout, or failure state.
+ *
+ * For a given [McpExecutionRequest.executionId], [onExecutionStarted] is guaranteed
+ * to precede [onExecutionFinished] for an observer admitted at execution start.
+ * Registration during an execution does not promise delivery of that execution.
+ * Unregister/unload may suppress its finish callback; observers must not rely on
+ * every start receiving a finish. Ordering across different executions is unspecified.
+ */
+interface McpToolExecutionObserver {
+    /** The unique identifier for this observer instance. */
+    val observerId: String
+
+    fun onExecutionStarted(request: McpExecutionRequest)
+    fun onExecutionFinished(request: McpExecutionRequest, outcome: McpExecutionOutcome)
+}

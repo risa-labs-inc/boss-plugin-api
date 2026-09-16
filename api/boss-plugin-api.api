@@ -1,3 +1,30 @@
+public final class ai/rever/boss/plugin/api/AccessibleSecretMetadata {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/util/List;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun component7 ()Ljava/lang/String;
+	public final fun component8 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lai/rever/boss/plugin/api/AccessibleSecretMetadata;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/AccessibleSecretMetadata;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lai/rever/boss/plugin/api/AccessibleSecretMetadata;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAccessLevel ()Ljava/lang/String;
+	public final fun getCreatedAt ()Ljava/lang/String;
+	public final fun getExpirationDate ()Ljava/lang/String;
+	public final fun getId ()Ljava/lang/String;
+	public final fun getTags ()Ljava/util/List;
+	public final fun getUpdatedAt ()Ljava/lang/String;
+	public final fun getUsername ()Ljava/lang/String;
+	public final fun getWebsite ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class ai/rever/boss/plugin/api/ActiveTabData {
 	public static final field $stable I
 	public static final field Companion Lai/rever/boss/plugin/api/ActiveTabData$Companion;
@@ -3675,6 +3702,20 @@ public final class ai/rever/boss/plugin/api/OrganisationMembersProvider$DefaultI
 	public static synthetic fun listCoMembers-0E7RQCE$default (Lai/rever/boss/plugin/api/OrganisationMembersProvider;Ljava/lang/String;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
+public final class ai/rever/boss/plugin/api/PaginatedAccessibleSecrets {
+	public static final field $stable I
+	public fun <init> (Ljava/util/List;Z)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun component2 ()Z
+	public final fun copy (Ljava/util/List;Z)Lai/rever/boss/plugin/api/PaginatedAccessibleSecrets;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/PaginatedAccessibleSecrets;Ljava/util/List;ZILjava/lang/Object;)Lai/rever/boss/plugin/api/PaginatedAccessibleSecrets;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getData ()Ljava/util/List;
+	public final fun getHasMore ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class ai/rever/boss/plugin/api/PaginatedSecretsData {
 	public static final field $stable I
 	public fun <init> (Ljava/util/List;Z)V
@@ -4380,7 +4421,9 @@ public abstract interface class ai/rever/boss/plugin/api/PluginContext {
 	public fun getRunConfigurationDataProvider ()Lai/rever/boss/plugin/api/RunConfigurationDataProvider;
 	public fun getSandbox ()Lai/rever/boss/plugin/api/PluginSandboxRef;
 	public fun getScreenCaptureProvider ()Lai/rever/boss/plugin/api/ScreenCaptureProvider;
+	public fun getSecretAccessProvider ()Lai/rever/boss/plugin/api/SecretAccessProvider;
 	public fun getSecretDataProvider ()Lai/rever/boss/plugin/api/SecretDataProvider;
+	public fun getSecretGrantManager ()Lai/rever/boss/plugin/api/SecretGrantManager;
 	public fun getSemanticTokenProvider ()Lai/rever/boss/plugin/api/SemanticTokenProvider;
 	public fun getSettingsProvider ()Lai/rever/boss/plugin/api/SettingsProvider;
 	public fun getSplitViewOperations ()Lai/rever/boss/plugin/api/SplitViewOperations;
@@ -4452,7 +4495,9 @@ public final class ai/rever/boss/plugin/api/PluginContext$DefaultImpls {
 	public static fun getRunConfigurationDataProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/RunConfigurationDataProvider;
 	public static fun getSandbox (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/PluginSandboxRef;
 	public static fun getScreenCaptureProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/ScreenCaptureProvider;
+	public static fun getSecretAccessProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/SecretAccessProvider;
 	public static fun getSecretDataProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/SecretDataProvider;
+	public static fun getSecretGrantManager (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/SecretGrantManager;
 	public static fun getSemanticTokenProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/SemanticTokenProvider;
 	public static fun getSettingsProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/SettingsProvider;
 	public static fun getSplitViewOperations (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/SplitViewOperations;
@@ -5628,6 +5673,22 @@ public final class ai/rever/boss/plugin/api/SearchResultIcon$Url : ai/rever/boss
 	public fun toString ()Ljava/lang/String;
 }
 
+public abstract interface class ai/rever/boss/plugin/api/SecretAccessProvider {
+	public abstract fun createSecret-gIAlu-s (Lai/rever/boss/plugin/api/CreateSecretRequestData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun deleteOwnedSecret-gIAlu-s (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun getSecret-gIAlu-s (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun listSecrets-0E7RQCE (IILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun listSecrets-0E7RQCE$default (Lai/rever/boss/plugin/api/SecretAccessProvider;IILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public abstract fun searchSecrets-BWLJW6A (Ljava/lang/String;IILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun searchSecrets-BWLJW6A$default (Lai/rever/boss/plugin/api/SecretAccessProvider;Ljava/lang/String;IILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public abstract fun updateOwnedSecret-gIAlu-s (Lai/rever/boss/plugin/api/UpdateSecretRequestData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class ai/rever/boss/plugin/api/SecretAccessProvider$DefaultImpls {
+	public static synthetic fun listSecrets-0E7RQCE$default (Lai/rever/boss/plugin/api/SecretAccessProvider;IILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun searchSecrets-BWLJW6A$default (Lai/rever/boss/plugin/api/SecretAccessProvider;Ljava/lang/String;IILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
 public abstract interface class ai/rever/boss/plugin/api/SecretDataProvider {
 	public abstract fun createSecret-gIAlu-s (Lai/rever/boss/plugin/api/CreateSecretRequestData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun deleteSecret-gIAlu-s (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -5775,6 +5836,13 @@ public final class ai/rever/boss/plugin/api/SecretEntryWithSharingData {
 	public fun toString ()Ljava/lang/String;
 }
 
+public abstract interface class ai/rever/boss/plugin/api/SecretGrantManager {
+	public abstract fun grantSecret-BWLJW6A (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun listGrants-gIAlu-s (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun listPrincipals-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun revokeSecret-BWLJW6A (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
 public final class ai/rever/boss/plugin/api/SecretMetadataData {
 	public static final field $stable I
 	public fun <init> ()V
@@ -5791,6 +5859,43 @@ public final class ai/rever/boss/plugin/api/SecretMetadataData {
 	public final fun getTwofaEnabled ()Z
 	public final fun getTwofaSecret ()Ljava/lang/String;
 	public final fun getTwofaType ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/SecretPrincipalData {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lai/rever/boss/plugin/api/SecretPrincipalData;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/SecretPrincipalData;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lai/rever/boss/plugin/api/SecretPrincipalData;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDescription ()Ljava/lang/String;
+	public final fun getDisplayName ()Ljava/lang/String;
+	public final fun getPrincipalId ()Ljava/lang/String;
+	public final fun getPrincipalType ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/SecretPrincipalGrantData {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lai/rever/boss/plugin/api/SecretPrincipalGrantData;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/SecretPrincipalGrantData;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lai/rever/boss/plugin/api/SecretPrincipalGrantData;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getGrantedAt ()Ljava/lang/String;
+	public final fun getGrantedByUserId ()Ljava/lang/String;
+	public final fun getPrincipalId ()Ljava/lang/String;
+	public final fun getPrincipalType ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }

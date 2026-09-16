@@ -214,6 +214,34 @@ interface PluginContext {
         get() = null
 
     /**
+     * Optional least-privilege secret access for this plugin or the currently executing tool.
+     *
+     * Unlike [secretDataProvider], this surface is host-bound to an execution principal and cannot
+     * list the user's general vault. It exposes only secrets created by that principal or shared
+     * with it by an explicit human grant; ownerless human secrets remain invisible. Callers do not
+     * provide their own plugin/tool identity. See [SecretAccessProvider] for the authorization
+     * contract.
+     *
+     * This is a host-implemented member of [PluginContext], so consuming plugins must gate on both
+     * the API release that introduces [SecretAccessProvider] and the first BOSS release that
+     * implements this property. Until then it returns null and callers must leave secret-backed
+     * features unconfigured rather than falling back to [secretDataProvider].
+     */
+    val secretAccessProvider: SecretAccessProvider?
+        get() = null
+
+    /**
+     * Human-only administration of grants from vault secrets to plugins and tools.
+     *
+     * The host returns this only to its trusted Secret Manager UI context. Ordinary plugin and
+     * tool contexts must receive null, including contexts whose principal owns a secret. Ownership
+     * permits using and maintaining that secret through [secretAccessProvider], not granting it
+     * onward. See [SecretGrantManager].
+     */
+    val secretGrantManager: SecretGrantManager?
+        get() = null
+
+    /**
      * Optional run configuration data provider for plugins that execute code.
      *
      * Returns null if run configuration is not available.

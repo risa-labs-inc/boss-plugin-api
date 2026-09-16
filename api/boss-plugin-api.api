@@ -5884,14 +5884,17 @@ public final class ai/rever/boss/plugin/api/SecretPrincipalData {
 
 public final class ai/rever/boss/plugin/api/SecretPrincipalGrantData {
 	public static final field $stable I
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()Ljava/lang/String;
 	public final fun component4 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lai/rever/boss/plugin/api/SecretPrincipalGrantData;
-	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/SecretPrincipalGrantData;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lai/rever/boss/plugin/api/SecretPrincipalGrantData;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lai/rever/boss/plugin/api/SecretPrincipalGrantData;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/SecretPrincipalGrantData;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lai/rever/boss/plugin/api/SecretPrincipalGrantData;
 	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAccessLevel ()Ljava/lang/String;
 	public final fun getGrantedAt ()Ljava/lang/String;
 	public final fun getGrantedByUserId ()Ljava/lang/String;
 	public final fun getPrincipalId ()Ljava/lang/String;

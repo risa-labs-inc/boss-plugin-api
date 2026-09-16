@@ -104,7 +104,7 @@ interface SecretGrantManager {
     /** Installed principals a human may explicitly grant a secret to. Contains no secret data. */
     suspend fun listPrincipals(): Result<List<SecretPrincipalData>>
 
-    /** Grants currently attached to [secretId], visible only when the human may manage it. */
+    /** Immutable creator ownership plus grants on [secretId], visible only to a human manager. */
     suspend fun listGrants(secretId: String): Result<List<SecretPrincipalGrantData>>
 
     /** Grant use of one secret to one host-known principal after an explicit human action. */
@@ -134,10 +134,12 @@ data class SecretPrincipalData(
     val description: String? = null,
 )
 
-/** One persisted human grant. No plaintext secret value is included. */
+/** One owner or persisted human grant. No plaintext secret value is included. */
 data class SecretPrincipalGrantData(
     val principalType: String,
     val principalId: String,
     val grantedAt: String,
     val grantedByUserId: String,
+    /** `owner` is immutable creator access; `use` is an explicit revocable human grant. */
+    val accessLevel: String = "use",
 )

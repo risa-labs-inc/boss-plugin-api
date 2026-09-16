@@ -594,7 +594,7 @@ group = "ai.rever.boss.plugin.bundled"
 // CLI selection, rather than asking a consumer to duplicate routing policy. New types only:
 // ApiClassLoader/minApiVersion, no host release.
 //
-version = "1.0.93"
+version = "1.0.94"
 
 java {
     toolchain {

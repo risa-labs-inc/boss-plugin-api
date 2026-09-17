@@ -71,3 +71,18 @@ See [AGENTS.md](AGENTS.md) for architecture and conventions.
 Licensed under the [Apache License, Version 2.0](LICENSE).
 
 Copyright 2025-2026 Risa Labs Inc.
+
+
+### Durable bookmark library contracts (unreleased)
+
+`BookmarkLibraryProvider` exposes revision-checked saved-record mutations and independent
+favorite membership. `BookmarkOpeningProvider` is the shared, window-scoped host opening
+route used by the shelf, library and search. Definitions match the corresponding host
+`plugin-bookmark-types` module in [BossConsole PR #759](https://github.com/risa-labs-inc/BossConsole/pull/759).
+
+The SDK supplies types, not host implementations. A plugin requiring the library must
+check `context.getPluginAPI(BookmarkOpeningProvider::class.java)` before initializing
+storage or registering its library providers, and refuse activation when unavailable.
+When this SDK change is released, consumers should pin that actual release and declare
+its `minApiVersion`; no future SDK or BOSS release number is assigned by this change.
+The existing release workflow publishes the next SDK release after a maintainer merges it.

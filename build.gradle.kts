@@ -594,6 +594,9 @@ group = "ai.rever.boss.plugin.bundled"
 // CLI selection, rather than asking a consumer to duplicate routing policy. New types only:
 // ApiClassLoader/minApiVersion, no host release.
 //
+// Unreleased: adds durable bookmark library and shared opening contracts.
+// SDK availability does not imply a host supplies BookmarkOpeningProvider;
+// consumers must check that capability before activating/migrating a library.
 version = "1.0.93"
 
 java {

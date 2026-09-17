@@ -7111,6 +7111,118 @@ public final class ai/rever/boss/plugin/bookmark/BookmarkCollection$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
+public abstract interface class ai/rever/boss/plugin/bookmark/BookmarkLibraryProvider {
+	public abstract fun createCollection (Ljava/lang/String;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun deleteBookmark (Ljava/lang/String;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun deleteCollection (Ljava/lang/String;Ljava/lang/String;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun getState ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun moveBookmark (Ljava/lang/String;Ljava/lang/String;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun reload (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun renameCollection (Ljava/lang/String;Ljava/lang/String;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun saveBookmark (Lai/rever/boss/plugin/bookmark/BookmarkSaveRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun setFavorite (Ljava/lang/String;ZJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun undo (Ljava/lang/String;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class ai/rever/boss/plugin/bookmark/BookmarkLibraryState {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun <init> (Ljava/util/List;Ljava/util/Set;ZLjava/lang/String;JZLjava/util/Set;)V
+	public synthetic fun <init> (Ljava/util/List;Ljava/util/Set;ZLjava/lang/String;JZLjava/util/Set;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun component2 ()Ljava/util/Set;
+	public final fun component3 ()Z
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()J
+	public final fun component6 ()Z
+	public final fun component7 ()Ljava/util/Set;
+	public final fun copy (Ljava/util/List;Ljava/util/Set;ZLjava/lang/String;JZLjava/util/Set;)Lai/rever/boss/plugin/bookmark/BookmarkLibraryState;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/bookmark/BookmarkLibraryState;Ljava/util/List;Ljava/util/Set;ZLjava/lang/String;JZLjava/util/Set;ILjava/lang/Object;)Lai/rever/boss/plugin/bookmark/BookmarkLibraryState;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCollections ()Ljava/util/List;
+	public final fun getDefaultFavorite ()Z
+	public final fun getError ()Ljava/lang/String;
+	public final fun getFavoriteBookmarkIds ()Ljava/util/Set;
+	public final fun getReady ()Z
+	public final fun getRevision ()J
+	public final fun getUnfiledCollectionIds ()Ljava/util/Set;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/bookmark/BookmarkMutationResult {
+	public static final field $stable I
+	public fun <init> (ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Z
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun copy (ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lai/rever/boss/plugin/bookmark/BookmarkMutationResult;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/bookmark/BookmarkMutationResult;ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lai/rever/boss/plugin/bookmark/BookmarkMutationResult;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBookmarkId ()Ljava/lang/String;
+	public final fun getCollectionId ()Ljava/lang/String;
+	public final fun getDuplicateBookmarkId ()Ljava/lang/String;
+	public final fun getMessage ()Ljava/lang/String;
+	public final fun getSuccess ()Z
+	public final fun getUndoToken ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/bookmark/BookmarkOpenResult {
+	public static final field $stable I
+	public fun <init> (ZLjava/lang/String;Ljava/lang/String;Z)V
+	public synthetic fun <init> (ZLjava/lang/String;Ljava/lang/String;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Z
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Z
+	public final fun copy (ZLjava/lang/String;Ljava/lang/String;Z)Lai/rever/boss/plugin/bookmark/BookmarkOpenResult;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/bookmark/BookmarkOpenResult;ZLjava/lang/String;Ljava/lang/String;ZILjava/lang/Object;)Lai/rever/boss/plugin/bookmark/BookmarkOpenResult;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getMessage ()Ljava/lang/String;
+	public final fun getReused ()Z
+	public final fun getSuccess ()Z
+	public final fun getTabId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class ai/rever/boss/plugin/bookmark/BookmarkOpeningProvider {
+	public abstract fun openBookmark (Lai/rever/boss/plugin/bookmark/Bookmark;Ljava/lang/String;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class ai/rever/boss/plugin/bookmark/BookmarkSaveRequest {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;Lai/rever/boss/plugin/workspace/TabConfig;Ljava/lang/String;ZJLjava/lang/String;ZLjava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Lai/rever/boss/plugin/workspace/TabConfig;Ljava/lang/String;ZJLjava/lang/String;ZLjava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lai/rever/boss/plugin/workspace/TabConfig;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Z
+	public final fun component5 ()J
+	public final fun component6 ()Ljava/lang/String;
+	public final fun component7 ()Z
+	public final fun component8 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Lai/rever/boss/plugin/workspace/TabConfig;Ljava/lang/String;ZJLjava/lang/String;ZLjava/lang/String;)Lai/rever/boss/plugin/bookmark/BookmarkSaveRequest;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/bookmark/BookmarkSaveRequest;Ljava/lang/String;Lai/rever/boss/plugin/workspace/TabConfig;Ljava/lang/String;ZJLjava/lang/String;ZLjava/lang/String;ILjava/lang/Object;)Lai/rever/boss/plugin/bookmark/BookmarkSaveRequest;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAllowCopy ()Z
+	public final fun getBookmarkId ()Ljava/lang/String;
+	public final fun getCollectionId ()Ljava/lang/String;
+	public final fun getExpectedRevision ()J
+	public final fun getFavorite ()Z
+	public final fun getName ()Ljava/lang/String;
+	public final fun getTabConfig ()Lai/rever/boss/plugin/workspace/TabConfig;
+	public final fun getWorkspaceName ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class ai/rever/boss/plugin/bookmark/FavoriteWorkspace {
 	public static final field $stable I
 	public static final field Companion Lai/rever/boss/plugin/bookmark/FavoriteWorkspace$Companion;

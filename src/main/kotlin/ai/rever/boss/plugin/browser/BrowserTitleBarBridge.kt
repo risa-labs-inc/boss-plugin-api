@@ -32,7 +32,9 @@ object BrowserTitleBarBridge {
 
     fun isWindowHosted(windowId: String): Boolean = windows[windowId] == true
 
-    private val hosts = mutableStateMapOf<String, () -> Unit>()
+    private class Host(val owner: Any, val focus: () -> Unit)
+    private val hosts = mutableStateMapOf<String, Host>()
+    private val legacyHostOwner = Any()
 
     fun state(handleId: String): BrowserTitleBarState? = entries[handleId]?.state
 
@@ -47,14 +49,18 @@ object BrowserTitleBarBridge {
         }
     }
 
-    fun host(handleId: String, focus: (() -> Unit)?) {
-        if (focus == null) hosts.remove(handleId) else hosts[handleId] = focus
+    fun host(handleId: String, focus: (() -> Unit)?) = host(handleId, legacyHostOwner, focus)
+
+    /** A disposed window cannot unregister the focus handler of a newer host. */
+    fun host(handleId: String, owner: Any, focus: (() -> Unit)?) {
+        if (focus != null) hosts[handleId] = Host(owner, focus)
+        else if (hosts[handleId]?.owner === owner) hosts.remove(handleId)
     }
 
     fun isHosted(handleId: String): Boolean = hosts.containsKey(handleId)
 
     fun focus(handleId: String): Boolean {
-        val focus = hosts[handleId] ?: return false
+        val focus = hosts[handleId]?.focus ?: return false
         focus()
         return true
     }

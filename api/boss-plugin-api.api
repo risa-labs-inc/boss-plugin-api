@@ -7451,6 +7451,7 @@ public final class ai/rever/boss/plugin/browser/BrowserTitleBarBridge {
 	public static final field $stable I
 	public static final field INSTANCE Lai/rever/boss/plugin/browser/BrowserTitleBarBridge;
 	public final fun focus (Ljava/lang/String;)Z
+	public final fun host (Ljava/lang/String;Ljava/lang/Object;Lkotlin/jvm/functions/Function0;)V
 	public final fun host (Ljava/lang/String;Lkotlin/jvm/functions/Function0;)V
 	public final fun hostWindow (Ljava/lang/String;Z)V
 	public final fun isHosted (Ljava/lang/String;)Z

@@ -595,7 +595,7 @@ group = "ai.rever.boss.plugin.bundled"
 // ApiClassLoader/minApiVersion, no host release.
 //
 // Next release (1.0.94): optional native browser title-bar navigation bridge.
-version = "1.0.93"
+version = "1.0.94"
 
 java {
     toolchain {

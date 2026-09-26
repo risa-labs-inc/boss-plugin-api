@@ -1,9 +1,13 @@
 package ai.rever.boss.plugin.browser
 
+import ai.rever.boss.plugin.api.HostImplemented
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateMapOf
 
-/** Browser-owned navigation state presented by an optional native host toolbar. */
+/**
+ * Browser-owned navigation state presented by an optional native host toolbar.
+ * Preserve this constructor when extending the contract; add compatible overloads instead.
+ */
 class BrowserTitleBarState(
     val url: String,
     val canGoBack: Boolean,
@@ -19,7 +23,19 @@ class BrowserTitleBarState(
     val address: BrowserAddressBarState? = null,
 )
 
-/** UI-thread-only handshake. Plugins retain their toolbar until the host claims their handle. */
+/**
+ * UI-thread-only handshake; [focus] invokes its callback synchronously on the caller thread.
+ * The browser package is shared parent-first. On newer hosts the host-compiled copy runs;
+ * older hosts use the API JAR copy, which remains unclaimed and keeps the in-tab toolbar.
+ * API 1.0.94 makes these types available; native hosting additionally requires a supporting host.
+ * Future member additions need a host release and minBossVersion gating.
+ *
+ * Plugins pair every [publish] with [remove] during composition disposal, including unload.
+ * Hosts independently own window claims and focus registrations and must release both on disposal.
+ * Browser publication cleanup deliberately cannot release a host-owned focus registration.
+ * A browser hides its toolbar when its window or handle is hosted.
+ */
+@HostImplemented
 object BrowserTitleBarBridge {
     private class Entry(val owner: Any, val state: BrowserTitleBarState)
 
@@ -45,7 +61,6 @@ object BrowserTitleBarBridge {
     fun remove(handleId: String, owner: Any) {
         if (entries[handleId]?.owner === owner) {
             entries.remove(handleId)
-            hosts.remove(handleId)
         }
     }
 
@@ -66,7 +81,13 @@ object BrowserTitleBarBridge {
     }
 }
 
-/** Editing and suggestions remain owned by the browser plugin, including keyboard semantics. */
+/**
+ * Editing and suggestions remain owned by the browser plugin, including keyboard semantics.
+ * Commands: submit, next, previous, accept, right, cancel, delete. Unknown commands are ignored.
+ * Revision changes acknowledge commands even when text is unchanged; hasSelectedSuggestion
+ * indicates that keyboard navigation currently selects a suggestion.
+ * Preserve this constructor when extending the contract; add compatible overloads instead.
+ */
 class BrowserAddressBarState(
     val text: String,
     val selectionStart: Int,

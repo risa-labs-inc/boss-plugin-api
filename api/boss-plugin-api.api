@@ -7178,6 +7178,23 @@ public final class ai/rever/boss/plugin/bookmark/WorkspacePanelTarget$Companion 
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
+public final class ai/rever/boss/plugin/browser/BrowserAddressBarState {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;IILjava/lang/String;ZZILkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function2;)V
+	public final fun getCompletion ()Ljava/lang/String;
+	public final fun getHasSelectedSuggestion ()Z
+	public final fun getOnCommand ()Lkotlin/jvm/functions/Function1;
+	public final fun getOnDismiss ()Lkotlin/jvm/functions/Function0;
+	public final fun getOnEdit ()Lkotlin/jvm/functions/Function3;
+	public final fun getOnFocusLost ()Lkotlin/jvm/functions/Function0;
+	public final fun getRevision ()I
+	public final fun getSelectionEnd ()I
+	public final fun getSelectionStart ()I
+	public final fun getShowSuggestions ()Z
+	public final fun getSuggestions ()Lkotlin/jvm/functions/Function2;
+	public final fun getText ()Ljava/lang/String;
+}
+
 public final class ai/rever/boss/plugin/browser/BrowserAuthSpec {
 	public static final field $stable I
 	public fun <init> ()V
@@ -7428,6 +7445,38 @@ public final class ai/rever/boss/plugin/browser/BrowserService$DefaultImpls {
 	public static fun listProfiles (Lai/rever/boss/plugin/browser/BrowserService;)Ljava/util/List;
 	public static fun seedProfile (Lai/rever/boss/plugin/browser/BrowserService;Ljava/lang/String;Lai/rever/boss/plugin/browser/BrowserAuthSpec;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static fun stashPopupPost (Lai/rever/boss/plugin/browser/BrowserService;Ljava/lang/String;[BLjava/lang/String;)V
+}
+
+public final class ai/rever/boss/plugin/browser/BrowserTitleBarBridge {
+	public static final field $stable I
+	public static final field INSTANCE Lai/rever/boss/plugin/browser/BrowserTitleBarBridge;
+	public final fun focus (Ljava/lang/String;)Z
+	public final fun host (Ljava/lang/String;Ljava/lang/Object;Lkotlin/jvm/functions/Function0;)V
+	public final fun host (Ljava/lang/String;Lkotlin/jvm/functions/Function0;)V
+	public final fun hostWindow (Ljava/lang/String;Z)V
+	public final fun isHosted (Ljava/lang/String;)Z
+	public final fun isWindowHosted (Ljava/lang/String;)Z
+	public final fun publish (Ljava/lang/String;Ljava/lang/Object;Lai/rever/boss/plugin/browser/BrowserTitleBarState;)V
+	public final fun remove (Ljava/lang/String;Ljava/lang/Object;)V
+	public final fun state (Ljava/lang/String;)Lai/rever/boss/plugin/browser/BrowserTitleBarState;
+}
+
+public final class ai/rever/boss/plugin/browser/BrowserTitleBarState {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;ZZZZLkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lai/rever/boss/plugin/browser/BrowserAddressBarState;)V
+	public synthetic fun <init> (Ljava/lang/String;ZZZZLkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lai/rever/boss/plugin/browser/BrowserAddressBarState;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getAddress ()Lai/rever/boss/plugin/browser/BrowserAddressBarState;
+	public final fun getBack ()Lkotlin/jvm/functions/Function0;
+	public final fun getBookmark ()Lkotlin/jvm/functions/Function0;
+	public final fun getBookmarked ()Z
+	public final fun getCanGoBack ()Z
+	public final fun getCanGoForward ()Z
+	public final fun getForward ()Lkotlin/jvm/functions/Function0;
+	public final fun getLoading ()Z
+	public final fun getNavigate ()Lkotlin/jvm/functions/Function1;
+	public final fun getReloadOrStop ()Lkotlin/jvm/functions/Function0;
+	public final fun getShare ()Lkotlin/jvm/functions/Function0;
+	public final fun getUrl ()Ljava/lang/String;
 }
 
 public final class ai/rever/boss/plugin/browser/FormFieldInfo {

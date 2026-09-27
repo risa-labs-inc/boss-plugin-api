@@ -7981,11 +7981,14 @@ public final class ai/rever/boss/plugin/ui/TerminalTitleBarAction {
 public final class ai/rever/boss/plugin/ui/TerminalTitleBarBridge {
 	public static final field $stable I
 	public static final field INSTANCE Lai/rever/boss/plugin/ui/TerminalTitleBarBridge;
+	public final fun Content (Ljava/lang/String;Landroidx/compose/runtime/Composer;I)V
 	public final fun actions (Ljava/lang/String;)Ljava/util/List;
 	public final fun hostWindow (Ljava/lang/String;Z)V
 	public final fun isHosted (Ljava/lang/String;)Z
 	public final fun publish (Ljava/lang/String;Ljava/lang/Object;ZLjava/util/List;)V
+	public final fun registerProvider (Ljava/lang/Object;Lkotlin/jvm/functions/Function3;)V
 	public final fun remove (Ljava/lang/Object;)V
+	public final fun unregisterProvider (Ljava/lang/Object;)V
 }
 
 public final class ai/rever/boss/plugin/workspace/BreadcrumbConfig {

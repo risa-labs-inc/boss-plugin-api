@@ -595,7 +595,8 @@ group = "ai.rever.boss.plugin.bundled"
 // ApiClassLoader/minApiVersion, no host release.
 //
 // Next release (1.0.94): optional native browser title-bar navigation bridge.
-version = "1.0.94"
+// 1.0.95 adds the optional, window-scoped terminal native-titlebar action bridge.
+version = "1.0.95"
 
 java {
     toolchain {

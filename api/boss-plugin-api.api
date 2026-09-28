@@ -7967,6 +7967,34 @@ public final class ai/rever/boss/plugin/ui/ContextMenuItemData {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class ai/rever/boss/plugin/ui/TerminalTitleBarAction {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroidx/compose/ui/graphics/vector/ImageVector;ZLkotlin/jvm/functions/Function0;)V
+	public final fun getActive ()Z
+	public final fun getIcon ()Landroidx/compose/ui/graphics/vector/ImageVector;
+	public final fun getId ()Ljava/lang/String;
+	public final fun getLabel ()Ljava/lang/String;
+	public final fun getOnClick ()Lkotlin/jvm/functions/Function0;
+	public final fun getSymbol ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/ui/TerminalTitleBarBridge {
+	public static final field $stable I
+	public static final field INSTANCE Lai/rever/boss/plugin/ui/TerminalTitleBarBridge;
+	public final fun CallBarContent (Ljava/lang/String;Landroidx/compose/runtime/Composer;I)V
+	public final fun Content (Ljava/lang/String;Landroidx/compose/runtime/Composer;I)V
+	public final fun actions (Ljava/lang/String;)Ljava/util/List;
+	public final fun hasCallBar (Ljava/lang/String;)Z
+	public final fun hostWindow (Ljava/lang/String;Z)V
+	public final fun isHosted (Ljava/lang/String;)Z
+	public final fun publish (Ljava/lang/String;Ljava/lang/Object;ZLjava/util/List;)V
+	public final fun publishCallBar (Ljava/lang/String;Ljava/lang/Object;Lkotlin/jvm/functions/Function2;)V
+	public final fun registerProvider (Ljava/lang/Object;Lkotlin/jvm/functions/Function3;)V
+	public final fun remove (Ljava/lang/Object;)V
+	public final fun removeCallBar (Ljava/lang/Object;)V
+	public final fun unregisterProvider (Ljava/lang/Object;)V
+}
+
 public final class ai/rever/boss/plugin/workspace/BreadcrumbConfig {
 	public static final field $stable I
 	public static final field Companion Lai/rever/boss/plugin/workspace/BreadcrumbConfig$Companion;

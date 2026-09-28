@@ -596,7 +596,7 @@ group = "ai.rever.boss.plugin.bundled"
 //
 // 1.0.94: optional native browser title-bar navigation bridge.
 // 1.0.95 adds the optional, window-scoped terminal native-titlebar action bridge.
-version = "1.0.94"
+version = "1.0.95"
 // Local integration builds may stage the next artifact without advancing release CI twice.
 providers.gradleProperty("localApiVersion").orNull?.let { version = it }
 

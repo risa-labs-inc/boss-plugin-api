@@ -596,6 +596,10 @@ group = "ai.rever.boss.plugin.bundled"
 //
 // 1.0.94: optional native browser title-bar navigation bridge.
 // 1.0.95 adds the optional, window-scoped terminal native-titlebar action bridge.
+// 1.0.96: adds AiDecisionAPI (AiDecision.kt), typed System One decisions (Jev on OpenRouter,
+// Jev-compatible local runtimes) served by the AI gateway plugin so no plugin posts to a model API
+// itself. New types only, not HostImplemented: gate on minApiVersion 1.0.96. decide() never falls
+// back across providers, so local state cannot reach a cloud model.
 version = "1.0.95"
 // Local integration builds may stage the next artifact without advancing release CI twice.
 providers.gradleProperty("localApiVersion").orNull?.let { version = it }

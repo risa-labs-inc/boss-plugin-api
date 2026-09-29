@@ -600,7 +600,7 @@ group = "ai.rever.boss.plugin.bundled"
 // Jev-compatible local runtimes) served by the AI gateway plugin so no plugin posts to a model API
 // itself. New types only, not HostImplemented: gate on minApiVersion 1.0.96. decide() never falls
 // back across providers, so local state cannot reach a cloud model.
-version = "1.0.95"
+version = "1.0.96"
 // Local integration builds may stage the next artifact without advancing release CI twice.
 providers.gradleProperty("localApiVersion").orNull?.let { version = it }
 

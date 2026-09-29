@@ -73,6 +73,13 @@ class AiDecisionTypesTest {
     fun `model display name defaults to id`() {
         assertEquals("jev-1", AiDecisionModel("jev-1").displayName)
         assertEquals("Jev", AiDecisionModel("jev-1", "Jev").displayName)
+        assertEquals(emptyMap(), AiDecisionModel("jev-1").extras)
+    }
+
+    @Test
+    fun `model extras take part in equality`() {
+        assertEquals(AiDecisionModel("m", "M", mapOf("k" to "v")), AiDecisionModel("m", "M", mapOf("k" to "v")))
+        assertNotEquals(AiDecisionModel("m"), AiDecisionModel("m", extras = mapOf("k" to "v")))
     }
 
     @Test

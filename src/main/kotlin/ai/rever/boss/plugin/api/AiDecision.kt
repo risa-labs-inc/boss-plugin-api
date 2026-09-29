@@ -14,7 +14,8 @@ package ai.rever.boss.plugin.api
 interface AiDecisionAPI {
     /**
      * Providers that serve decision models, each with its models. Local providers are probed on
-     * every call, with a short timeout; one that does not answer is still listed, with
+     * every call, each probe bounded at 2 s or less and run concurrently, so a picker waits about
+     * 2 s at most; one that does not answer is still listed, with
      * [AiDecisionProvider.reachable] false and no models. Call it on demand (opening a picker, a
      * refresh), never from recomposition or a timer.
      */
@@ -49,7 +50,8 @@ data class AiDecisionRequest(
     val timeoutMs: Long = 30_000,
     /**
      * Enforced while streaming, not after buffering. `<= 0` fails with `INVALID_INPUT`, as does a
-     * value above the implementation's own cap.
+     * value above the implementation's own cap. Every cap is at least this default, so an
+     * all-defaults request always passes the bound.
      */
     val maxResponseBytes: Int = 1_048_576,
     /** Transport or gateway hints. Unknown keys are ignored, never rejected. Never credentials. */
@@ -89,7 +91,9 @@ data class AiDecisionProvider(
     val providerName: String,
     /**
      * True only for loopback endpoints (127.0.0.0/8, ::1, localhost), so request state never
-     * leaves this machine. Never true for a LAN address.
+     * leaves this machine. Never true for a LAN address. Implementations dial a literal loopback
+     * address (or check the resolved one) and bypass any HTTP proxy, so a hosts-file entry or a
+     * proxy cannot route local state off the machine.
      */
     val local: Boolean,
     val reachable: Boolean,
@@ -102,16 +106,21 @@ data class AiDecisionProvider(
     /**
      * True when the provider is unusable only because no credential is configured, so a UI can
      * offer setup instead of a generic error. Implies [reachable] is false; UIs check it before
-     * [reachable], so a provider that breaks the invariant still gets the setup prompt.
+     * [reachable], so a provider that breaks the invariant still gets the setup prompt. [models]
+     * may still be listed so a UI can show what setup unlocks; show them as unavailable next to
+     * the setup prompt, never as usable.
      */
     val needsCredential: Boolean = false,
     /** Unknown keys are ignored. Never credentials. */
     val extras: Map<String, String> = emptyMap(),
 )
 
+/** Never add a constructor parameter; extend through [extras], as on [AiDecisionRequest]. */
 data class AiDecisionModel(
     val id: String,
     val displayName: String = id,
+    /** Unknown keys are ignored. Never credentials. */
+    val extras: Map<String, String> = emptyMap(),
 )
 
 /**
@@ -120,6 +129,9 @@ data class AiDecisionModel(
  * [cause] is for diagnostics only and never shown to users. Implementations set it only to a JDK
  * transport exception (an `IOException` such as `ConnectException` or `HttpTimeoutException`),
  * never to one whose message may carry upstream prose, request content or credentials.
+ *
+ * [message] is safe to display and log; it never contains request or response bodies, upstream
+ * error prose, or credentials.
  */
 class AiDecisionException(
     val code: String,

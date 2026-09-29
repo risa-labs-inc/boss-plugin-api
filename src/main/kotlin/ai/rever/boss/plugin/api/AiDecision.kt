@@ -17,7 +17,8 @@ interface AiDecisionAPI {
      * every call, each probe bounded at 2 s or less and run concurrently, so a picker waits about
      * 2 s at most; one that does not answer is still listed, with
      * [AiDecisionProvider.reachable] false and no models. Call it on demand (opening a picker, a
-     * refresh), never from recomposition or a timer.
+     * refresh), never from recomposition or a timer. Never throws except `CancellationException`:
+     * a provider that fails to enumerate is listed with `reachable` false and a [AiDecisionProvider.detail].
      */
     suspend fun decisionProviders(): List<AiDecisionProvider>
 
@@ -46,7 +47,10 @@ data class AiDecisionRequest(
     val providerId: String,
     /** SystemOne request JSON; its `model` names the model. */
     val body: String,
-    /** Outside [MIN_TIMEOUT_MS]..[MAX_TIMEOUT_MS] fails with `INVALID_INPUT`; never clamped. */
+    /**
+     * End to end: connect, request and the full response read. Outside
+     * [MIN_TIMEOUT_MS]..[MAX_TIMEOUT_MS] fails with `INVALID_INPUT`; never clamped.
+     */
     val timeoutMs: Long = 30_000,
     /**
      * Enforced while streaming, not after buffering. `<= 0` fails with `INVALID_INPUT`, as does a
@@ -75,6 +79,7 @@ data class AiDecisionRequest(
 data class AiDecisionReply(
     /** The provider's SystemOne response JSON, unmodified. */
     val body: String,
+    /** Always the request's [AiDecisionRequest.providerId]; callers may assert it. */
     val providerId: String,
     val latencyMs: Long,
     /** Unknown keys are ignored. Never credentials. */
@@ -96,6 +101,7 @@ data class AiDecisionProvider(
      * proxy cannot route local state off the machine.
      */
     val local: Boolean,
+    /** Usable right now, not merely network-reachable: false whenever [needsCredential] is true. */
     val reachable: Boolean,
     val models: List<AiDecisionModel>,
     /**

@@ -18,6 +18,27 @@ class AiDecisionTypesTest {
     }
 
     @Test
+    fun `timeout bounds are 1s to 120s`() {
+        assertEquals(1_000L, AiDecisionRequest.MIN_TIMEOUT_MS)
+        assertEquals(120_000L, AiDecisionRequest.MAX_TIMEOUT_MS)
+        assertTrue(AiDecisionRequest("p", "{}").timeoutMs in AiDecisionRequest.MIN_TIMEOUT_MS..AiDecisionRequest.MAX_TIMEOUT_MS)
+    }
+
+    @Test
+    fun `extras default to empty on every type and take part in equality`() {
+        val request = AiDecisionRequest("p", "{}")
+        val reply = AiDecisionReply("{}", "p", 5)
+        val provider = AiDecisionProvider("p", "P", local = false, reachable = true, models = emptyList())
+
+        assertEquals(emptyMap(), request.extras)
+        assertEquals(emptyMap(), reply.extras)
+        assertEquals(emptyMap(), provider.extras)
+        assertNotEquals(request, request.copy(extras = mapOf("k" to "v")))
+        assertNotEquals(reply, reply.copy(extras = mapOf("k" to "v")))
+        assertNotEquals(provider, provider.copy(extras = mapOf("k" to "v")))
+    }
+
+    @Test
     fun `model display name defaults to id`() {
         assertEquals("jev-1", AiDecisionModel("jev-1").displayName)
         assertEquals("Jev", AiDecisionModel("jev-1", "Jev").displayName)

@@ -5,6 +5,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class AiDecisionTypesTest {
 
@@ -31,6 +32,15 @@ class AiDecisionTypesTest {
         assertFalse(a.reachable)
         assertEquals(a, b)
         assertNotEquals(a, a.copy(reachable = true))
+    }
+
+    @Test
+    fun `needsCredential defaults to false and takes part in equality`() {
+        val a = AiDecisionProvider("openrouter", "OpenRouter", local = false, reachable = false, models = emptyList())
+
+        assertFalse(a.needsCredential)
+        assertTrue(a.copy(needsCredential = true).needsCredential)
+        assertNotEquals(a, a.copy(needsCredential = true))
     }
 
     @Test

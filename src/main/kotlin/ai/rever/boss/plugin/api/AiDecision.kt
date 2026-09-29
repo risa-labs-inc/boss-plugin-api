@@ -55,6 +55,11 @@ data class AiDecisionProvider(
     val models: List<AiDecisionModel>,
     /** Why it is unusable, or where it listens; plain text for display. */
     val detail: String? = null,
+    /**
+     * True when the provider is unusable only because no credential is configured, so a UI can
+     * offer setup instead of a generic error.
+     */
+    val needsCredential: Boolean = false,
 )
 
 data class AiDecisionModel(

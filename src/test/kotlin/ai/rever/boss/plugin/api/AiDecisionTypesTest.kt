@@ -5,6 +5,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNull
+import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
 class AiDecisionTypesTest {
@@ -21,7 +22,37 @@ class AiDecisionTypesTest {
     fun `timeout bounds are 1s to 120s`() {
         assertEquals(1_000L, AiDecisionRequest.MIN_TIMEOUT_MS)
         assertEquals(120_000L, AiDecisionRequest.MAX_TIMEOUT_MS)
+    }
+
+    @Test
+    fun `default timeout lies within the bounds`() {
         assertTrue(AiDecisionRequest("p", "{}").timeoutMs in AiDecisionRequest.MIN_TIMEOUT_MS..AiDecisionRequest.MAX_TIMEOUT_MS)
+    }
+
+    @Test
+    fun `request toString omits body and extras values`() {
+        val body = """{"model":"jev-1","state":{"patient":"SECRET-STATE"}}"""
+        val s = AiDecisionRequest("openrouter", body, extras = mapOf("hint" to "SECRET-EXTRA")).toString()
+
+        assertFalse("SECRET-STATE" in s)
+        assertFalse("SECRET-EXTRA" in s)
+        assertTrue("providerId=openrouter" in s)
+        assertTrue("body.length=${body.length}" in s)
+        assertTrue("timeoutMs=30000" in s)
+        assertTrue("hint" in s)
+    }
+
+    @Test
+    fun `reply toString omits body and extras values`() {
+        val body = """{"answers":["SECRET-ANSWER"]}"""
+        val s = AiDecisionReply(body, "ollaya", 42, extras = mapOf("k" to "SECRET-EXTRA")).toString()
+
+        assertFalse("SECRET-ANSWER" in s)
+        assertFalse("SECRET-EXTRA" in s)
+        assertTrue("providerId=ollaya" in s)
+        assertTrue("body.length=${body.length}" in s)
+        assertTrue("latencyMs=42" in s)
+        assertTrue("k" in s)
     }
 
     @Test
@@ -75,6 +106,16 @@ class AiDecisionTypesTest {
         val e = AiDecisionException(AiDecisionException.LOCAL_UNAVAILABLE, "down")
 
         assertEquals("LOCAL_UNAVAILABLE", e.code)
+        assertEquals("down", e.message)
+        assertNull(e.cause)
+    }
+
+    @Test
+    fun `exception keeps its cause`() {
+        val cause = java.net.ConnectException("refused")
+        val e = AiDecisionException(AiDecisionException.LOCAL_UNAVAILABLE, "down", cause)
+
+        assertSame(cause, e.cause)
         assertEquals("down", e.message)
     }
 

@@ -26,14 +26,16 @@ interface AiDecisionAPI {
      * cloud one.
      *
      * Every failure is an [AiDecisionException]; implementations wrap anything else as
-     * [AiDecisionException.UPSTREAM_ERROR] or [AiDecisionException.NETWORK_ERROR].
+     * [AiDecisionException.UPSTREAM_ERROR] or [AiDecisionException.NETWORK_ERROR]. A local
+     * provider whose loopback socket refuses the connection fails with
+     * [AiDecisionException.LOCAL_UNAVAILABLE], never `NETWORK_ERROR`.
      * `CancellationException` is rethrown, never wrapped in `Result.failure`.
      */
     suspend fun decide(request: AiDecisionRequest): Result<AiDecisionReply>
 }
 
 /**
- * One decision call.
+ * One decision call. [toString] omits [body] and [extras] values; [body] is caller state.
  *
  * Never add a constructor parameter: it moves the constructor and `copy$default`, which breaks
  * consumers built earlier. Extend through [extras], with a body-level view over it as
@@ -45,18 +47,29 @@ data class AiDecisionRequest(
     val body: String,
     /** Outside [MIN_TIMEOUT_MS]..[MAX_TIMEOUT_MS] fails with `INVALID_INPUT`; never clamped. */
     val timeoutMs: Long = 30_000,
-    /** Enforced while streaming, not after buffering. `<= 0` fails with `INVALID_INPUT`. */
+    /**
+     * Enforced while streaming, not after buffering. `<= 0` fails with `INVALID_INPUT`, as does a
+     * value above the implementation's own cap.
+     */
     val maxResponseBytes: Int = 1_048_576,
     /** Transport or gateway hints. Unknown keys are ignored, never rejected. Never credentials. */
     val extras: Map<String, String> = emptyMap(),
 ) {
+    override fun toString(): String =
+        "AiDecisionRequest(providerId=$providerId, body.length=${body.length}, timeoutMs=$timeoutMs, " +
+            "maxResponseBytes=$maxResponseBytes, extras.keys=${extras.keys})"
+
     companion object {
+        /** Stable, and inlined into consumers at compile time: changing either is a contract change. */
         const val MIN_TIMEOUT_MS = 1_000L
         const val MAX_TIMEOUT_MS = 120_000L
     }
 }
 
-/** Never add a constructor parameter; extend through [extras], as on [AiDecisionRequest]. */
+/**
+ * Never add a constructor parameter; extend through [extras], as on [AiDecisionRequest].
+ * [toString] omits [body] and [extras] values.
+ */
 data class AiDecisionReply(
     /** The provider's SystemOne response JSON, unmodified. */
     val body: String,
@@ -64,7 +77,11 @@ data class AiDecisionReply(
     val latencyMs: Long,
     /** Unknown keys are ignored. Never credentials. */
     val extras: Map<String, String> = emptyMap(),
-)
+) {
+    override fun toString(): String =
+        "AiDecisionReply(providerId=$providerId, body.length=${body.length}, latencyMs=$latencyMs, " +
+            "extras.keys=${extras.keys})"
+}
 
 /** Never add a constructor parameter; extend through [extras], as on [AiDecisionRequest]. */
 data class AiDecisionProvider(
@@ -84,7 +101,8 @@ data class AiDecisionProvider(
     val detail: String? = null,
     /**
      * True when the provider is unusable only because no credential is configured, so a UI can
-     * offer setup instead of a generic error. Implies [reachable] is false.
+     * offer setup instead of a generic error. Implies [reachable] is false; UIs check it before
+     * [reachable], so a provider that breaks the invariant still gets the setup prompt.
      */
     val needsCredential: Boolean = false,
     /** Unknown keys are ignored. Never credentials. */
@@ -96,11 +114,18 @@ data class AiDecisionModel(
     val displayName: String = id,
 )
 
-/** Failure from [AiDecisionAPI.decide]; [code] is one of the constants below. Treat as an open set. */
+/**
+ * Failure from [AiDecisionAPI.decide]; [code] is one of the constants below. Treat as an open set.
+ *
+ * [cause] is for diagnostics only and never shown to users. Implementations set it only to a JDK
+ * transport exception (an `IOException` such as `ConnectException` or `HttpTimeoutException`),
+ * never to one whose message may carry upstream prose, request content or credentials.
+ */
 class AiDecisionException(
     val code: String,
     message: String,
-) : Exception(message) {
+    cause: Throwable? = null,
+) : Exception(message, cause) {
     companion object {
         const val UNKNOWN_PROVIDER = "UNKNOWN_PROVIDER"
         const val MISSING_CREDENTIAL = "MISSING_CREDENTIAL"

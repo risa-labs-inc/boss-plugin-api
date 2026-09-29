@@ -484,7 +484,8 @@ public final class ai/rever/boss/plugin/api/AiDecisionException : java/lang/Exce
 	public static final field TIMEOUT Ljava/lang/String;
 	public static final field UNKNOWN_PROVIDER Ljava/lang/String;
 	public static final field UPSTREAM_ERROR Ljava/lang/String;
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getCode ()Ljava/lang/String;
 }
 

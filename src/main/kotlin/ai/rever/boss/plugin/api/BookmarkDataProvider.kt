@@ -275,6 +275,33 @@ interface SplitViewOperations {
     fun openUrlInActivePanel(url: String, title: String, forceNewTab: Boolean = false)
 
     /**
+     * Request a terminal link open in this provider's window, honoring the host's terminal-link
+     * preference (including the destination chooser for Always Ask).
+     *
+     * [url] is an http/https URL or a file: reference to an absolute path, optionally ending
+     * in :line[:column]. Resolve relative paths before calling; the host does not resolve them
+     * against the terminal's cwd. Windows references may use file:C:/src/Foo.kt:12:3.
+     * File references use the host's existing UTF-8 form-percent-decoding format, not URI parsing:
+     * percent escapes are decoded and unescaped plus becomes space before location suffix parsing.
+     * Encode literal percent as %25 and plus as %2B; spaces, hash and question-mark characters are
+     * path characters. A literal filename ending in :digits has the existing location ambiguity.
+     * The host ignores unsupported schemes, relative paths and network file references.
+     * [sourceTerminalId] identifies the originating terminal for split placement; null uses
+     * the active panel. Safe from any thread; the chooser opens asynchronously, without creating
+     * a tab before the user chooses. This fire-and-forget method does not report the outcome.
+     *
+     * In-process only: the IPC proxy does not forward this request. Check
+     * [supportsOpenTerminalLink] before calling, and use ordinary URL/file operations when false.
+     * Gate on minBossVersion of the host release that pins the API adding this member. An older
+     * host throws NoSuchMethodError: this default body gives callers no protection because the
+     * host's interface is served parent-first. The capability getter needs the same host gate.
+     */
+    fun openTerminalLink(url: String, sourceTerminalId: String? = null) {}
+
+    /** Whether this provider implements [openTerminalLink] rather than inheriting its no-op. */
+    val supportsOpenTerminalLink: Boolean get() = false
+
+    /**
      * Open a file in the active panel.
      */
     fun openFileInActivePanel(filePath: String, fileName: String)

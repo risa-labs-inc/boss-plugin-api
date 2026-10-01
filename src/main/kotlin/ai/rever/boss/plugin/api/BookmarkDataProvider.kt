@@ -275,6 +275,18 @@ interface SplitViewOperations {
     fun openUrlInActivePanel(url: String, title: String, forceNewTab: Boolean = false)
 
     /**
+     * Request a terminal link open in this provider's window, honoring the host's terminal-link
+     * preference (including the destination chooser for Always Ask).
+     *
+     * [url] is an http/https URL or a file reference with an optional :line[:column] suffix.
+     * [sourceTerminalId] identifies the originating terminal so split destinations are placed
+     * relative to it. This requests an open; it must not create a tab before the user chooses.
+     *
+     * Requires BOSS 9.5.34 or newer: this host-implemented member is served parent-first.
+     */
+    fun openTerminalLink(url: String, sourceTerminalId: String? = null) {}
+
+    /**
      * Open a file in the active panel.
      */
     fun openFileInActivePanel(filePath: String, fileName: String)

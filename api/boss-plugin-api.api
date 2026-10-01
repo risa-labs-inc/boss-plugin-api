@@ -6079,6 +6079,8 @@ public abstract interface class ai/rever/boss/plugin/api/SplitViewOperations {
 	public fun openPanelAsTab (Lai/rever/boss/plugin/api/PanelId;)V
 	public fun openTab (Lai/rever/boss/plugin/api/TabInfo;)V
 	public fun openTabInSplit (Lai/rever/boss/plugin/api/TabInfo;Lai/rever/boss/plugin/api/TabSplitMode;)V
+	public fun openTerminalLink (Ljava/lang/String;Ljava/lang/String;)V
+	public static synthetic fun openTerminalLink$default (Lai/rever/boss/plugin/api/SplitViewOperations;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
 	public abstract fun openUrlInActivePanel (Ljava/lang/String;Ljava/lang/String;Z)V
 	public static synthetic fun openUrlInActivePanel$default (Lai/rever/boss/plugin/api/SplitViewOperations;Ljava/lang/String;Ljava/lang/String;ZILjava/lang/Object;)V
 	public fun openUrlInSplit (Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/api/TabSplitMode;)V
@@ -6093,6 +6095,8 @@ public final class ai/rever/boss/plugin/api/SplitViewOperations$DefaultImpls {
 	public static fun openPanelAsTab (Lai/rever/boss/plugin/api/SplitViewOperations;Lai/rever/boss/plugin/api/PanelId;)V
 	public static fun openTab (Lai/rever/boss/plugin/api/SplitViewOperations;Lai/rever/boss/plugin/api/TabInfo;)V
 	public static fun openTabInSplit (Lai/rever/boss/plugin/api/SplitViewOperations;Lai/rever/boss/plugin/api/TabInfo;Lai/rever/boss/plugin/api/TabSplitMode;)V
+	public static fun openTerminalLink (Lai/rever/boss/plugin/api/SplitViewOperations;Ljava/lang/String;Ljava/lang/String;)V
+	public static synthetic fun openTerminalLink$default (Lai/rever/boss/plugin/api/SplitViewOperations;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
 	public static synthetic fun openUrlInActivePanel$default (Lai/rever/boss/plugin/api/SplitViewOperations;Ljava/lang/String;Ljava/lang/String;ZILjava/lang/Object;)V
 	public static fun openUrlInSplit (Lai/rever/boss/plugin/api/SplitViewOperations;Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/api/TabSplitMode;)V
 }

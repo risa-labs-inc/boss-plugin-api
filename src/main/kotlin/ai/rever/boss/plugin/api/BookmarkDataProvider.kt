@@ -278,13 +278,24 @@ interface SplitViewOperations {
      * Request a terminal link open in this provider's window, honoring the host's terminal-link
      * preference (including the destination chooser for Always Ask).
      *
-     * [url] is an http/https URL or a file reference with an optional :line[:column] suffix.
-     * [sourceTerminalId] identifies the originating terminal so split destinations are placed
-     * relative to it. This requests an open; it must not create a tab before the user chooses.
+     * [url] is an http/https URL or a file: reference to an absolute path, optionally ending
+     * in :line[:column]. Resolve relative paths before calling; the host does not resolve them
+     * against the terminal's cwd. Windows references may use file:C:/src/Foo.kt:12:3.
+     * Percent-encode literal percent and plus characters because the host decodes file paths.
+     * [sourceTerminalId] identifies the originating terminal for split placement; null uses
+     * the active panel. Safe from any thread; the chooser opens asynchronously, without creating
+     * a tab before the user chooses. This fire-and-forget method does not report the outcome.
      *
-     * Requires BOSS 9.5.34 or newer: this host-implemented member is served parent-first.
+     * In-process only: the IPC proxy does not forward this request. Check
+     * [supportsOpenTerminalLink] before calling, and use ordinary URL/file operations when false.
+     * Gate on minBossVersion of the host release that pins the API adding this member. An older
+     * host throws NoSuchMethodError: this default body gives callers no protection because the
+     * host's interface is served parent-first. The capability getter needs the same host gate.
      */
     fun openTerminalLink(url: String, sourceTerminalId: String? = null) {}
+
+    /** Whether this provider implements [openTerminalLink] rather than inheriting its no-op. */
+    val supportsOpenTerminalLink: Boolean get() = false
 
     /**
      * Open a file in the active panel.

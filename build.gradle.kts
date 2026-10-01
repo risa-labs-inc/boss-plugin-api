@@ -602,7 +602,7 @@ group = "ai.rever.boss.plugin.bundled"
 // back across providers, so local state cannot reach a cloud model.
 // 1.0.97: adds SplitViewOperations.openTerminalLink + supportsOpenTerminalLink. HostImplemented
 // members: gate on the host release pinning this API, not minApiVersion alone.
-version = "1.0.96"
+version = "1.0.97"
 // Local integration builds may stage the next artifact without advancing release CI twice.
 providers.gradleProperty("localApiVersion").orNull?.let { version = it }
 

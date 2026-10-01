@@ -7,7 +7,7 @@ import kotlin.test.assertFalse
 
 class TerminalLinkOperationsDefaultsTest {
     @Test
-    fun `an unimplemented chooser reports no support`() {
+    fun `default terminal link opening is a no-op and reports no support`() {
         val operations = Proxy.newProxyInstance(
             SplitViewOperations::class.java.classLoader,
             arrayOf(SplitViewOperations::class.java),
@@ -18,5 +18,6 @@ class TerminalLinkOperationsDefaultsTest {
 
         assertFalse(operations.supportsOpenTerminalLink)
         operations.openTerminalLink("https://example.com", "terminal")
+        operations.openTerminalLink("https://example.com")
     }
 }

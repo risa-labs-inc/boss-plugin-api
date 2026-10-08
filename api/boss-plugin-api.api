@@ -4372,6 +4372,135 @@ public final class ai/rever/boss/plugin/api/PermissionInfoData {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class ai/rever/boss/plugin/api/PhiDetection {
+	public static final field $stable I
+	public fun <init> (IILjava/lang/String;DLjava/util/Map;)V
+	public synthetic fun <init> (IILjava/lang/String;DLjava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()I
+	public final fun component2 ()I
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()D
+	public final fun component5 ()Ljava/util/Map;
+	public final fun copy (IILjava/lang/String;DLjava/util/Map;)Lai/rever/boss/plugin/api/PhiDetection;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/PhiDetection;IILjava/lang/String;DLjava/util/Map;ILjava/lang/Object;)Lai/rever/boss/plugin/api/PhiDetection;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getConfidence ()D
+	public final fun getEnd ()I
+	public final fun getExtras ()Ljava/util/Map;
+	public final fun getStart ()I
+	public final fun getType ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class ai/rever/boss/plugin/api/PhiMaskAPI {
+	public abstract fun openSession-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun redact-0E7RQCE (Ljava/lang/String;Lai/rever/boss/plugin/api/PhiMaskProfile;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun redact-0E7RQCE$default (Lai/rever/boss/plugin/api/PhiMaskAPI;Ljava/lang/String;Lai/rever/boss/plugin/api/PhiMaskProfile;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public abstract fun redactBatch-0E7RQCE (Ljava/util/List;Lai/rever/boss/plugin/api/PhiMaskProfile;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun redactBatch-0E7RQCE$default (Lai/rever/boss/plugin/api/PhiMaskAPI;Ljava/util/List;Lai/rever/boss/plugin/api/PhiMaskProfile;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public abstract fun status (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class ai/rever/boss/plugin/api/PhiMaskAPI$DefaultImpls {
+	public static synthetic fun redact-0E7RQCE$default (Lai/rever/boss/plugin/api/PhiMaskAPI;Ljava/lang/String;Lai/rever/boss/plugin/api/PhiMaskProfile;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun redactBatch-0E7RQCE$default (Lai/rever/boss/plugin/api/PhiMaskAPI;Ljava/util/List;Lai/rever/boss/plugin/api/PhiMaskProfile;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class ai/rever/boss/plugin/api/PhiMaskException : java/lang/Exception {
+	public static final field $stable I
+	public static final field Companion Lai/rever/boss/plugin/api/PhiMaskException$Companion;
+	public static final field FAILED Ljava/lang/String;
+	public static final field PROFILE_UNAVAILABLE Ljava/lang/String;
+	public static final field SESSION_CLOSED Ljava/lang/String;
+	public static final field TOO_LARGE Ljava/lang/String;
+	public static final field UNAVAILABLE Ljava/lang/String;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun getCode ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/PhiMaskException$Companion {
+}
+
+public final class ai/rever/boss/plugin/api/PhiMaskProfile : java/lang/Enum {
+	public static final field BALANCED Lai/rever/boss/plugin/api/PhiMaskProfile;
+	public static final field Companion Lai/rever/boss/plugin/api/PhiMaskProfile$Companion;
+	public static final field FAST Lai/rever/boss/plugin/api/PhiMaskProfile;
+	public static final field REALTIME Lai/rever/boss/plugin/api/PhiMaskProfile;
+	public static final field STRICT Lai/rever/boss/plugin/api/PhiMaskProfile;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public final fun getWireName ()Ljava/lang/String;
+	public static fun valueOf (Ljava/lang/String;)Lai/rever/boss/plugin/api/PhiMaskProfile;
+	public static fun values ()[Lai/rever/boss/plugin/api/PhiMaskProfile;
+}
+
+public final class ai/rever/boss/plugin/api/PhiMaskProfile$Companion {
+	public final fun fromWireName (Ljava/lang/String;)Lai/rever/boss/plugin/api/PhiMaskProfile;
+}
+
+public final class ai/rever/boss/plugin/api/PhiMaskResult {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Ljava/util/Map;
+	public final fun copy (Ljava/lang/String;Ljava/util/List;Ljava/util/Map;)Lai/rever/boss/plugin/api/PhiMaskResult;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/PhiMaskResult;Ljava/lang/String;Ljava/util/List;Ljava/util/Map;ILjava/lang/Object;)Lai/rever/boss/plugin/api/PhiMaskResult;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDetections ()Ljava/util/List;
+	public final fun getExtras ()Ljava/util/Map;
+	public final fun getText ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class ai/rever/boss/plugin/api/PhiMaskSession {
+	public abstract fun close (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun restore-gIAlu-s (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun tokenize-0E7RQCE (Ljava/lang/String;Lai/rever/boss/plugin/api/PhiMaskProfile;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun tokenize-0E7RQCE$default (Lai/rever/boss/plugin/api/PhiMaskSession;Ljava/lang/String;Lai/rever/boss/plugin/api/PhiMaskProfile;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public abstract fun tokenizeBatch-0E7RQCE (Ljava/util/List;Lai/rever/boss/plugin/api/PhiMaskProfile;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun tokenizeBatch-0E7RQCE$default (Lai/rever/boss/plugin/api/PhiMaskSession;Ljava/util/List;Lai/rever/boss/plugin/api/PhiMaskProfile;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class ai/rever/boss/plugin/api/PhiMaskSession$DefaultImpls {
+	public static synthetic fun tokenize-0E7RQCE$default (Lai/rever/boss/plugin/api/PhiMaskSession;Ljava/lang/String;Lai/rever/boss/plugin/api/PhiMaskProfile;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun tokenizeBatch-0E7RQCE$default (Lai/rever/boss/plugin/api/PhiMaskSession;Ljava/util/List;Lai/rever/boss/plugin/api/PhiMaskProfile;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class ai/rever/boss/plugin/api/PhiMaskState : java/lang/Enum {
+	public static final field FAILED Lai/rever/boss/plugin/api/PhiMaskState;
+	public static final field INSTALLING Lai/rever/boss/plugin/api/PhiMaskState;
+	public static final field NOT_STARTED Lai/rever/boss/plugin/api/PhiMaskState;
+	public static final field READY Lai/rever/boss/plugin/api/PhiMaskState;
+	public static final field STARTING Lai/rever/boss/plugin/api/PhiMaskState;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lai/rever/boss/plugin/api/PhiMaskState;
+	public static fun values ()[Lai/rever/boss/plugin/api/PhiMaskState;
+}
+
+public final class ai/rever/boss/plugin/api/PhiMaskStatus {
+	public static final field $stable I
+	public fun <init> (Lai/rever/boss/plugin/api/PhiMaskState;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
+	public synthetic fun <init> (Lai/rever/boss/plugin/api/PhiMaskState;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lai/rever/boss/plugin/api/PhiMaskState;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/util/Map;
+	public final fun copy (Lai/rever/boss/plugin/api/PhiMaskState;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Lai/rever/boss/plugin/api/PhiMaskStatus;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/PhiMaskStatus;Lai/rever/boss/plugin/api/PhiMaskState;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Lai/rever/boss/plugin/api/PhiMaskStatus;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAvailableProfiles ()Ljava/util/List;
+	public final fun getDetail ()Ljava/lang/String;
+	public final fun getExtras ()Ljava/util/Map;
+	public final fun getState ()Lai/rever/boss/plugin/api/PhiMaskState;
+	public final fun getVersion ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public abstract interface class ai/rever/boss/plugin/api/Plugin {
 	public fun dispose ()V
 	public abstract fun getDisplayName ()Ljava/lang/String;

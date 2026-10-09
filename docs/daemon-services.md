@@ -3,7 +3,10 @@
 A supporting BOSS host exposes `PluginContext.daemonServiceProvider`. The provider is
 nullable and bound to the registering plugin's identity and verified JAR. API 1.0.99
 and a host containing the provider are required; this change targets BOSS 9.5.44.
-Verify those release numbers before publishing a consumer.
+Consumers must declare both `minApiVersion: 1.0.99` and the actual supporting
+`minBossVersion`. A nullable getter does not bypass binary validation on older hosts:
+referencing this new host-compiled member can reject the entire plugin before registration.
+Verify the target release numbers before publishing a consumer.
 
 Implement a public no-argument `DaemonService` in the plugin JAR:
 
@@ -28,18 +31,55 @@ class BackgroundWorker : DaemonService {
     }
 }
 
-val connection = context.daemonServiceProvider?.connect(
-    serviceId = "background-worker",
-    entryPoint = BackgroundWorker::class.java.name,
-)
-check(connection?.endpoints?.get("protocol") == "1")
-connection.request("status")
+context.pluginScope.launch {
+    val provider = context.daemonServiceProvider ?: return@launch // show unavailable/fallback UI
+    try {
+        val connection = provider.connect("background-worker", BackgroundWorker::class.java.name)
+        if (connection.endpoints["protocol"] != "1") return@launch // show incompatible-worker UI
+        connection.request("status")
+    } catch (cancelled: CancellationException) {
+        throw cancelled
+    } catch (failure: Exception) {
+        // Show connection failure/retry UI. Do not log payloads, tokens or exception messages.
+    }
+}
 ```
 
 The host serializes each service's start/request/stop operations. Requests must return
 promptly: start long tasks in the service scope and expose job IDs, events and cancellation
 through the plugin protocol. The connection is a control handle, not ownership of the worker.
 Drop UI handles freely; call `connection.stop()` only for an explicit stop/reset action.
+
+This control API intentionally supplies no push stream: workers expose their own authenticated
+HTTP/WebSocket transports through the versioned protocol, as the terminal adapter does.
+Use short request/response calls for control and event replay cursors; never block a request
+waiting indefinitely for an event. A reconnect to a running ID keeps its original entry point,
+configuration and code. Changed connection arguments take effect only after explicit stop/start.
+
+The host adds `boss.service.instanceId` to endpoint metadata. It stays stable on reconnect and
+changes after worker restart. Store durable conversation/job IDs separately. Treat a new worker
+instance as a recovery/replay boundary; it does not mean a task executed exactly once.
+
+Connection calls can throw `Exception`: cancellation propagates, local transport errors use
+I/O exceptions, and rejected remote operations use `IllegalStateException` containing only an
+error type. Plugin protocols should return their own structured error codes for actionable
+service failures. Do not catch `Throwable` in UI connection code. The current host limits an
+encoded control message to 1 MiB, socket connection to 1.5 seconds, response reads to 30 seconds,
+and on-demand daemon readiness to 15 seconds. A client timeout does not cancel server-side work.
+
+The host never logs control payloads or endpoint tokens. Configuration and descriptors are
+persisted; request payloads are not. Short-lived tokens may cross the authenticated loopback
+control channel, but are not automatically refreshed or available after process restart.
+
+Service IDs are opaque, nonempty strings up to 512 characters. Storage names use hashes of the
+plugin/service pair, never service IDs as paths. Entry points must resolve from the plugin's
+own immutable worker JAR and implement `DaemonService`, before any constructor runs.
+
+Stop is serialized behind admitted requests and begins with the service scope still active.
+After `stop()` returns or throws, the host cancels and joins the scope. There is no forced
+worker-drain deadline: a stuck request/stop can delay disable or daemon quit indefinitely.
+The host retains executing loaders rather than unloading code underneath them. Long tasks
+must run in the service scope, expose cooperative cancellation and keep control requests short.
 
 | Event | Worker behavior |
 | --- | --- |

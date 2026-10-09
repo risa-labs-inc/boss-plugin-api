@@ -24,7 +24,9 @@ interface DaemonServiceContext {
 /** A connection is a view, not ownership of the worker. Dropping it never stops background work. */
 @HostImplemented
 interface DaemonServiceConnection {
+    /** Includes host-owned boss.service.instanceId: stable on reconnect, new after restart. */
     val endpoints: Map<String, String>
+    /** Transport/rejection failures throw Exception; cancellation propagates. Never log payloads. */
     suspend fun request(method: String, payload: String = ""): String
     suspend fun stop()
 }
@@ -34,7 +36,8 @@ interface DaemonServiceConnection {
 interface DaemonServiceProvider {
     /**
      * Reconnect to an existing service or start a public no-arg [DaemonService] implementation.
-     * IDs belong to this plugin. Repeated calls retain the running worker and its original code.
+     * IDs belong to this plugin. Repeated calls retain the original entry point, configuration and
+     * code until explicit stop/start. Entry points must resolve from the plugin's own JAR.
      * The host snapshots the JAR, so UI reload and updates cannot invalidate running workers.
      * Changes to the worker's own protocol need explicit version negotiation; no automatic restart
      * may discard running tasks. UI-dependent approvals must pause while no UI is connected.

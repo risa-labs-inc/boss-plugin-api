@@ -5,10 +5,14 @@ import kotlinx.coroutines.CoroutineScope
 /** A plugin-owned worker in BOSS's shared background process. No window or UI context is supplied. */
 @HostImplemented
 interface DaemonService {
-    /** Start once and return named connection endpoints. Startup failure cancels the service scope. Configuration is persisted: use no credentials. */
+    /**
+     * Start once and return non-secret protocol/endpoint metadata. Startup failure cancels the
+     * service scope. Configuration is persisted: use no credentials. Return transport auth tokens
+     * through [request] instead of metadata.
+     */
     suspend fun start(context: DaemonServiceContext, configuration: Map<String, String>): Map<String, String>
 
-    /** Plugin-defined, versioned request protocol. Never put credentials in endpoint metadata. */
+    /** Plugin-defined, versioned control protocol. The host does not persist or log payloads. */
     suspend fun request(method: String, payload: String): String
 
     /** Drain owned work before returning. The loader remains open until this completes. */
@@ -17,7 +21,9 @@ interface DaemonService {
 
 @HostImplemented
 interface DaemonServiceContext {
+    /** Host-owned SupervisorJob on Dispatchers.IO; one failed child does not cancel siblings. */
     val scope: CoroutineScope
+    /** Existing owner-private directory, stable across UI reload/update and explicit service stop. */
     val dataDirectory: String
 }
 

@@ -67,9 +67,11 @@ service failures. Do not catch `Throwable` in UI connection code. The current ho
 encoded control message to 1 MiB, socket connection to 1.5 seconds, response reads to 30 seconds,
 and on-demand daemon readiness to 15 seconds. A client timeout does not cancel server-side work.
 
-The host never logs control payloads or endpoint tokens. Configuration and descriptors are
-persisted; request payloads are not. Short-lived tokens may cross the authenticated loopback
-control channel, but are not automatically refreshed or available after process restart.
+The host never logs control payloads or transport auth tokens. Configuration and restart descriptors
+are persisted; request payloads are not. Return short-lived HTTP/WebSocket auth tokens through
+`request()` (as the terminal adapter does), never through `start()` endpoint metadata. They cross
+the authenticated loopback control channel, but are not automatically refreshed or available after
+process restart. Endpoint metadata contains only non-secret protocol/endpoint information.
 
 Service IDs are opaque, nonempty strings up to 512 characters. Storage names use hashes of the
 plugin/service pair, never service IDs as paths. Entry points must resolve from the plugin's
@@ -92,14 +94,19 @@ must run in the service scope, expose cooperative cancellation and keep control 
 | Login / daemon restart | Start registered services; plugin restores its own durable jobs |
 | OS reboot / sleep / offline | No promise of uninterrupted execution or network access |
 
+The context scope uses a `SupervisorJob` and `Dispatchers.IO`: a failed child does not cancel its
+siblings. The data directory exists before `start()`, is private to the OS user, and remains on disk
+after explicit stop or plugin removal; plugins own their data retention policy. Different plugins
+share one JVM and OS identity, so these directories are not a security boundary between plugins.
+
 Use the service scope for every coroutine. External child processes, threads and servers
 must also be stopped and joined before `stop()` returns. A failed drain retains the loader;
 UI unload must never close a loader that is still executing background code. The daemon
 uses BOSS's packaged runtime, a profile-specific login registration, owner-private state,
 and an authenticated loopback control channel. It is a trusted plugin process, not a sandbox.
 
-`configuration` and endpoint metadata are persisted/public control data: **never put
-credentials in them**. Keep secrets out of logs and error messages. A worker receives no
+`configuration` is persisted and endpoint metadata is exposed through control handles: **never put
+credentials in either**. Keep secrets out of logs and error messages. A worker receives no
 window, Compose state, `PluginContext`, or UI-owned credential provider. Bundle its headless
 dependencies. UI-dependent approvals must pause until an authorized client can answer.
 

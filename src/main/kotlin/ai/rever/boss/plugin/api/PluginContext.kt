@@ -94,6 +94,10 @@ interface PluginContext {
     // requiring explicit injection at registration time.
     // ============================================================
 
+    /** Background workers that survive window closure and plugin UI reload. Requires a supporting host. */
+    val daemonServiceProvider: DaemonServiceProvider?
+        get() = null
+
     /**
      * Optional performance data provider for plugins that display performance metrics.
      *

@@ -71,3 +71,6 @@ See [AGENTS.md](AGENTS.md) for architecture and conventions.
 Licensed under the [Apache License, Version 2.0](LICENSE).
 
 Copyright 2025-2026 Risa Labs Inc.
+
+Background plugin workers can use the host's shared daemon. See
+[the service contract and Fluck migration requirements](docs/daemon-services.md).

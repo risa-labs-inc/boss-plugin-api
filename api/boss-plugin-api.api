@@ -1643,6 +1643,37 @@ public final class ai/rever/boss/plugin/api/CustomPluginEvent : ai/rever/boss/pl
 	public fun toString ()Ljava/lang/String;
 }
 
+public abstract interface class ai/rever/boss/plugin/api/DaemonService {
+	public abstract fun request (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun start (Lai/rever/boss/plugin/api/DaemonServiceContext;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun stop (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class ai/rever/boss/plugin/api/DaemonServiceConnection {
+	public abstract fun getEndpoints ()Ljava/util/Map;
+	public abstract fun request (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun request$default (Lai/rever/boss/plugin/api/DaemonServiceConnection;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public abstract fun stop (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class ai/rever/boss/plugin/api/DaemonServiceConnection$DefaultImpls {
+	public static synthetic fun request$default (Lai/rever/boss/plugin/api/DaemonServiceConnection;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public abstract interface class ai/rever/boss/plugin/api/DaemonServiceContext {
+	public abstract fun getDataDirectory ()Ljava/lang/String;
+	public abstract fun getScope ()Lkotlinx/coroutines/CoroutineScope;
+}
+
+public abstract interface class ai/rever/boss/plugin/api/DaemonServiceProvider {
+	public abstract fun connect (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun connect$default (Lai/rever/boss/plugin/api/DaemonServiceProvider;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class ai/rever/boss/plugin/api/DaemonServiceProvider$DefaultImpls {
+	public static synthetic fun connect$default (Lai/rever/boss/plugin/api/DaemonServiceProvider;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
 public abstract interface class ai/rever/boss/plugin/api/DashboardContentProvider {
 	public abstract fun DashboardContent (Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;I)V
 }
@@ -4593,6 +4624,7 @@ public abstract interface class ai/rever/boss/plugin/api/PluginContext {
 	public fun getClipboardProvider ()Lai/rever/boss/plugin/api/ClipboardProvider;
 	public fun getCoBrowseRtcProvider ()Lai/rever/boss/plugin/api/CoBrowseRtcProvider;
 	public fun getContextMenuProvider ()Lai/rever/boss/plugin/api/ContextMenuProvider;
+	public fun getDaemonServiceProvider ()Lai/rever/boss/plugin/api/DaemonServiceProvider;
 	public fun getDashboardContentProvider ()Lai/rever/boss/plugin/api/DashboardContentProvider;
 	public fun getDiagnosticProvider ()Lai/rever/boss/plugin/api/DiagnosticProvider;
 	public fun getDirectoryPickerProvider ()Lai/rever/boss/plugin/api/DirectoryPickerProvider;
@@ -4667,6 +4699,7 @@ public final class ai/rever/boss/plugin/api/PluginContext$DefaultImpls {
 	public static fun getClipboardProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/ClipboardProvider;
 	public static fun getCoBrowseRtcProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/CoBrowseRtcProvider;
 	public static fun getContextMenuProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/ContextMenuProvider;
+	public static fun getDaemonServiceProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/DaemonServiceProvider;
 	public static fun getDashboardContentProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/DashboardContentProvider;
 	public static fun getDiagnosticProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/DiagnosticProvider;
 	public static fun getDirectoryPickerProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/DirectoryPickerProvider;
@@ -5320,6 +5353,12 @@ public final class ai/rever/boss/plugin/api/PluginUnloadActions$Companion {
 public abstract interface class ai/rever/boss/plugin/api/PluginUnloadAware {
 	public abstract fun checkCanUnload (Ljava/lang/String;)Lai/rever/boss/plugin/api/CanUnloadResult;
 	public abstract fun prepareForUnload (Ljava/lang/String;)V
+}
+
+public final class ai/rever/boss/plugin/api/PluginUnloadDeferredException : java/lang/IllegalStateException {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
 public final class ai/rever/boss/plugin/api/PluginUnloadIntent : java/lang/Enum {

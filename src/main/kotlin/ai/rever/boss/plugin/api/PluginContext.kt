@@ -95,6 +95,15 @@ interface PluginContext {
     // ============================================================
 
     /**
+     * Background workers that survive window closure and plugin UI reload.
+     * Returns null when unavailable on a supporting host. Consumers must gate the new member
+     * with minBossVersion (target 9.5.44) and the new types with minApiVersion 1.0.99;
+     * a null check alone cannot make an older host resolve this member.
+     */
+    val daemonServiceProvider: DaemonServiceProvider?
+        get() = null
+
+    /**
      * Optional performance data provider for plugins that display performance metrics.
      *
      * Returns null if performance monitoring is not available.

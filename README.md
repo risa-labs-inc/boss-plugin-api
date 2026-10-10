@@ -23,6 +23,8 @@ BOSS.
 - **Shared UI** - `BossTheme`, `BossColors`, `BossDialog`, `BossOverlayHost`, panel scrollbars
   and the `Boss*` component set, so a plugin's panel matches the host and re-skins with it.
 
+- **Background workers** - [shared daemon service contracts and migration requirements](docs/daemon-services.md).
+
 ## Feature detection
 
 `BossApiRuntime.version` and `BossApiRuntime.isAtLeast(...)` read the `boss.api.version` system

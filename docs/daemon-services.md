@@ -59,6 +59,11 @@ configuration and code. Changed connection arguments take effect only after expl
 The host adds `boss.service.instanceId` to endpoint metadata. It stays stable on reconnect and
 changes after worker restart. Store durable conversation/job IDs separately. Treat a new worker
 instance as a recovery/replay boundary; it does not mean a task executed exactly once.
+Every control handle is bound to that instance: requests through an old handle reject after
+stop/restart. `stop()` is idempotent and never stops or unregisters a replacement. Reconnect
+explicitly to obtain the new handle. Connect is a creating operation, not a read-only lookup;
+this version has no lookup-only API. Negotiate effective plugin configuration/version in the
+worker's own status protocol rather than assuming new connect arguments changed a live worker.
 
 Connection calls can throw `Exception`: cancellation propagates, local transport errors use
 I/O exceptions, and rejected remote operations use `IllegalStateException` containing only an
@@ -101,7 +106,11 @@ share one JVM and OS identity, so these directories are not a security boundary 
 
 Use the service scope for every coroutine. External child processes, threads and servers
 must also be stopped and joined before `stop()` returns. A failed drain retains the loader;
-UI unload must never close a loader that is still executing background code. The daemon
+UI unload must never close a loader that is still executing background code. UI plugins can
+throw `PluginUnloadDeferredException` from `dispose()` when their bounded cleanup cannot finish;
+the supporting host reports unload failure and retains the active plugin loader for retry.
+Ordinary disposal exceptions keep their existing best-effort behavior, so use this explicit
+signal for incomplete drains and declare the supporting host version. The daemon
 uses BOSS's packaged runtime, a profile-specific login registration, owner-private state,
 and an authenticated loopback control channel. It is a trusted plugin process, not a sandbox.
 

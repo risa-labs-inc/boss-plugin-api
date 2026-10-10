@@ -32,8 +32,17 @@ interface DaemonServiceContext {
 interface DaemonServiceConnection {
     /** Includes host-owned boss.service.instanceId: stable on reconnect, new after restart. */
     val endpoints: Map<String, String>
-    /** Transport/rejection failures throw Exception; cancellation propagates. Never log payloads. */
+    /**
+     * Addresses only this worker instance. After stop/restart this handle rejects requests;
+     * use provider.connect() to obtain a new handle. Transport/rejection failures throw Exception;
+     * cancellation propagates. A client timeout does not cancel server work. Never log payloads.
+     */
     suspend fun request(method: String, payload: String = ""): String
+    /**
+     * Explicitly drain this instance and remove its restart registration. Repeated calls are
+     * harmless; a stale handle never stops or unregisters a replacement instance. Dropping the
+     * handle does not stop anything. A timeout leaves the outcome uncertain: reconnect to inspect.
+     */
     suspend fun stop()
 }
 

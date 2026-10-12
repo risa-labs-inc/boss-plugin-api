@@ -607,8 +607,9 @@ group = "ai.rever.boss.plugin.bundled"
 // 1.0.98. Fails closed: errors are PhiMaskException codes whose messages never carry input text.
 // 1.0.99: AiRequest.cache (AiCacheHints), AiTurn.finishReason (AiFinishReason) +
 // reasoningCarry, AiUsage.cacheReadTokens/cacheWriteTokens/reasoningTokens, and capability
-// constants promptCache/finishReason/cacheUsage/reasoningCarry. New members on released data
-// classes: the 1.0.98 constructor, `$default` constructor and copy/copy$default descriptors stay
+// constants promptCache/finishReason/cacheUsage/reasoningCarry, plus the extras key
+// EXTRA_COMPLETE_ON_LENGTH (opt-in Completed+LENGTH for truncated streamed steps). New members
+// on released data classes: the 1.0.98 constructor, `$default` constructor and copy/copy$default descriptors stay
 // as DeprecationLevel.HIDDEN overloads, so 1.0.98-compiled plugins still link. Reading a new
 // member is a new Methodref: AiRequest is HostImplemented, so gate on the host/gateway release.
 version = "1.0.98"

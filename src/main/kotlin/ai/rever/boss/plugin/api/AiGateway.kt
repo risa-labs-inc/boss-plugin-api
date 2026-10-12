@@ -242,6 +242,17 @@ interface AiGatewayAPI {
          * [AiRound.turn], restored to the provider. Inlines; no host-version floor.
          */
         const val CAPABILITY_REASONING_CARRY: String = "reasoningCarry"
+
+        /**
+         * [AiRequest.extras] key. When `extras[EXTRA_COMPLETE_ON_LENGTH] == "true"`, a gateway
+         * advertising [CAPABILITY_FINISH_REASON] ends a streamed step that hit the output limit
+         * with [AiStepEvent.Completed], whose turn has [AiFinishReason.LENGTH] and the partial
+         * text and tool calls, instead of [AiStepEvent.Failed].
+         *
+         * Without it, streamed truncation still fails, so a caller that predates finish reasons
+         * never mistakes a cut-off answer for a complete one. Inlines; no host-version floor.
+         */
+        const val EXTRA_COMPLETE_ON_LENGTH: String = "completeOnLength"
     }
 }
 

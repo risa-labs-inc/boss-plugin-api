@@ -204,4 +204,60 @@ class AiGatewayTypesTest {
 
         assertEquals(emptyList(), older.availableModels())
     }
+
+    // ==================== 1.0.99 additions ====================
+
+    @Test
+    fun `usage plus keeps unreported counts null and sums reported ones`() {
+        val a = AiUsage(10, 5, cacheReadTokens = 7)
+        val b = AiUsage(1, 2, cacheReadTokens = null, cacheWriteTokens = 3)
+
+        val sum = a + b
+
+        assertEquals(AiUsage(11, 7, cacheReadTokens = 7, cacheWriteTokens = 3, reasoningTokens = null), sum)
+    }
+
+    @Test
+    fun `new fields default to unreported`() {
+        val turn = AiTurn(text = "hi")
+        assertEquals(AiFinishReason.UNKNOWN, turn.finishReason)
+        assertEquals(null, turn.reasoningCarry)
+        assertEquals(null, AiRequest().cache)
+        assertEquals(AiCacheHints(system = false, throughMessage = null, throughRound = null), AiCacheHints())
+    }
+
+    @Test
+    fun `api 1_0_98 constructor and copy descriptors still link`() {
+        // What a 1.0.98-compiled plugin calls. Reflection stands in for that bytecode.
+        val usage = AiUsage::class.java.getConstructor(Int::class.java, Int::class.java).newInstance(3, 4)
+        assertEquals(AiUsage(3, 4), usage)
+
+        val carried = AiUsage(1, 1, cacheReadTokens = 9)
+        val copied = AiUsage::class.java.getMethod("copy", Int::class.java, Int::class.java).invoke(carried, 2, 2)
+        assertEquals(AiUsage(2, 2, cacheReadTokens = 9), copied, "old copy must keep the new fields")
+
+        val turn = AiTurn(text = "t", finishReason = AiFinishReason.LENGTH, reasoningCarry = "sig")
+        val turnCopy = AiTurn::class.java
+            .getMethod("copy", String::class.java, List::class.java, AiUsage::class.java, String::class.java)
+            .invoke(turn, "u", emptyList<AiToolCall>(), null, "")
+        assertEquals(turn.copy(text = "u"), turnCopy)
+
+        val request = AiRequest(system = "s", cache = AiCacheHints(system = true))
+        val requestCopy = AiRequest::class.java
+            .getMethod(
+                "copy", String::class.java, List::class.java, java.lang.Float::class.java,
+                java.lang.Integer::class.java, Long::class.java, Map::class.java,
+            )
+            .invoke(request, "s2", emptyList<AiMessage>(), null, null, 1L, emptyMap<String, String>())
+        assertEquals(AiCacheHints(system = true), (requestCopy as AiRequest).cache)
+
+        val marker = Class.forName("kotlin.jvm.internal.DefaultConstructorMarker")
+        AiTurn::class.java.getConstructor(
+            String::class.java, List::class.java, AiUsage::class.java, String::class.java, Int::class.java, marker,
+        )
+        AiRequest::class.java.getConstructor(
+            String::class.java, List::class.java, java.lang.Float::class.java, java.lang.Integer::class.java,
+            Long::class.java, Map::class.java, Int::class.java, marker,
+        )
+    }
 }

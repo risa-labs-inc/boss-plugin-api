@@ -155,6 +155,24 @@ public final class ai/rever/boss/plugin/api/AiBudget {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class ai/rever/boss/plugin/api/AiCacheHints {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun <init> (ZLjava/lang/Integer;Ljava/lang/Integer;)V
+	public synthetic fun <init> (ZLjava/lang/Integer;Ljava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Z
+	public final fun component2 ()Ljava/lang/Integer;
+	public final fun component3 ()Ljava/lang/Integer;
+	public final fun copy (ZLjava/lang/Integer;Ljava/lang/Integer;)Lai/rever/boss/plugin/api/AiCacheHints;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/AiCacheHints;ZLjava/lang/Integer;Ljava/lang/Integer;ILjava/lang/Object;)Lai/rever/boss/plugin/api/AiCacheHints;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getSystem ()Z
+	public final fun getThroughMessage ()Ljava/lang/Integer;
+	public final fun getThroughRound ()Ljava/lang/Integer;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public abstract class ai/rever/boss/plugin/api/AiChunk {
 	public static final field $stable I
 }
@@ -582,8 +600,24 @@ public final class ai/rever/boss/plugin/api/AiDecisionRequest {
 public final class ai/rever/boss/plugin/api/AiDecisionRequest$Companion {
 }
 
+public final class ai/rever/boss/plugin/api/AiFinishReason : java/lang/Enum {
+	public static final field CONTENT_FILTER Lai/rever/boss/plugin/api/AiFinishReason;
+	public static final field ERROR Lai/rever/boss/plugin/api/AiFinishReason;
+	public static final field LENGTH Lai/rever/boss/plugin/api/AiFinishReason;
+	public static final field STOP Lai/rever/boss/plugin/api/AiFinishReason;
+	public static final field TOOL_CALLS Lai/rever/boss/plugin/api/AiFinishReason;
+	public static final field UNKNOWN Lai/rever/boss/plugin/api/AiFinishReason;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lai/rever/boss/plugin/api/AiFinishReason;
+	public static fun values ()[Lai/rever/boss/plugin/api/AiFinishReason;
+}
+
 public abstract interface class ai/rever/boss/plugin/api/AiGatewayAPI {
+	public static final field CAPABILITY_CACHE_USAGE Ljava/lang/String;
+	public static final field CAPABILITY_FINISH_REASON Ljava/lang/String;
+	public static final field CAPABILITY_PROMPT_CACHE Ljava/lang/String;
 	public static final field CAPABILITY_PROVIDER_OVERRIDE Ljava/lang/String;
+	public static final field CAPABILITY_REASONING_CARRY Ljava/lang/String;
 	public static final field CAPABILITY_STREAMING Ljava/lang/String;
 	public static final field CAPABILITY_TOOLS Ljava/lang/String;
 	public static final field CAPABILITY_VISION Ljava/lang/String;
@@ -600,7 +634,11 @@ public abstract interface class ai/rever/boss/plugin/api/AiGatewayAPI {
 }
 
 public final class ai/rever/boss/plugin/api/AiGatewayAPI$Companion {
+	public static final field CAPABILITY_CACHE_USAGE Ljava/lang/String;
+	public static final field CAPABILITY_FINISH_REASON Ljava/lang/String;
+	public static final field CAPABILITY_PROMPT_CACHE Ljava/lang/String;
 	public static final field CAPABILITY_PROVIDER_OVERRIDE Ljava/lang/String;
+	public static final field CAPABILITY_REASONING_CARRY Ljava/lang/String;
 	public static final field CAPABILITY_STREAMING Ljava/lang/String;
 	public static final field CAPABILITY_TOOLS Ljava/lang/String;
 	public static final field CAPABILITY_VISION Ljava/lang/String;
@@ -767,17 +805,23 @@ public final class ai/rever/boss/plugin/api/AiRequest {
 	public static final field EXTRAS_KEY_MODEL_OVERRIDE Ljava/lang/String;
 	public static final field EXTRAS_KEY_PROVIDER_ID Ljava/lang/String;
 	public fun <init> ()V
-	public fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/lang/Float;Ljava/lang/Integer;JLjava/util/Map;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/lang/Float;Ljava/lang/Integer;JLjava/util/Map;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/lang/Float;Ljava/lang/Integer;JLjava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/lang/Float;Ljava/lang/Integer;JLjava/util/Map;Lai/rever/boss/plugin/api/AiCacheHints;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/lang/Float;Ljava/lang/Integer;JLjava/util/Map;Lai/rever/boss/plugin/api/AiCacheHints;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/util/List;
 	public final fun component3 ()Ljava/lang/Float;
 	public final fun component4 ()Ljava/lang/Integer;
 	public final fun component5 ()J
 	public final fun component6 ()Ljava/util/Map;
-	public final fun copy (Ljava/lang/String;Ljava/util/List;Ljava/lang/Float;Ljava/lang/Integer;JLjava/util/Map;)Lai/rever/boss/plugin/api/AiRequest;
+	public final fun component7 ()Lai/rever/boss/plugin/api/AiCacheHints;
+	public final synthetic fun copy (Ljava/lang/String;Ljava/util/List;Ljava/lang/Float;Ljava/lang/Integer;JLjava/util/Map;)Lai/rever/boss/plugin/api/AiRequest;
+	public final fun copy (Ljava/lang/String;Ljava/util/List;Ljava/lang/Float;Ljava/lang/Integer;JLjava/util/Map;Lai/rever/boss/plugin/api/AiCacheHints;)Lai/rever/boss/plugin/api/AiRequest;
 	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/AiRequest;Ljava/lang/String;Ljava/util/List;Ljava/lang/Float;Ljava/lang/Integer;JLjava/util/Map;ILjava/lang/Object;)Lai/rever/boss/plugin/api/AiRequest;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/AiRequest;Ljava/lang/String;Ljava/util/List;Ljava/lang/Float;Ljava/lang/Integer;JLjava/util/Map;Lai/rever/boss/plugin/api/AiCacheHints;ILjava/lang/Object;)Lai/rever/boss/plugin/api/AiRequest;
 	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCache ()Lai/rever/boss/plugin/api/AiCacheHints;
 	public final fun getExtras ()Ljava/util/Map;
 	public final fun getMaxTokens ()Ljava/lang/Integer;
 	public final fun getMessages ()Ljava/util/List;
@@ -899,16 +943,24 @@ public final class ai/rever/boss/plugin/api/AiToolSpec {
 public final class ai/rever/boss/plugin/api/AiTurn {
 	public static final field $stable I
 	public fun <init> ()V
-	public fun <init> (Ljava/lang/String;Ljava/util/List;Lai/rever/boss/plugin/api/AiUsage;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;Lai/rever/boss/plugin/api/AiUsage;Ljava/lang/String;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;Lai/rever/boss/plugin/api/AiUsage;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/util/List;Lai/rever/boss/plugin/api/AiUsage;Ljava/lang/String;Lai/rever/boss/plugin/api/AiFinishReason;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;Lai/rever/boss/plugin/api/AiUsage;Ljava/lang/String;Lai/rever/boss/plugin/api/AiFinishReason;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/util/List;
 	public final fun component3 ()Lai/rever/boss/plugin/api/AiUsage;
 	public final fun component4 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;Ljava/util/List;Lai/rever/boss/plugin/api/AiUsage;Ljava/lang/String;)Lai/rever/boss/plugin/api/AiTurn;
+	public final fun component5 ()Lai/rever/boss/plugin/api/AiFinishReason;
+	public final fun component6 ()Ljava/lang/String;
+	public final synthetic fun copy (Ljava/lang/String;Ljava/util/List;Lai/rever/boss/plugin/api/AiUsage;Ljava/lang/String;)Lai/rever/boss/plugin/api/AiTurn;
+	public final fun copy (Ljava/lang/String;Ljava/util/List;Lai/rever/boss/plugin/api/AiUsage;Ljava/lang/String;Lai/rever/boss/plugin/api/AiFinishReason;Ljava/lang/String;)Lai/rever/boss/plugin/api/AiTurn;
 	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/AiTurn;Ljava/lang/String;Ljava/util/List;Lai/rever/boss/plugin/api/AiUsage;Ljava/lang/String;ILjava/lang/Object;)Lai/rever/boss/plugin/api/AiTurn;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/AiTurn;Ljava/lang/String;Ljava/util/List;Lai/rever/boss/plugin/api/AiUsage;Ljava/lang/String;Lai/rever/boss/plugin/api/AiFinishReason;Ljava/lang/String;ILjava/lang/Object;)Lai/rever/boss/plugin/api/AiTurn;
 	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFinishReason ()Lai/rever/boss/plugin/api/AiFinishReason;
 	public final fun getModelId ()Ljava/lang/String;
+	public final fun getReasoningCarry ()Ljava/lang/String;
 	public final fun getText ()Ljava/lang/String;
 	public final fun getToolCalls ()Ljava/util/List;
 	public final fun getUsage ()Lai/rever/boss/plugin/api/AiUsage;
@@ -919,15 +971,25 @@ public final class ai/rever/boss/plugin/api/AiTurn {
 public final class ai/rever/boss/plugin/api/AiUsage {
 	public static final field $stable I
 	public fun <init> ()V
-	public fun <init> (II)V
+	public synthetic fun <init> (II)V
 	public synthetic fun <init> (IIILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (IILjava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;)V
+	public synthetic fun <init> (IILjava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()I
 	public final fun component2 ()I
-	public final fun copy (II)Lai/rever/boss/plugin/api/AiUsage;
+	public final fun component3 ()Ljava/lang/Integer;
+	public final fun component4 ()Ljava/lang/Integer;
+	public final fun component5 ()Ljava/lang/Integer;
+	public final synthetic fun copy (II)Lai/rever/boss/plugin/api/AiUsage;
+	public final fun copy (IILjava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;)Lai/rever/boss/plugin/api/AiUsage;
 	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/AiUsage;IIILjava/lang/Object;)Lai/rever/boss/plugin/api/AiUsage;
+	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/AiUsage;IILjava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;ILjava/lang/Object;)Lai/rever/boss/plugin/api/AiUsage;
 	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCacheReadTokens ()Ljava/lang/Integer;
+	public final fun getCacheWriteTokens ()Ljava/lang/Integer;
 	public final fun getInputTokens ()I
 	public final fun getOutputTokens ()I
+	public final fun getReasoningTokens ()Ljava/lang/Integer;
 	public final fun getTotalTokens ()I
 	public fun hashCode ()I
 	public final fun plus (Lai/rever/boss/plugin/api/AiUsage;)Lai/rever/boss/plugin/api/AiUsage;

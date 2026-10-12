@@ -605,6 +605,12 @@ group = "ai.rever.boss.plugin.bundled"
 // 1.0.98: adds PhiMaskAPI (PhiMask.kt), local PHI masking served by the phi-mask plugin
 // (phiscrub on a loopback sidecar). New types only, not HostImplemented: gate on minApiVersion
 // 1.0.98. Fails closed: errors are PhiMaskException codes whose messages never carry input text.
+// 1.0.99: AiRequest.cache (AiCacheHints), AiTurn.finishReason (AiFinishReason) +
+// reasoningCarry, AiUsage.cacheReadTokens/cacheWriteTokens/reasoningTokens, and capability
+// constants promptCache/finishReason/cacheUsage/reasoningCarry. New members on released data
+// classes: the 1.0.98 constructor, `$default` constructor and copy/copy$default descriptors stay
+// as DeprecationLevel.HIDDEN overloads, so 1.0.98-compiled plugins still link. Reading a new
+// member is a new Methodref: AiRequest is HostImplemented, so gate on the host/gateway release.
 version = "1.0.98"
 // Local integration builds may stage the next artifact without advancing release CI twice.
 providers.gradleProperty("localApiVersion").orNull?.let { version = it }

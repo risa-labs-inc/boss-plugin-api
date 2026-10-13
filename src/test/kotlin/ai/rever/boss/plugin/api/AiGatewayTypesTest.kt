@@ -204,4 +204,70 @@ class AiGatewayTypesTest {
 
         assertEquals(emptyList(), older.availableModels())
     }
+
+    // ==================== 1.0.99 additions ====================
+
+    @Test
+    fun `usage plus sums breakdowns only when both sides reported them`() {
+        assertEquals(AiUsage(11, 7, cacheReadTokens = 9), AiUsage(10, 5, cacheReadTokens = 7) + AiUsage(1, 2, cacheReadTokens = 2))
+        assertEquals(null, (AiUsage(10, 5, cacheReadTokens = 7) + AiUsage(1, 2)).cacheReadTokens, "a partial sum looks complete")
+        assertEquals(null, (AiUsage(1, 1) + AiUsage(1, 1)).reasoningTokens)
+        assertEquals(AiUsage(2, 2), AiUsage(1, 1) + AiUsage(1, 1))
+    }
+
+    @Test
+    fun `new fields default to unreported and cache hints are extras keys`() {
+        val turn = AiTurn(text = "hi")
+        assertEquals(AiFinishReason.UNKNOWN, turn.finishReason)
+        assertEquals(null, turn.reasoningCarry)
+        assertEquals(AiUsage(1, 2, null, null, null), AiUsage(1, 2))
+        // Wire names: gateways in other repos match on these strings.
+        assertEquals("cacheSystem", AiGatewayAPI.EXTRA_CACHE_SYSTEM)
+        assertEquals("cacheThroughMessage", AiGatewayAPI.EXTRA_CACHE_THROUGH_MESSAGE)
+        assertEquals("cacheThroughRound", AiGatewayAPI.EXTRA_CACHE_THROUGH_ROUND)
+        assertEquals("completeOnLength", AiGatewayAPI.EXTRA_COMPLETE_ON_LENGTH)
+    }
+
+    @Test
+    fun `turn toString prints the reasoning carry's length, never its content`() {
+        val text = AiTurn(text = "ok", reasoningCarry = "the patient said X").toString()
+        assertTrue("<18 chars>" in text, text)
+        assertFalse("patient" in text, text)
+        assertTrue("reasoningCarry=null" in AiTurn(text = "ok").toString())
+    }
+
+    @Test
+    fun `api 1_0_98 constructor and copy descriptors link and carry the new fields`() {
+        // What a 1.0.98-compiled plugin calls. Reflection stands in for that bytecode.
+        val int = Int::class.javaPrimitiveType!!
+        val marker = Class.forName("kotlin.jvm.internal.DefaultConstructorMarker")
+
+        assertEquals(AiUsage(3, 4), AiUsage::class.java.getConstructor(int, int).newInstance(3, 4))
+        // AiUsage(inputTokens = 3): mask bit 1 takes outputTokens' default.
+        assertEquals(AiUsage(3, 0), AiUsage::class.java.getConstructor(int, int, int, marker).newInstance(3, 9, 0b10, null))
+
+        val usage = AiUsage(1, 1, cacheReadTokens = 9, cacheWriteTokens = 2, reasoningTokens = 1)
+        assertEquals(AiUsage(2, 2, 9, 2, 1), AiUsage::class.java.getMethod("copy", int, int).invoke(usage, 2, 2))
+        val usageCopyDefault = AiUsage::class.java.getMethod("copy\$default", AiUsage::class.java, int, int, int, Any::class.java)
+        assertEquals(AiUsage(5, 1, 9, 2, 1), usageCopyDefault.invoke(null, usage, 5, 0, 0b10, null), "copy(inputTokens = 5)")
+
+        val oldTurn = AiTurn::class.java.getConstructor(String::class.java, List::class.java, AiUsage::class.java, String::class.java)
+            .newInstance("t", emptyList<AiToolCall>(), null, "m")
+        assertEquals(AiTurn(text = "t", modelId = "m"), oldTurn)
+        val turnDefault = AiTurn::class.java.getConstructor(
+            String::class.java, List::class.java, AiUsage::class.java, String::class.java, int, marker,
+        ).newInstance("t", null, null, null, 0b1110, null)
+        assertEquals(AiTurn(text = "t"), turnDefault)
+
+        val turn = AiTurn(text = "t", finishReason = AiFinishReason.LENGTH, reasoningCarry = "sig")
+        val turnCopy = AiTurn::class.java
+            .getMethod("copy", String::class.java, List::class.java, AiUsage::class.java, String::class.java)
+            .invoke(turn, "u", emptyList<AiToolCall>(), null, "")
+        assertEquals(turn.copy(text = "u"), turnCopy)
+        val turnCopyDefault = AiTurn::class.java.getMethod(
+            "copy\$default", AiTurn::class.java, String::class.java, List::class.java, AiUsage::class.java, String::class.java,
+            int, Any::class.java,
+        )
+        assertEquals(turn.copy(text = "u"), turnCopyDefault.invoke(null, turn, "u", null, null, null, 0b1110, null), "copy(text = \"u\")")
+    }
 }

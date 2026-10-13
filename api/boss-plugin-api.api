@@ -4622,6 +4622,7 @@ public abstract interface class ai/rever/boss/plugin/api/PluginContext {
 	public fun getProjectDataProvider ()Lai/rever/boss/plugin/api/ProjectDataProvider;
 	public fun getProjectPath ()Ljava/lang/String;
 	public fun getProjectSearchProvider ()Lai/rever/boss/plugin/api/ProjectSearchProvider;
+	public fun getRemoteViewProvider ()Lai/rever/boss/plugin/api/RemoteViewProvider;
 	public fun getRoleManagementProvider ()Lai/rever/boss/plugin/api/RoleManagementProvider;
 	public fun getRunConfigurationDataProvider ()Lai/rever/boss/plugin/api/RunConfigurationDataProvider;
 	public fun getSandbox ()Lai/rever/boss/plugin/api/PluginSandboxRef;
@@ -4694,6 +4695,7 @@ public final class ai/rever/boss/plugin/api/PluginContext$DefaultImpls {
 	public static fun getProjectDataProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/ProjectDataProvider;
 	public static fun getProjectPath (Lai/rever/boss/plugin/api/PluginContext;)Ljava/lang/String;
 	public static fun getProjectSearchProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/ProjectSearchProvider;
+	public static fun getRemoteViewProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/RemoteViewProvider;
 	public static fun getRoleManagementProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/RoleManagementProvider;
 	public static fun getRunConfigurationDataProvider (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/RunConfigurationDataProvider;
 	public static fun getSandbox (Lai/rever/boss/plugin/api/PluginContext;)Lai/rever/boss/plugin/api/PluginSandboxRef;
@@ -5511,6 +5513,10 @@ public final class ai/rever/boss/plugin/api/RegisteredMcpTool {
 	public final fun getProviderId ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class ai/rever/boss/plugin/api/RemoteViewProvider {
+	public abstract fun beginRemoteView (Ljava/lang/String;)Ljava/lang/AutoCloseable;
 }
 
 public final class ai/rever/boss/plugin/api/RepairSeverity : java/lang/Enum {

@@ -613,6 +613,17 @@ interface PluginContext {
     val brokeredCredentialProvider: BrokeredCredentialProvider?
         get() = null
 
+    /**
+     * Optional declaration that BOSS is being shown to a remote viewer.
+     *
+     * While any handle from [RemoteViewProvider.beginRemoteView] is open the host avoids
+     * OS-owned UI such as native menus, which a remote viewer cannot see or click.
+     *
+     * Null on a host that predates this surface; treat that as "nothing to declare".
+     */
+    val remoteViewProvider: RemoteViewProvider?
+        get() = null
+
     // ============================================================
     // SEARCH PROVIDER REGISTRATION
     // Enables plugins to contribute to global search results

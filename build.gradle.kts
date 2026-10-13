@@ -611,6 +611,8 @@ group = "ai.rever.boss.plugin.bundled"
 // hints (EXTRA_CACHE_*) and EXTRA_COMPLETE_ON_LENGTH. AiRequest is unchanged (HostImplemented).
 // The 1.0.98 AiTurn/AiUsage constructor and copy descriptors stay as HIDDEN overloads, so
 // 1.0.98-compiled plugins still link. Not HostImplemented: gate on minApiVersion 1.0.99.
+// Next release: adds RemoteViewProvider and PluginContext.remoteViewProvider (defaults to null).
+// HostImplemented: gate on the host release that pins this API, not minApiVersion alone.
 version = "1.0.99"
 // Local integration builds may stage the next artifact without advancing release CI twice.
 providers.gradleProperty("localApiVersion").orNull?.let { version = it }

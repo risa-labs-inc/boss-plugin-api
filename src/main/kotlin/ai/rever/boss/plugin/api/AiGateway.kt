@@ -250,11 +250,10 @@ interface AiGatewayAPI {
          * with [AiStepEvent.Completed], whose turn has [AiFinishReason.LENGTH] and the partial
          * text and tool calls, instead of [AiStepEvent.Failed].
          *
-         * A non-streaming [step] that hits the limit does the same with this key: it returns that
-         * turn instead of failing.
-         *
-         * Without it, truncation still fails on both paths, so a caller that predates finish
-         * reasons never mistakes a cut-off answer for a complete one. Inlines; no host-version floor.
+         * Without it, streamed truncation still fails, so a caller that predates finish reasons
+         * never mistakes a cut-off answer for a complete one. A non-streaming [step] is unaffected
+         * by this key: it has always returned the truncated turn, which now carries
+         * [AiFinishReason.LENGTH]. Inlines; no host-version floor.
          */
         const val EXTRA_COMPLETE_ON_LENGTH: String = "completeOnLength"
 

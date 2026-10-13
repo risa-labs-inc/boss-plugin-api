@@ -619,7 +619,13 @@ interface PluginContext {
      * While any handle from [RemoteViewProvider.beginRemoteView] is open the host avoids
      * OS-owned UI such as native menus, which a remote viewer cannot see or click.
      *
-     * Null on a host that predates this surface; treat that as "nothing to declare".
+     * Gate with manifest `minBossVersion` for the host release that implements it (the release
+     * carrying BossConsole #1880); the [RemoteViewProvider] type itself follows `minApiVersion`.
+     * `minApiVersion` alone is not enough: on an older host this property does not exist, and the
+     * host's `BinaryCompatibilityValidator` refuses to load the plugin rather than returning null.
+     * A plugin that must also run below that floor follows the [downloadCenterProvider] note: keep
+     * the reference out of its `ai.rever.boss.plugin.*` classes, behind `catch (LinkageError)`.
+     * Null on a host that has the surface but no provider; treat that as "nothing to declare".
      */
     val remoteViewProvider: RemoteViewProvider?
         get() = null

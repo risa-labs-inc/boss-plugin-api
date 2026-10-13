@@ -6,23 +6,27 @@ package ai.rever.boss.plugin.api
  * The host counts open handles. While at least one is open it avoids UI that only the local
  * machine can see or operate, such as native OS menus, which a viewer painting BOSS's own
  * windows never receives and cannot click. Hold a handle for as long as the remote view is
- * live and close it when the last viewer goes away.
- *
- * Gate on a null provider, which is what a host without this surface returns:
+ * live and close it when the last viewer goes away:
  * ```kotlin
  * val handle = context.remoteViewProvider?.beginRemoteView("fluck-boss-view")
  * // ...view is live...
  * handle?.close()
  * ```
- * A call on an older host still compiles against the new api jar but gets null from the
- * [PluginContext.remoteViewProvider] default, so there is nothing to undo.
+ * Null means the host has this surface but wired no provider. It does NOT cover an older host:
+ * see [PluginContext.remoteViewProvider] for the `minBossVersion` floor.
+ *
+ * Contract: [beginRemoteView] and `close()` may be called from any thread, never throw, and
+ * closing one handle more than once never affects another handle's count. The host releases a
+ * plugin's open handles when that plugin is disposed (including an api-jar hot swap); still close
+ * them in `dispose()`.
  */
+@HostImplemented
 interface RemoteViewProvider {
     /**
      * Marks one remote view as live and returns its handle.
      *
-     * [reason] is a short label for diagnostics. Closing the handle ends that view; close is
-     * idempotent, and each call here is counted separately.
+     * [reason] is a short label for diagnostics only. Closing the handle ends that view; each
+     * call here is counted separately.
      */
     fun beginRemoteView(reason: String): AutoCloseable
 }

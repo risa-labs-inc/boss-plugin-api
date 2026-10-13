@@ -155,24 +155,6 @@ public final class ai/rever/boss/plugin/api/AiBudget {
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class ai/rever/boss/plugin/api/AiCacheHints {
-	public static final field $stable I
-	public fun <init> ()V
-	public fun <init> (ZLjava/lang/Integer;Ljava/lang/Integer;)V
-	public synthetic fun <init> (ZLjava/lang/Integer;Ljava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Z
-	public final fun component2 ()Ljava/lang/Integer;
-	public final fun component3 ()Ljava/lang/Integer;
-	public final fun copy (ZLjava/lang/Integer;Ljava/lang/Integer;)Lai/rever/boss/plugin/api/AiCacheHints;
-	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/AiCacheHints;ZLjava/lang/Integer;Ljava/lang/Integer;ILjava/lang/Object;)Lai/rever/boss/plugin/api/AiCacheHints;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getSystem ()Z
-	public final fun getThroughMessage ()Ljava/lang/Integer;
-	public final fun getThroughRound ()Ljava/lang/Integer;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
 public abstract class ai/rever/boss/plugin/api/AiChunk {
 	public static final field $stable I
 }
@@ -622,6 +604,9 @@ public abstract interface class ai/rever/boss/plugin/api/AiGatewayAPI {
 	public static final field CAPABILITY_TOOLS Ljava/lang/String;
 	public static final field CAPABILITY_VISION Ljava/lang/String;
 	public static final field Companion Lai/rever/boss/plugin/api/AiGatewayAPI$Companion;
+	public static final field EXTRA_CACHE_SYSTEM Ljava/lang/String;
+	public static final field EXTRA_CACHE_THROUGH_MESSAGE Ljava/lang/String;
+	public static final field EXTRA_CACHE_THROUGH_ROUND Ljava/lang/String;
 	public static final field EXTRA_COMPLETE_ON_LENGTH Ljava/lang/String;
 	public fun activeModel ()Lai/rever/boss/plugin/api/AiModelInfo;
 	public fun availableModels ()Ljava/util/List;
@@ -643,6 +628,9 @@ public final class ai/rever/boss/plugin/api/AiGatewayAPI$Companion {
 	public static final field CAPABILITY_STREAMING Ljava/lang/String;
 	public static final field CAPABILITY_TOOLS Ljava/lang/String;
 	public static final field CAPABILITY_VISION Ljava/lang/String;
+	public static final field EXTRA_CACHE_SYSTEM Ljava/lang/String;
+	public static final field EXTRA_CACHE_THROUGH_MESSAGE Ljava/lang/String;
+	public static final field EXTRA_CACHE_THROUGH_ROUND Ljava/lang/String;
 	public static final field EXTRA_COMPLETE_ON_LENGTH Ljava/lang/String;
 }
 
@@ -807,23 +795,17 @@ public final class ai/rever/boss/plugin/api/AiRequest {
 	public static final field EXTRAS_KEY_MODEL_OVERRIDE Ljava/lang/String;
 	public static final field EXTRAS_KEY_PROVIDER_ID Ljava/lang/String;
 	public fun <init> ()V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/lang/Float;Ljava/lang/Integer;JLjava/util/Map;)V
+	public fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/lang/Float;Ljava/lang/Integer;JLjava/util/Map;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/lang/Float;Ljava/lang/Integer;JLjava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/lang/Float;Ljava/lang/Integer;JLjava/util/Map;Lai/rever/boss/plugin/api/AiCacheHints;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/lang/Float;Ljava/lang/Integer;JLjava/util/Map;Lai/rever/boss/plugin/api/AiCacheHints;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/util/List;
 	public final fun component3 ()Ljava/lang/Float;
 	public final fun component4 ()Ljava/lang/Integer;
 	public final fun component5 ()J
 	public final fun component6 ()Ljava/util/Map;
-	public final fun component7 ()Lai/rever/boss/plugin/api/AiCacheHints;
-	public final synthetic fun copy (Ljava/lang/String;Ljava/util/List;Ljava/lang/Float;Ljava/lang/Integer;JLjava/util/Map;)Lai/rever/boss/plugin/api/AiRequest;
-	public final fun copy (Ljava/lang/String;Ljava/util/List;Ljava/lang/Float;Ljava/lang/Integer;JLjava/util/Map;Lai/rever/boss/plugin/api/AiCacheHints;)Lai/rever/boss/plugin/api/AiRequest;
+	public final fun copy (Ljava/lang/String;Ljava/util/List;Ljava/lang/Float;Ljava/lang/Integer;JLjava/util/Map;)Lai/rever/boss/plugin/api/AiRequest;
 	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/AiRequest;Ljava/lang/String;Ljava/util/List;Ljava/lang/Float;Ljava/lang/Integer;JLjava/util/Map;ILjava/lang/Object;)Lai/rever/boss/plugin/api/AiRequest;
-	public static synthetic fun copy$default (Lai/rever/boss/plugin/api/AiRequest;Ljava/lang/String;Ljava/util/List;Ljava/lang/Float;Ljava/lang/Integer;JLjava/util/Map;Lai/rever/boss/plugin/api/AiCacheHints;ILjava/lang/Object;)Lai/rever/boss/plugin/api/AiRequest;
 	public fun equals (Ljava/lang/Object;)Z
-	public final fun getCache ()Lai/rever/boss/plugin/api/AiCacheHints;
 	public final fun getExtras ()Ljava/util/Map;
 	public final fun getMaxTokens ()Ljava/lang/Integer;
 	public final fun getMessages ()Ljava/util/List;

@@ -219,8 +219,9 @@ interface AiGatewayAPI {
         const val CAPABILITY_PROVIDER_OVERRIDE: String = "providerOverride"
 
         /**
-         * [capabilities] entry: [AiRequest.cache] is mapped to the provider's prompt-cache
-         * controls. Without it the hint is ignored. Inlines; no host-version floor.
+         * [capabilities] entry: the [EXTRA_CACHE_SYSTEM], [EXTRA_CACHE_THROUGH_MESSAGE] and
+         * [EXTRA_CACHE_THROUGH_ROUND] extras are mapped to the provider's prompt-cache controls.
+         * Without it they are ignored. Inlines; no host-version floor.
          */
         const val CAPABILITY_PROMPT_CACHE: String = "promptCache"
 
@@ -249,10 +250,38 @@ interface AiGatewayAPI {
          * with [AiStepEvent.Completed], whose turn has [AiFinishReason.LENGTH] and the partial
          * text and tool calls, instead of [AiStepEvent.Failed].
          *
-         * Without it, streamed truncation still fails, so a caller that predates finish reasons
-         * never mistakes a cut-off answer for a complete one. Inlines; no host-version floor.
+         * A non-streaming [step] that hits the limit does the same with this key: it returns that
+         * turn instead of failing.
+         *
+         * Without it, truncation still fails on both paths, so a caller that predates finish
+         * reasons never mistakes a cut-off answer for a complete one. Inlines; no host-version floor.
          */
         const val EXTRA_COMPLETE_ON_LENGTH: String = "completeOnLength"
+
+        /**
+         * [AiRequest.extras] key, `"true"`: cache the system prompt plus the tool schemas.
+         *
+         * Prompt-cache hints travel in [AiRequest.extras] rather than as constructor fields:
+         * [AiRequest] is [HostImplemented], so a new member would make every plugin rebuilt
+         * against this api require a newer host. A hint, never a guarantee: check
+         * [AiUsage.cacheReadTokens] to see whether it paid off. Ignored without
+         * [CAPABILITY_PROMPT_CACHE] and by providers that cache automatically. Inlines.
+         */
+        const val EXTRA_CACHE_SYSTEM: String = "cacheSystem"
+
+        /**
+         * [AiRequest.extras] key, a decimal index n: cache [AiRequest.messages] `[0..n]` inclusive.
+         * A negative, unparseable or past-the-end index is ignored, not rejected. A gateway may use
+         * fewer breakpoints than asked for when the provider caps them. Inlines.
+         */
+        const val EXTRA_CACHE_THROUGH_MESSAGE: String = "cacheThroughMessage"
+
+        /**
+         * [AiRequest.extras] key, a decimal index n: cache the [step] rounds `[0..n]` inclusive.
+         * Same rules as [EXTRA_CACHE_THROUGH_MESSAGE]; ignored by [complete], [stream] and
+         * [runAgent], which take no caller rounds. Inlines.
+         */
+        const val EXTRA_CACHE_THROUGH_ROUND: String = "cacheThroughRound"
     }
 }
 
@@ -357,41 +386,7 @@ data class AiRequest(
      * older gateway instead of failing. Do not put credentials here.
      */
     val extras: Map<String, String> = emptyMap(),
-    /**
-     * Where the caller wants the provider to cache the prompt prefix, or null for no hint.
-     *
-     * Ignored by a gateway that does not advertise [AiGatewayAPI.CAPABILITY_PROMPT_CACHE], and
-     * by providers that cache automatically. A hint, never a guarantee: check
-     * [AiUsage.cacheReadTokens] to see whether it paid off.
-     *
-     * Added in 1.0.99 behind the old constructor and `copy` signatures, kept as hidden
-     * overloads below, so plugins compiled against 1.0.98 still link. Reading this member is
-     * a new Methodref: gate on a host/gateway that ships this api.
-     */
-    val cache: AiCacheHints? = null,
 ) {
-    // Pre-1.0.99 constructor and copy. HIDDEN keeps them out of resolution (no ambiguity with
-    // the primary) while still emitting the old descriptors, including the `$default` synthetics.
-    @Deprecated("Binary compatibility with api 1.0.98", level = DeprecationLevel.HIDDEN)
-    constructor(
-        system: String = "",
-        messages: List<AiMessage> = emptyList(),
-        temperature: Float? = null,
-        maxTokens: Int? = null,
-        timeoutMs: Long = 120_000,
-        extras: Map<String, String> = emptyMap(),
-    ) : this(system, messages, temperature, maxTokens, timeoutMs, extras, null)
-
-    @Deprecated("Binary compatibility with api 1.0.98", level = DeprecationLevel.HIDDEN)
-    fun copy(
-        system: String = this.system,
-        messages: List<AiMessage> = this.messages,
-        temperature: Float? = this.temperature,
-        maxTokens: Int? = this.maxTokens,
-        timeoutMs: Long = this.timeoutMs,
-        extras: Map<String, String> = this.extras,
-    ): AiRequest = AiRequest(system, messages, temperature, maxTokens, timeoutMs, extras, cache)
-
     /**
      * The model id a caller wants for this request, or null to use the active
      * provider's default. A view over [extras] rather than a constructor
@@ -468,23 +463,6 @@ data class AiMessage(
     }
 }
 
-/**
- * Where the caller wants the provider to cache the prompt prefix ([AiRequest.cache]).
- *
- * Each field marks the end of a prefix to cache, and a gateway may use fewer breakpoints than
- * asked for when the provider caps them. Providers that cache automatically ignore this, and so
- * does a gateway that lacks [AiGatewayAPI.CAPABILITY_PROMPT_CACHE]. An index past the end of its
- * list is ignored, not rejected.
- */
-data class AiCacheHints(
-    /** Cache the system prompt plus the tool schemas. */
-    val system: Boolean = false,
-    /** Cache [AiRequest.messages] `[0..n]` inclusive, or null for no message breakpoint. */
-    val throughMessage: Int? = null,
-    /** Cache the step's rounds `[0..n]` inclusive, or null for no round breakpoint. */
-    val throughRound: Int? = null,
-)
-
 /** An image to send with a message. Bytes, because a URL the model cannot reach is worse than no image. */
 data class AiImage(
     /** Raw image bytes. */
@@ -530,7 +508,8 @@ data class AiTurn(
     /**
      * Why the provider ended this turn. [AiFinishReason.LENGTH] means [text] or [toolCalls] may
      * be truncated. [AiFinishReason.UNKNOWN] unless the gateway advertises
-     * [AiGatewayAPI.CAPABILITY_FINISH_REASON].
+     * [AiGatewayAPI.CAPABILITY_FINISH_REASON]; a gateway maps a provider reason it does not
+     * recognize to [AiFinishReason.UNKNOWN], never to [AiFinishReason.ERROR].
      */
     val finishReason: AiFinishReason = AiFinishReason.UNKNOWN,
     /**
@@ -538,10 +517,17 @@ data class AiTurn(
      *
      * Persist it and pass it back unchanged in this turn's [AiRound] so reasoning survives a
      * restart. Only meaningful to the gateway that produced it; do not parse, edit or show it.
-     * Null unless the gateway advertises [AiGatewayAPI.CAPABILITY_REASONING_CARRY].
+     * A gateway handed a carry it cannot use (another provider's, a different model's, an older
+     * format) drops it silently and runs the step without it. Null unless the gateway advertises
+     * [AiGatewayAPI.CAPABILITY_REASONING_CARRY]. [toString] prints only its length: it can hold
+     * the model's raw thinking, which may quote the person.
      */
     val reasoningCarry: String? = null,
 ) {
+    override fun toString(): String =
+        "AiTurn(text=$text, toolCalls=$toolCalls, usage=$usage, modelId=$modelId, finishReason=$finishReason, " +
+            "reasoningCarry=${reasoningCarry?.let { "<${it.length} chars>" }})"
+
     // Pre-1.0.99 constructor and copy; see AiRequest for why these are HIDDEN overloads.
     @Deprecated("Binary compatibility with api 1.0.98", level = DeprecationLevel.HIDDEN)
     constructor(
@@ -575,7 +561,7 @@ enum class AiFinishReason {
     /** The output-token ceiling was reached; the turn may be truncated. */
     LENGTH,
 
-    /** The provider withheld or cut the output, including refusals. */
+    /** The provider withheld or cut the output, including refusals (Anthropic `refusal`, OpenAI `content_filter`). */
     CONTENT_FILTER,
 
     /** The provider reported an error finish. */
@@ -597,16 +583,19 @@ data class AiReply(
 
 /** Tokens spent on a request. Zero rather than absent when a provider reports partially. */
 data class AiUsage(
-    val inputTokens: Int = 0,
-    val outputTokens: Int = 0,
     /**
-     * Input tokens served from the prompt cache, or null when the provider did not report.
-     * Whether these are also counted in [inputTokens] follows the provider's own accounting.
+     * Every prompt token, cached or not: [cacheReadTokens] and [cacheWriteTokens] are parts of
+     * it. Gateways normalize to this whatever the provider reports (Anthropic counts cache reads
+     * and writes outside its `input_tokens`), so usage from any provider prices the same way.
      */
+    val inputTokens: Int = 0,
+    /** Every output token, [reasoningTokens] included. */
+    val outputTokens: Int = 0,
+    /** The part of [inputTokens] served from the prompt cache, or null when not reported. */
     val cacheReadTokens: Int? = null,
-    /** Input tokens written to the prompt cache, or null when the provider did not report. */
+    /** The part of [inputTokens] written to the prompt cache, or null when not reported. */
     val cacheWriteTokens: Int? = null,
-    /** Output tokens spent on reasoning, or null when the provider did not report. */
+    /** The part of [outputTokens] spent on reasoning, or null when not reported. */
     val reasoningTokens: Int? = null,
 ) {
     // Pre-1.0.99 constructor and copy; see AiRequest for why these are HIDDEN overloads.
@@ -624,7 +613,10 @@ data class AiUsage(
 
     val totalTokens: Int get() = inputTokens + outputTokens
 
-    /** Sums every field; a nullable count stays null only when neither side reported it. */
+    /**
+     * Sums every field. A breakdown count is null when either side left it unreported: a sum
+     * over a step that did not report would be a lower bound that looks complete.
+     */
     operator fun plus(other: AiUsage): AiUsage =
         AiUsage(
             inputTokens = inputTokens + other.inputTokens,
@@ -634,8 +626,7 @@ data class AiUsage(
             reasoningTokens = sumReported(reasoningTokens, other.reasoningTokens),
         )
 
-    private fun sumReported(a: Int?, b: Int?): Int? =
-        if (a == null && b == null) null else (a ?: 0) + (b ?: 0)
+    private fun sumReported(a: Int?, b: Int?): Int? = if (a == null || b == null) null else a + b
 }
 
 /**

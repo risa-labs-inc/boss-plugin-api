@@ -57,7 +57,8 @@ The host resolves the newest installed api jar into a shared **ApiClassLoader** 
 
 - **New types** (interfaces/objects/data classes) ship via this jar alone - no BossConsole release. Consumers gate with manifest `minApiVersion`.
 - **Member changes to existing types** the host compiles in are shadowed by the host's copy - they require a BossConsole release and `minBossVersion` gating. Mark such types `@HostImplemented`.
-- Only additive changes; new interface methods always get default bodies. Never evolve sealed hierarchies or data classes across the boundary.
+- Only additive changes; new interface methods always get default bodies. Never evolve sealed hierarchies across the boundary.
+- A data class that is **not** `@HostImplemented` may grow only by appending defaulted parameters, with the previous constructor and `copy` kept as `@Deprecated(level = HIDDEN)` overloads (they keep the old `<init>`, `<init>$default`, `copy` and `copy$default` descriptors) and a reflection test that links and invokes them. `AiTurn` and `AiUsage` (1.0.99) are the precedent. Never grow a `@HostImplemented` data class: a rebuilt consumer would silently need a newer host. Put new request options in its `extras` map instead (the `AiGatewayAPI.EXTRA_*` keys).
 - CI enforces additive-only evolution via the kotlinx binary-compatibility-validator (`./gradlew apiCheck`; regenerate the dump with `./gradlew apiDump` and commit `api/boss-plugin-api.api`).
 
 **Naming a gated declaration from a plugin's contract package is all-or-nothing.** The host's

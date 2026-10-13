@@ -3,8 +3,9 @@ package ai.rever.boss.plugin.api
 /**
  * A provider-published USD rate card for one exact model.
  *
- * Rates are US dollars per one million input or output tokens. This deliberately models only
- * the two counts [AiUsage] can report. A route whose current catalog rate card contains a non-zero
+ * Rates are US dollars per one million input or output tokens. This deliberately prices only
+ * [AiUsage.inputTokens] and [AiUsage.outputTokens]; the cache and reasoning breakdowns (api
+ * 1.0.99) are parts of those totals and are not priced separately here. A route whose current catalog rate card contains a non-zero
  * request, image, cache, reasoning, tool or other charge must not return a card through
  * [LlmModelPricingAPI] or [AiGatewayPricingAPI] until that charge is represented; returning null
  * is more accurate than an incomplete dollar estimate.

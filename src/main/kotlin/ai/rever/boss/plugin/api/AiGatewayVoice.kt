@@ -69,13 +69,13 @@ class AiTranscription(
 
 /**
  * [agentUrl] is the https endpoint the call's worker posts each turn to, authenticated by [agentToken] (an opaque
- * per-call secret of 32 to 256 characters). [maxSeconds] is 60 to 3600. [extras] keys: providerId. toString hides
+ * per-call secret of 32 to 256 characters). [maxSeconds] is 60 to 28800 (8 hours): a call runs until the caller hangs up. [extras] keys: providerId. toString hides
  * the token.
  */
 class AiLiveCallRequest(
     val agentUrl: String,
     val agentToken: String,
-    val maxSeconds: Int = 1800,
+    val maxSeconds: Int = 28_800,
     val extras: Map<String, String> = emptyMap(),
 ) {
     override fun toString(): String = "AiLiveCallRequest(agentUrl=$agentUrl, maxSeconds=$maxSeconds)"

@@ -1,5 +1,8 @@
 package ai.rever.boss.plugin.api
 
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -28,5 +31,19 @@ class AiGatewayVoiceTest {
         assertEquals("Try again.", e.message)
         val chunks: List<AiSpeechChunk> = listOf(AiSpeechChunk.Audio(byteArrayOf()), AiSpeechChunk.Completed(2), AiSpeechChunk.Failed(e.error))
         assertEquals(3, chunks.size)
+    }
+
+    @Test
+    fun `quota is optional on results and defaults to unknown on the interface`() {
+        assertEquals(null, AiTranscription("hi").quota)
+        assertEquals(null, AiSpeechChunk.Completed(2).quota)
+        val q = AiVoiceQuota(null, null, 90, "2026-11-01T00:00:00Z")
+        assertEquals(90, AiTranscription("hi", 3, q).quota?.remainingSeconds)
+        assertEquals("2026-11-01T00:00:00Z", AiSpeechChunk.Completed(2, q).quota?.resetsAt)
+        val voice = object : AiGatewayVoiceAPI {
+            override suspend fun transcribe(request: AiTranscriptionRequest): Result<AiTranscription> = Result.success(AiTranscription(""))
+            override fun speak(request: AiSpeechRequest): Flow<AiSpeechChunk> = emptyFlow()
+        }
+        assertEquals(null, runBlocking { voice.quota(emptyMap()) }.getOrThrow())
     }
 }

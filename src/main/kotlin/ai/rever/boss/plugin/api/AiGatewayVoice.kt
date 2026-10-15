@@ -18,6 +18,15 @@ interface AiGatewayVoiceAPI {
      */
     fun speak(request: AiSpeechRequest): Flow<AiSpeechChunk>
 
+    /**
+     * The talk-time allowance of the model named by [AiRequest.EXTRAS_KEY_MODEL_OVERRIDE] in [extras], read from
+     * the provider's model catalog (smallest remaining period). `success(null)` when the model reports no
+     * allowance. Never throws except `CancellationException`; failures are `Result.failure(AiVoiceException)`.
+     * Use it to show quota before the first call; later calls report it on [AiTranscription.quota] and
+     * [AiSpeechChunk.Completed.quota]. Default: `success(null)`.
+     */
+    suspend fun quota(extras: Map<String, String> = emptyMap()): Result<AiVoiceQuota?> = Result.success(null)
+
     companion object {
         /** [AiGatewayAPI.capabilities] entry: the gateway implements [AiGatewayVoiceAPI]. */
         const val CAPABILITY_VOICE: String = "voice"
@@ -35,12 +44,16 @@ class AiTranscriptionRequest(
     override fun toString(): String = "AiTranscriptionRequest(format=$format, audio.size=${audio.size}, language=$language)"
 }
 
-/** [billedSeconds] is the talk time charged to the allowance, when the provider reports it. */
+/**
+ * [billedSeconds] is the talk time charged to the allowance, when the provider reports it. [quota] is the
+ * allowance left after this call, when the provider reports it.
+ */
 class AiTranscription(
     val text: String,
     val billedSeconds: Int? = null,
+    val quota: AiVoiceQuota? = null,
 ) {
-    override fun toString(): String = "AiTranscription(text.length=${text.length}, billedSeconds=$billedSeconds)"
+    override fun toString(): String = "AiTranscription(text.length=${text.length}, billedSeconds=$billedSeconds, quota=$quota)"
 }
 
 /** [voice] overrides the model's default voice. toString omits the text. */
@@ -60,9 +73,12 @@ abstract class AiSpeechChunk {
         override fun toString(): String = "Audio(bytes.size=${bytes.size})"
     }
 
-    /** Terminal success. [billedSeconds] comes from the provider's accounting, when reported. */
-    class Completed(val billedSeconds: Int? = null) : AiSpeechChunk() {
-        override fun toString(): String = "Completed(billedSeconds=$billedSeconds)"
+    /**
+     * Terminal success. [billedSeconds] comes from the provider's accounting, when reported. [quota] is the
+     * allowance left after this request, when reported.
+     */
+    class Completed(val billedSeconds: Int? = null, val quota: AiVoiceQuota? = null) : AiSpeechChunk() {
+        override fun toString(): String = "Completed(billedSeconds=$billedSeconds, quota=$quota)"
     }
 
     /** Terminal failure. */
@@ -97,10 +113,13 @@ class AiVoiceError(
     }
 }
 
-/** Talk-time allowance in seconds. [resetsAt] is ISO-8601. */
+/**
+ * Talk-time allowance in seconds. [resetsAt] is ISO-8601. [limitSeconds] and [usedSeconds] are null when the
+ * source reports only what remains (per-call responses).
+ */
 class AiVoiceQuota(
-    val limitSeconds: Long,
-    val usedSeconds: Long,
+    val limitSeconds: Long?,
+    val usedSeconds: Long?,
     val remainingSeconds: Long,
     val resetsAt: String,
 ) {

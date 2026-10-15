@@ -621,7 +621,7 @@ group = "ai.rever.boss.plugin.bundled"
 // 1.0.102: adds AiGatewayVoiceAPI.startLiveCall (default: unsupported_provider) with AiLiveCallRequest and
 // AiLiveCall, a LiveKit-backed live voice call started through the provider's /voice/live route. Tokens are
 // hidden from toString. New members on a non-host interface plus new types: gate on minApiVersion 1.0.102.
-version = "1.0.102"
+version = "1.0.103"
 // Local integration builds may stage the next artifact without advancing release CI twice.
 providers.gradleProperty("localApiVersion").orNull?.let { version = it }
 

@@ -657,6 +657,17 @@ public final class ai/rever/boss/plugin/api/AiGatewayStreamingAPI$DefaultImpls {
 	public static synthetic fun streamStep$default (Lai/rever/boss/plugin/api/AiGatewayStreamingAPI;Lai/rever/boss/plugin/api/AiRequest;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
 }
 
+public abstract interface class ai/rever/boss/plugin/api/AiGatewayVoiceAPI {
+	public static final field CAPABILITY_VOICE Ljava/lang/String;
+	public static final field Companion Lai/rever/boss/plugin/api/AiGatewayVoiceAPI$Companion;
+	public abstract fun speak (Lai/rever/boss/plugin/api/AiSpeechRequest;)Lkotlinx/coroutines/flow/Flow;
+	public abstract fun transcribe-gIAlu-s (Lai/rever/boss/plugin/api/AiTranscriptionRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class ai/rever/boss/plugin/api/AiGatewayVoiceAPI$Companion {
+	public static final field CAPABILITY_VOICE Ljava/lang/String;
+}
+
 public final class ai/rever/boss/plugin/api/AiImage {
 	public static final field $stable I
 	public fun <init> ([BLjava/lang/String;)V
@@ -835,6 +846,45 @@ public final class ai/rever/boss/plugin/api/AiRound {
 	public fun toString ()Ljava/lang/String;
 }
 
+public abstract class ai/rever/boss/plugin/api/AiSpeechChunk {
+	public static final field $stable I
+	public fun <init> ()V
+}
+
+public final class ai/rever/boss/plugin/api/AiSpeechChunk$Audio : ai/rever/boss/plugin/api/AiSpeechChunk {
+	public static final field $stable I
+	public fun <init> ([B)V
+	public final fun getBytes ()[B
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/AiSpeechChunk$Completed : ai/rever/boss/plugin/api/AiSpeechChunk {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/Integer;)V
+	public synthetic fun <init> (Ljava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getBilledSeconds ()Ljava/lang/Integer;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/AiSpeechChunk$Failed : ai/rever/boss/plugin/api/AiSpeechChunk {
+	public static final field $stable I
+	public fun <init> (Lai/rever/boss/plugin/api/AiVoiceError;)V
+	public final fun getError ()Lai/rever/boss/plugin/api/AiVoiceError;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/AiSpeechRequest {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;J)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;JILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getExtras ()Ljava/util/Map;
+	public final fun getText ()Ljava/lang/String;
+	public final fun getTimeoutMs ()J
+	public final fun getVoice ()Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
+}
+
 public abstract interface class ai/rever/boss/plugin/api/AiStepEvent {
 }
 
@@ -924,6 +974,27 @@ public final class ai/rever/boss/plugin/api/AiToolSpec {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class ai/rever/boss/plugin/api/AiTranscription {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;Ljava/lang/Integer;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getBilledSeconds ()Ljava/lang/Integer;
+	public final fun getText ()Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/AiTranscriptionRequest {
+	public static final field $stable I
+	public fun <init> ([BLjava/lang/String;Ljava/lang/String;Ljava/util/Map;J)V
+	public synthetic fun <init> ([BLjava/lang/String;Ljava/lang/String;Ljava/util/Map;JILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getAudio ()[B
+	public final fun getExtras ()Ljava/util/Map;
+	public final fun getFormat ()Ljava/lang/String;
+	public final fun getLanguage ()Ljava/lang/String;
+	public final fun getTimeoutMs ()J
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class ai/rever/boss/plugin/api/AiTurn {
 	public static final field $stable I
 	public fun <init> ()V
@@ -977,6 +1048,47 @@ public final class ai/rever/boss/plugin/api/AiUsage {
 	public final fun getTotalTokens ()I
 	public fun hashCode ()I
 	public final fun plus (Lai/rever/boss/plugin/api/AiUsage;)Lai/rever/boss/plugin/api/AiUsage;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/AiVoiceError {
+	public static final field $stable I
+	public static final field ALLOWANCE_EXCEEDED Ljava/lang/String;
+	public static final field BUSY Ljava/lang/String;
+	public static final field Companion Lai/rever/boss/plugin/api/AiVoiceError$Companion;
+	public static final field FORBIDDEN Ljava/lang/String;
+	public static final field INVALID_INPUT Ljava/lang/String;
+	public static final field NETWORK Ljava/lang/String;
+	public static final field TIMEOUT Ljava/lang/String;
+	public static final field UNSUPPORTED_PROVIDER Ljava/lang/String;
+	public static final field UPSTREAM_ERROR Ljava/lang/String;
+	public static final field WRONG_MODEL_KIND Ljava/lang/String;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Long;Lai/rever/boss/plugin/api/AiVoiceQuota;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Long;Lai/rever/boss/plugin/api/AiVoiceQuota;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getCode ()Ljava/lang/String;
+	public final fun getHttpStatus ()Ljava/lang/Integer;
+	public final fun getMessage ()Ljava/lang/String;
+	public final fun getQuota ()Lai/rever/boss/plugin/api/AiVoiceQuota;
+	public final fun getRetryAfterMs ()Ljava/lang/Long;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/AiVoiceError$Companion {
+}
+
+public final class ai/rever/boss/plugin/api/AiVoiceException : java/lang/Exception {
+	public static final field $stable I
+	public fun <init> (Lai/rever/boss/plugin/api/AiVoiceError;)V
+	public final fun getError ()Lai/rever/boss/plugin/api/AiVoiceError;
+}
+
+public final class ai/rever/boss/plugin/api/AiVoiceQuota {
+	public static final field $stable I
+	public fun <init> (JJJLjava/lang/String;)V
+	public final fun getLimitSeconds ()J
+	public final fun getRemainingSeconds ()J
+	public final fun getResetsAt ()Ljava/lang/String;
+	public final fun getUsedSeconds ()J
 	public fun toString ()Ljava/lang/String;
 }
 

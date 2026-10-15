@@ -613,7 +613,15 @@ group = "ai.rever.boss.plugin.bundled"
 // 1.0.98-compiled plugins still link. Not HostImplemented: gate on minApiVersion 1.0.99.
 // Next release: adds RemoteViewProvider and PluginContext.remoteViewProvider (defaults to null).
 // HostImplemented: gate on the host release that pins this API, not minApiVersion alone.
-version = "1.0.100"
+// 1.0.101: adds AiGatewayVoiceAPI (AiGatewayVoice.kt), speech-to-text and text-to-speech served by the
+// AI gateway, with CAPABILITY_VOICE on that interface's companion (AiGatewayAPI is HostImplemented, so
+// no const is added there). New types only: gate on minApiVersion 1.0.101. Failures are typed
+// AiVoiceError codes; a 429 allowance_exceeded carries an AiVoiceQuota. Quota is also reported after each
+// call (AiTranscription.quota, AiSpeechChunk.Completed.quota) and readable up front via AiGatewayVoiceAPI.quota().
+// 1.0.102: adds AiGatewayVoiceAPI.startLiveCall (default: unsupported_provider) with AiLiveCallRequest and
+// AiLiveCall, a LiveKit-backed live voice call started through the provider's /voice/live route. Tokens are
+// hidden from toString. New members on a non-host interface plus new types: gate on minApiVersion 1.0.102.
+version = "1.0.102"
 // Local integration builds may stage the next artifact without advancing release CI twice.
 providers.gradleProperty("localApiVersion").orNull?.let { version = it }
 

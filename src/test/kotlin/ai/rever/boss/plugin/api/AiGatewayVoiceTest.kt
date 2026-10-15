@@ -46,4 +46,21 @@ class AiGatewayVoiceTest {
         }
         assertEquals(null, runBlocking { voice.quota(emptyMap()) }.getOrThrow())
     }
+
+    @Test
+    fun `live call types hide tokens and the default is unsupported`() {
+        val request = AiLiveCallRequest("https://fluck.example/api/voice/agent", "SECRET-agent-token")
+        assertEquals(1800, request.maxSeconds)
+        assertTrue(request.extras.isEmpty())
+        assertFalse("SECRET" in request.toString())
+        val call = AiLiveCall("wss://x.livekit.cloud", "SECRET-participant", "fluck-call-1", "2026-11-01T00:00:00Z")
+        assertFalse("SECRET" in call.toString())
+        assertEquals(null, call.quota)
+        val api = object : AiGatewayVoiceAPI {
+            override suspend fun transcribe(request: AiTranscriptionRequest): Result<AiTranscription> = Result.success(AiTranscription(""))
+            override fun speak(request: AiSpeechRequest): Flow<AiSpeechChunk> = emptyFlow()
+        }
+        val failure = runBlocking { api.startLiveCall(request) }.exceptionOrNull() as AiVoiceException
+        assertEquals(AiVoiceError.UNSUPPORTED_PROVIDER, failure.error.code)
+    }
 }

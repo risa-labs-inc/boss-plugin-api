@@ -27,6 +27,17 @@ interface AiGatewayVoiceAPI {
      */
     suspend fun quota(extras: Map<String, String> = emptyMap()): Result<AiVoiceQuota?> = Result.success(null)
 
+    /**
+     * Starts a live voice call: the provider creates a WebRTC room and dispatches its agent worker into it,
+     * and returns what the client needs to join. The worker calls [AiLiveCallRequest.agentUrl] with
+     * [AiLiveCallRequest.agentToken] for each reply; talk time is metered by the provider's audio calls.
+     * Never throws except `CancellationException`; failures are `Result.failure(AiVoiceException)`, with
+     * [AiVoiceError.ALLOWANCE_EXCEEDED] (and a quota) when under a minute is left.
+     * Default: `Result.failure(AiVoiceException(unsupported_provider))`.
+     */
+    suspend fun startLiveCall(request: AiLiveCallRequest): Result<AiLiveCall> =
+        Result.failure(AiVoiceException(AiVoiceError(AiVoiceError.UNSUPPORTED_PROVIDER, "This provider does not support live calls.")))
+
     companion object {
         /** [AiGatewayAPI.capabilities] entry: the gateway implements [AiGatewayVoiceAPI]. */
         const val CAPABILITY_VOICE: String = "voice"
@@ -54,6 +65,34 @@ class AiTranscription(
     val quota: AiVoiceQuota? = null,
 ) {
     override fun toString(): String = "AiTranscription(text.length=${text.length}, billedSeconds=$billedSeconds, quota=$quota)"
+}
+
+/**
+ * [agentUrl] is the https endpoint the call's worker posts each turn to, authenticated by [agentToken] (an opaque
+ * per-call secret of 32 to 256 characters). [maxSeconds] is 60 to 3600. [extras] keys: providerId. toString hides
+ * the token.
+ */
+class AiLiveCallRequest(
+    val agentUrl: String,
+    val agentToken: String,
+    val maxSeconds: Int = 1800,
+    val extras: Map<String, String> = emptyMap(),
+) {
+    override fun toString(): String = "AiLiveCallRequest(agentUrl=$agentUrl, maxSeconds=$maxSeconds)"
+}
+
+/**
+ * A started live call. [participantToken] is the client's room credential and expires at [expiresAt] (ISO-8601);
+ * [quota] is the talk time left, when reported. toString hides the token.
+ */
+class AiLiveCall(
+    val serverUrl: String,
+    val participantToken: String,
+    val room: String,
+    val expiresAt: String,
+    val quota: AiVoiceQuota? = null,
+) {
+    override fun toString(): String = "AiLiveCall(serverUrl=$serverUrl, room=$room, expiresAt=$expiresAt, quota=$quota)"
 }
 
 /** [voice] overrides the model's default voice. toString omits the text. */

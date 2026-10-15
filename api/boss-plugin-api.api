@@ -663,6 +663,7 @@ public abstract interface class ai/rever/boss/plugin/api/AiGatewayVoiceAPI {
 	public fun quota-gIAlu-s (Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun quota-gIAlu-s$default (Lai/rever/boss/plugin/api/AiGatewayVoiceAPI;Ljava/util/Map;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun speak (Lai/rever/boss/plugin/api/AiSpeechRequest;)Lkotlinx/coroutines/flow/Flow;
+	public fun startLiveCall-gIAlu-s (Lai/rever/boss/plugin/api/AiLiveCallRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun transcribe-gIAlu-s (Lai/rever/boss/plugin/api/AiTranscriptionRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
@@ -673,6 +674,7 @@ public final class ai/rever/boss/plugin/api/AiGatewayVoiceAPI$Companion {
 public final class ai/rever/boss/plugin/api/AiGatewayVoiceAPI$DefaultImpls {
 	public static fun quota-gIAlu-s (Lai/rever/boss/plugin/api/AiGatewayVoiceAPI;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun quota-gIAlu-s$default (Lai/rever/boss/plugin/api/AiGatewayVoiceAPI;Ljava/util/Map;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static fun startLiveCall-gIAlu-s (Lai/rever/boss/plugin/api/AiGatewayVoiceAPI;Lai/rever/boss/plugin/api/AiLiveCallRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class ai/rever/boss/plugin/api/AiImage {
@@ -686,6 +688,29 @@ public final class ai/rever/boss/plugin/api/AiImage {
 	public final fun getBytes ()[B
 	public final fun getMediaType ()Ljava/lang/String;
 	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/AiLiveCall {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/api/AiVoiceQuota;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lai/rever/boss/plugin/api/AiVoiceQuota;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getExpiresAt ()Ljava/lang/String;
+	public final fun getParticipantToken ()Ljava/lang/String;
+	public final fun getQuota ()Lai/rever/boss/plugin/api/AiVoiceQuota;
+	public final fun getRoom ()Ljava/lang/String;
+	public final fun getServerUrl ()Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ai/rever/boss/plugin/api/AiLiveCallRequest {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;ILjava/util/Map;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ILjava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getAgentToken ()Ljava/lang/String;
+	public final fun getAgentUrl ()Ljava/lang/String;
+	public final fun getExtras ()Ljava/util/Map;
+	public final fun getMaxSeconds ()I
 	public fun toString ()Ljava/lang/String;
 }
 

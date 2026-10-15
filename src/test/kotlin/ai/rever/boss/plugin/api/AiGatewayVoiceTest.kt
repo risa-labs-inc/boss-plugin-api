@@ -50,7 +50,7 @@ class AiGatewayVoiceTest {
     @Test
     fun `live call types hide tokens and the default is unsupported`() {
         val request = AiLiveCallRequest("https://fluck.example/api/voice/agent", "SECRET-agent-token")
-        assertEquals(28_800, request.maxSeconds)
+        assertEquals(3600, request.maxSeconds)
         assertTrue(request.extras.isEmpty())
         assertFalse("SECRET" in request.toString())
         val call = AiLiveCall("wss://x.livekit.cloud", "SECRET-participant", "fluck-call-1", "2026-11-01T00:00:00Z")

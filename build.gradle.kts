@@ -576,6 +576,42 @@ group = "ai.rever.boss.plugin.bundled"
 // row, or subscribing to an id in order to draw a colour, would each be the wrong half doing the
 // other one's work.
 //
+//
+// NEXT adds browser telemetry detail: route/routeKnown on BrowserEvent, the link triple and the
+// three selection fields on BrowserInteractionEvent, and TEXT_SELECTED on
+// BrowserInteractionType. Number unknown until merge - release CI bump-pushes before building,
+// so main's version below is the version already released and this merge cuts the next.
+//
+// **NOT ADDITIVE, and apiCheck cannot tell you so.** These are constructor parameters on two
+// data classes that already cross this boundary, which is the hazard spelled out at the top of
+// this file: the synthetic constructor descriptor, copy$default and every componentN from the
+// insertion point onward would all move. apiCheck reports the whole thing as clean because the
+// dump was regenerated. The 1.0.91 entry above took the other road - a new TYPE - precisely to
+// avoid this.
+//
+// What it actually costs, after the mitigation below: EIGHT removed lines in the dump, four per
+// class, and they are the unavoidable four - <init>, synthetic <init>, copy, copy$default. No
+// componentN moves at all.
+//
+// The break was taken anyway, on evidence rather than on hope. Every installed plugin jar was
+// swept with javap (57 of them, ~/.boss/plugins and ~/.boss_debug/plugins): exactly one consumes
+// BrowserEvent/BrowserInteractionEvent - the analytics plugin - and it references GETTERS ONLY,
+// no <init>, copy, copy$default or componentN. So the descriptors that moved are named by
+// nothing that ships. Repeat that sweep before the next change to these two classes; a second
+// consumer makes the same edit a real NoSuchMethodError for every plugin built before it.
+//
+// The new parameters are appended AFTER `timestamp`, which is the mitigation. Ahead of it, every
+// componentN from the insertion point on shifted - component8 went from Long to String? on
+// BrowserEvent and component11 likewise on BrowserInteractionEvent. That is the SILENT half of
+// the break: a positional destructuring keeps compiling and quietly hands back a different type.
+// Appending does not save <init> or copy$default, but it keeps every pre-existing accessor at its
+// own index and type, so what remains is loud.
+//
+// These members are a minBossVersion gate, NOT a minApiVersion one. plugin-api-core filters
+// these types into the host and serves them parent-first, so the host's pinned copy shadows the
+// runtime jar - the jar alone makes them resolvable by nobody. A plugin naming getRoute() or
+// TEXT_SELECTED is rejected WHOLESALE by BinaryCompatibilityValidator below the host that pins
+// this release, so its manifest floor has to be the BOSS version carrying the pin.
 // The number moved once already: this block said 1.0.88 while the branch sat unmerged, and #50
 // (the terminal-tab surface) took 1.0.88 first, then it said 1.0.89 and an unrelated
 // release took that on 2026-09-10. Verified against the published jar, not assumed: v1.0.89

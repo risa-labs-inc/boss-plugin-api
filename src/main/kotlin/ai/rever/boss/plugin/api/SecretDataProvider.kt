@@ -114,6 +114,72 @@ interface SecretDataProvider {
      * Remove sharing for a secret.
      */
     suspend fun unshareSecret(request: UnshareSecretRequestData): Result<Unit>
+
+    /**
+     * Owned and shared secrets, metadata and tags only: no password, notes, TOTP or
+     * recovery codes. [kinds] filters on `kind:<k>` tags (`card`, `password`, `secret`, ...);
+     * null lists every kind. Read values with [getSecretValues].
+     *
+     * Fails on a host without it; never falls back to a value-bearing listing.
+     */
+    suspend fun listSecretsV2(
+        limit: Int = 50,
+        offset: Int = 0,
+        kinds: List<String>? = null
+    ): Result<PaginatedSecretSummariesData> =
+        Result.failure(UnsupportedOperationException("listSecretsV2 needs a newer BOSS host"))
+
+    /**
+     * Decrypted values for [ids] (at most 100). The host logs one audit row per id returned,
+     * tagged [purpose]: a short lowercase label such as `autofill`, `vault` or `mcp`. Ids the
+     * caller may not read are omitted, not reported.
+     *
+     * Fails on a host without it; never falls back to an unaudited read.
+     */
+    suspend fun getSecretValues(
+        ids: List<String>,
+        purpose: String
+    ): Result<List<SecretValuesData>> =
+        Result.failure(UnsupportedOperationException("getSecretValues needs a newer BOSS host"))
+}
+
+/** One row of [SecretDataProvider.listSecretsV2]. No value-bearing fields by design. */
+data class SecretSummaryData(
+    val id: String,
+    val website: String,
+    val username: String,
+    val hasNotes: Boolean = false,
+    val expirationDate: String? = null,
+    val tags: List<String> = emptyList(),
+    val twofaEnabled: Boolean = false,
+    val twofaType: String? = null,
+    val createdAt: String,
+    val updatedAt: String,
+    val isOwner: Boolean = false,
+    val sharedByEmail: String? = null,
+    val accessLevel: String? = null,
+    val orgId: String? = null,
+    val orgSlug: String? = null,
+    val isOrgOwned: Boolean = false,
+    val sharedWithOrgSlug: String? = null,
+    val canManage: Boolean = false
+)
+
+/** Paginated result for [SecretDataProvider.listSecretsV2]. */
+data class PaginatedSecretSummariesData(
+    val data: List<SecretSummaryData>,
+    val hasMore: Boolean
+)
+
+/** One row of [SecretDataProvider.getSecretValues]. */
+data class SecretValuesData(
+    val id: String,
+    val password: String,
+    val notes: String? = null,
+    val twofaSecret: String? = null,
+    val recoveryCodes: List<String> = emptyList()
+) {
+    override fun toString(): String = "SecretValuesData(id=$id, fields=[password, notes, twofaSecret, recoveryCodes])"
 }
 
 /**
